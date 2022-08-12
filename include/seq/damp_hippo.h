@@ -616,21 +616,63 @@ SEQ_CUDA
 inline void damp_expl(ExpolScr scrtyp, real& restrict s2, real& restrict ds2, real r, real sizik,
    real alphai, real alphak, bool do_g)
 {
-   real alphaik, dmpik2, dampik, dampik2, expik, s;
-
    if (scrtyp == ExpolScr::S2U) {
-      alphaik = REAL_SQRT(alphai * alphak);
+      real alphaik = REAL_SQRT(alphai * alphak);
       constexpr real inv2 = 1. / 2, inv3 = 1. / 3;
       constexpr real one = 1.;
-      dmpik2 = inv2 * alphaik;
-      dampik = dmpik2 * r;
-      dampik2 = dampik * dampik;
-      expik = REAL_EXP(-dampik);
-      s = (one + dampik + dampik2 * inv3) * expik;
+      real dmpik2 = inv2 * alphaik;
+      real dampik = dmpik2 * r;
+      real dampik2 = dampik * dampik;
+      real expik = REAL_EXP(-dampik);
+      real s = (one + dampik + dampik2 * inv3) * expik;
       s2 = s * s;
       if (do_g)
          ds2 = s * (-alphaik * inv3) * (dampik + dampik2) * expik;
    }
+   else if (scrtyp == ExpolScr::S2) {
+      real pfac = 2 / (alphai + alphak);
+      real r2 = r * r;
+      pfac = pfac * pfac;
+      pfac = pfac * alphai * alphak;
+      pfac = pfac * pfac * pfac;
+      pfac *= r2;
+
+      real a = alphai * r / 2, b = alphak * r / 2;
+      real c = (a + b) / 2, d = (b - a) / 2;
+      real expmc = REAL_EXP(-c);
+
+      real c2 = c * c;
+      real d2 = d * d;
+      real c2d2 = (c * d) * (c * d);
+      // only need up until f3d, ask Zhi how to get rid of unused terms
+      real f1d, f2d, f3d, f4d, f5d, f6d;
+      fsinhc6(d, f1d, f2d, f3d, f4d, f5d, f6d);
+
+      // compute
+      // clang-format off
+      real s;
+      s = f1d * (c+1)
+      + f2d * c2;
+      s /= r;
+      s *= expmc;
+      s2 = pfac * s * s;
+
+      if (do_g) {
+      real ds;
+      ds = f1d * c2
+         + f2d * ((c-2)*c2 - (c+1)*d2)
+         - f3d * c2d2;
+      ds /= -r2;
+      ds *= expmc;
+      ds2 = pfac * 2 * s * ds;
+      }
+   }
+   else if (scrtyp == ExpolScr::G) {
+      real alphaik = REAL_SQRT(alphai * alphak);
+      s2 = REAL_EXP(-alphaik/10.0f * r*r);
+      if (do_g)
+         ds2 = (-alphaik/5.0f)*r*s2;
+   } 
    s2 = sizik * s2;
    if (do_g)
       ds2 = sizik * ds2;

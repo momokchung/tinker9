@@ -73,7 +73,7 @@ inline void pair_dexpol(ExpolScr scrtyp, real r, real r2, real pscale, real cut,
    real ds2k = springk * ds2 * pscale;
 
    // compute rotation matrix
-   real ai[3][3], ak[3][3];
+   real ai[3][3];
    ai[0][2] = xr / r;
    ai[1][2] = yr / r;
    ai[2][2] = zr / r;
@@ -97,26 +97,18 @@ inline void pair_dexpol(ExpolScr scrtyp, real r, real r2, real pscale, real cut,
    ai[0][1] = ai[2][0] * ai[1][2] - ai[1][0] * ai[2][2];
    ai[1][1] = ai[0][0] * ai[2][2] - ai[2][0] * ai[0][2];
    ai[2][1] = ai[1][0] * ai[0][2] - ai[0][0] * ai[1][2];
-   ak[0][0] = ai[0][0];
-   ak[1][0] = ai[1][0];
-   ak[2][0] = ai[2][0];
-   ak[0][1] = -ai[0][1];
-   ak[1][1] = -ai[1][1];
-   ak[2][1] = -ai[2][1];
-   ak[0][2] = -ai[0][2];
-   ak[1][2] = -ai[1][2];
-   ak[2][2] = -ai[2][2];
+   // ak[j][0] = ai[j][0], ak[j][1] = -ai[j][1], ak[j][2] = -ai[j][2] for j = 1,2,3
 
    // local frame force
    real frcil[3], frckl[3];
    real uixl = uix * ai[0][0] + uiy * ai[1][0] + uiz * ai[2][0];
    real uiyl = uix * ai[0][1] + uiy * ai[1][1] + uiz * ai[2][1];
    real uizl = uix * ai[0][2] + uiy * ai[1][2] + uiz * ai[2][2];
-   real ukxl = -(ukx * ak[0][0] + uky * ak[1][0] + ukz * ak[2][0]);
-   real ukyl = -(ukx * ak[0][1] + uky * ak[1][1] + ukz * ak[2][1]);
-   real ukzl = -(ukx * ak[0][2] + uky * ak[1][2] + ukz * ak[2][2]);
-   frcil[2] = REAL_POW(uizl, 2) * ds2i;
-   frckl[2] = REAL_POW(ukzl, 2) * ds2k;
+   real ukxl = -(ukx * ai[0][0] + uky * ai[1][0] + ukz * ai[2][0]);
+   real ukyl = ukx * ai[0][1] + uky * ai[1][1] + ukz * ai[2][1];
+   real ukzl = ukx * ai[0][2] + uky * ai[1][2] + ukz * ai[2][2];
+   frcil[2] = uizl * uizl * ds2i;
+   frckl[2] = ukzl * ukzl * ds2k;
    // local frame torque
    constexpr real two = 2.;
    real tqxil = two * uiyl * uizl * s2i;
@@ -132,9 +124,9 @@ inline void pair_dexpol(ExpolScr scrtyp, real r, real r2, real pscale, real cut,
    real frcxi = ai[0][0] * frcil[0] + ai[0][1] * frcil[1] + ai[0][2] * frcil[2];
    real frcyi = ai[1][0] * frcil[0] + ai[1][1] * frcil[1] + ai[1][2] * frcil[2];
    real frczi = ai[2][0] * frcil[0] + ai[2][1] * frcil[1] + ai[2][2] * frcil[2];
-   real frcxk = ak[0][0] * frckl[0] + ak[0][1] * frckl[1] + ak[0][2] * frckl[2];
-   real frcyk = ak[1][0] * frckl[0] + ak[1][1] * frckl[1] + ak[1][2] * frckl[2];
-   real frczk = ak[2][0] * frckl[0] + ak[2][1] * frckl[1] + ak[2][2] * frckl[2];
+   real frcxk = ai[0][0] * frckl[0] - ai[0][1] * frckl[1] - ai[0][2] * frckl[2];
+   real frcyk = ai[1][0] * frckl[0] - ai[1][1] * frckl[1] - ai[1][2] * frckl[2];
+   real frczk = ai[2][0] * frckl[0] - ai[2][1] * frckl[1] - ai[2][2] * frckl[2];
    frc[0] = f * (frcxk - frcxi);
    frc[1] = f * (frcyk - frcyi);
    frc[2] = f * (frczk - frczi);

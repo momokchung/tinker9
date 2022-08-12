@@ -65,11 +65,11 @@ TINKER_EXTERN Chgtrn ctrntyp;
 
 // expol
 namespace tinker {
-TINKER_EXTERN real* kpep;
-TINKER_EXTERN real* prepep;
-TINKER_EXTERN real* dmppep;
-TINKER_EXTERN int* lpep;
-TINKER_EXTERN real (*polscale)[3][3];
-TINKER_EXTERN real (*polinv)[3][3];
-TINKER_EXTERN ExpolScr scrtyp;
+TINKER_EXTERN real* kpep;   // array of spring parameter
+TINKER_EXTERN real* prepep; // array of size parameter
+TINKER_EXTERN real* dmppep; // array of exponential parameter
+TINKER_EXTERN int* lpep;    // 0 or 1. 0-0 interactions have no expol, other interactions do
+TINKER_EXTERN real (*polscale)[3][3]; // polarization alpha -> alpha/polscale with expol
+TINKER_EXTERN real (*polinv)[3][3];   // inverse of polscale
+TINKER_EXTERN ExpolScr scrtyp;        // screening type, default is S2U
 }

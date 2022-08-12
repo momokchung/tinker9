@@ -263,8 +263,8 @@ void induceMutualPcg4_cu(real (*uind)[3])
 
       if (eps < poleps)
          done = true;
-      if (eps > epsold)
-         done = true;
+      // if (eps > epsold)
+      //    done = true;
       if (iter >= politer)
          done = true;
 
@@ -282,7 +282,8 @@ void induceMutualPcg4_cu(real (*uind)[3])
    }
 
    // terminate the calculation if dipoles failed to converge
-   if (iter >= maxiter || eps > epsold) {
+   // if (iter >= maxiter || eps > epsold) {
+   if (iter >= maxiter) {
       printError();
       TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged");
    }

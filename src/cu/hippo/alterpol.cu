@@ -214,24 +214,24 @@ static void alterpol_cu1(int n, TINKER_IMAGE_PARAMS, real cut, real off,
             real ks2i[3][3], ks2k[3][3];
             pair_alterpol(scrtyp, r, r2, scaleb, cut, off, xr, yr, zr, springi[klane], sizi[klane],
                alphai[klane], springk, sizk, alphak, ks2i, ks2k);
-            psci00[klane] = ks2i[0][0];
-            psci01[klane] = ks2i[0][1];
-            psci02[klane] = ks2i[0][2];
-            psci10[klane] = ks2i[1][0];
-            psci11[klane] = ks2i[1][1];
-            psci12[klane] = ks2i[1][2];
-            psci20[klane] = ks2i[2][0];
-            psci21[klane] = ks2i[2][1];
-            psci22[klane] = ks2i[2][2];
-            psck00 = ks2k[0][0];
-            psck01 = ks2k[0][1];
-            psck02 = ks2k[0][2];
-            psck10 = ks2k[1][0];
-            psck11 = ks2k[1][1];
-            psck12 = ks2k[1][2];
-            psck20 = ks2k[2][0];
-            psck21 = ks2k[2][1];
-            psck22 = ks2k[2][2];
+            psci00[klane] += ks2i[0][0];
+            psci01[klane] += ks2i[0][1];
+            psci02[klane] += ks2i[0][2];
+            psci10[klane] += ks2i[1][0];
+            psci11[klane] += ks2i[1][1];
+            psci12[klane] += ks2i[1][2];
+            psci20[klane] += ks2i[2][0];
+            psci21[klane] += ks2i[2][1];
+            psci22[klane] += ks2i[2][2];
+            psck00 += ks2k[0][0];
+            psck01 += ks2k[0][1];
+            psck02 += ks2k[0][2];
+            psck10 += ks2k[1][0];
+            psck11 += ks2k[1][1];
+            psck12 += ks2k[1][2];
+            psck20 += ks2k[2][0];
+            psck21 += ks2k[2][1];
+            psck22 += ks2k[2][2];
          }
 
          iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
@@ -312,24 +312,24 @@ static void alterpol_cu1(int n, TINKER_IMAGE_PARAMS, real cut, real off,
             real ks2i[3][3], ks2k[3][3];
             pair_alterpol(scrtyp, r, r2, scaleb, cut, off, xr, yr, zr, springi[klane], sizi[klane],
                alphai[klane], springk, sizk, alphak, ks2i, ks2k);
-            psci00[klane] = ks2i[0][0];
-            psci01[klane] = ks2i[0][1];
-            psci02[klane] = ks2i[0][2];
-            psci10[klane] = ks2i[1][0];
-            psci11[klane] = ks2i[1][1];
-            psci12[klane] = ks2i[1][2];
-            psci20[klane] = ks2i[2][0];
-            psci21[klane] = ks2i[2][1];
-            psci22[klane] = ks2i[2][2];
-            psck00 = ks2k[0][0];
-            psck01 = ks2k[0][1];
-            psck02 = ks2k[0][2];
-            psck10 = ks2k[1][0];
-            psck11 = ks2k[1][1];
-            psck12 = ks2k[1][2];
-            psck20 = ks2k[2][0];
-            psck21 = ks2k[2][1];
-            psck22 = ks2k[2][2];
+            psci00[klane] += ks2i[0][0];
+            psci01[klane] += ks2i[0][1];
+            psci02[klane] += ks2i[0][2];
+            psci10[klane] += ks2i[1][0];
+            psci11[klane] += ks2i[1][1];
+            psci12[klane] += ks2i[1][2];
+            psci20[klane] += ks2i[2][0];
+            psci21[klane] += ks2i[2][1];
+            psci22[klane] += ks2i[2][2];
+            psck00 += ks2k[0][0];
+            psck01 += ks2k[0][1];
+            psck02 += ks2k[0][2];
+            psck10 += ks2k[1][0];
+            psck11 += ks2k[1][1];
+            psck12 += ks2k[1][2];
+            psck20 += ks2k[2][0];
+            psck21 += ks2k[2][1];
+            psck22 += ks2k[2][2];
          }
       }
 
