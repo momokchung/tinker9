@@ -98,6 +98,10 @@ bool use(Potent term)
    case Potent::MUTATE:
       val = potent::use_mutate;
       break;
+   
+   case Potent::BORN:
+      val = potent::use_born;
+      break;
 
    default:
       assert(false);

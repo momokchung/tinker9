@@ -30,6 +30,7 @@ enum class Potent
    POLAR,  ///< Polarization term.
    CHGTRN, ///< Charge transfer term.
    RXNFLD, ///< Reaction field term.
+   BORN,   ///< Born radii term.
    SOLV,   ///< Continuum solvation term.
    METAL,  ///< Ligand field term.
    GEOM,   ///< Geometric restraints.

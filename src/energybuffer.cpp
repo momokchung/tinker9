@@ -37,6 +37,25 @@ void bufferDeallocate(int flag, EnergyBuffer e, VirialBuffer v, //
       darray::deallocate(gx, gy, gz);
 }
 
+void bufferAllocate(int flag, EnergyBuffer* pe, grad_prec** px, grad_prec** py, grad_prec** pz)
+{
+   assert(flag & calc::analyz);
+   size_t bsize = bufferSize();
+   if (flag & calc::energy)
+      darray::allocate(bsize, pe);
+   if (flag & calc::grad)
+      darray::allocate(n, px, py, pz);
+}
+
+void bufferDeallocate(int flag, EnergyBuffer e, grad_prec* gx, grad_prec* gy, grad_prec* gz)
+{
+   assert(flag & calc::analyz);
+   if (flag & calc::energy)
+      darray::deallocate(e);
+   if (flag & calc::grad)
+      darray::deallocate(gx, gy, gz);
+}
+
 void bufferAllocate(int flag, CountBuffer* pc)
 {
    assert(flag & calc::analyz);

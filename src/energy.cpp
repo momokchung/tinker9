@@ -5,6 +5,7 @@ namespace tinker {
 const TimeScaleConfig& defaultTSConfig()
 {
    static TimeScaleConfig tsconfig{
+      {"born", 0},
       {"ebond", 0},
       {"eangle", 0},
       {"estrbnd", 0},
@@ -70,6 +71,7 @@ static bool fts(std::string eng, bool& use_flag, unsigned tsflag, const TimeScal
 #include "ff/nblist.h"
 #include "ff/pmestream.h"
 #include "ff/potent.h"
+#include "ff/solv/born.h"
 #include <tinker/detail/mplpot.hh>
 #include <tinker/detail/polpot.hh>
 
@@ -267,6 +269,10 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
       if (tscfg("erepel", ecore_vdw))
          erepel(vers);
 
+   if (use(Potent::BORN))
+      if (tscfg("born", ecore_ele))
+         born(vers);
+
    pmeStreamFinishWait(use_pme_stream and not static_cast<bool>(vers & calc::analyz));
 
 #undef tscfg
@@ -447,6 +453,9 @@ void energyData(RcOp op)
    RcMan elec42{elecData, op};
    RcMan pme42{pmeData, op};
 
+   // SOLV
+   RcMan born42{bornData, op};
+
    RcMan echarge42{echargeData, op};
    // Must follow evdw_data() and echarge_data().
    RcMan echglj42{echgljData, op};
@@ -493,6 +502,9 @@ bool useEnergyElec()
 
    // HIPPO
    ans = ans or use(Potent::CHGTRN);
+
+   // SOLV
+   ans = ans or use(Potent::BORN);
 
    return ans;
 }
