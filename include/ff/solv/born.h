@@ -55,9 +55,11 @@ TINKER_EXTERN real stillp4;
 TINKER_EXTERN real stillp5;
 TINKER_EXTERN real* rsolv;
 TINKER_EXTERN real* rdescr;
+TINKER_EXTERN real* asolv;
 TINKER_EXTERN real* rborn;
 TINKER_EXTERN real* drb;
 TINKER_EXTERN real* drbp;
+TINKER_EXTERN real* drobc;
 TINKER_EXTERN real* gpol;
 TINKER_EXTERN real* shct;
 TINKER_EXTERN real* aobc;
@@ -73,4 +75,6 @@ TINKER_EXTERN grad_prec* desolvx;
 TINKER_EXTERN grad_prec* desolvy;
 TINKER_EXTERN grad_prec* desolvz;
 TINKER_EXTERN energy_prec energy_esolv;
+
+TINKER_EXTERN real* roff;
 }

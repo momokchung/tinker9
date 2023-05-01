@@ -21,10 +21,9 @@ void bornData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(rsolv);
-      darray::deallocate(rdescr);
-      darray::deallocate(rborn);
-      darray::deallocate(shct);
+      darray::deallocate(rsolv, rdescr, rborn, shct, drobc);
+      darray::deallocate(aobc, bobc, gobc);
+      darray::deallocate(roff);
 
       // if (rc_a) {
       //    bufferDeallocate(rc_flag, esolv, desolvx, desolvy, desolvz);
@@ -39,10 +38,9 @@ void bornData(RcOp op)
    }
 
    if (op & RcOp::ALLOC) {
-      darray::allocate(n, &rsolv);
-      darray::allocate(n, &rdescr);
-      darray::allocate(n, &rborn);
-      darray::allocate(n, &shct);
+      darray::allocate(n, &rsolv, &rdescr, &rborn, &shct, &drobc);
+      darray::allocate(n, &aobc, &bobc, &gobc);
+      darray::allocate(n, &roff);
 
       // esolv = eng_buf_elec;
       // desolvx = gx_elec;
@@ -54,23 +52,37 @@ void bornData(RcOp op)
    }
 
    if (op & RcOp::INIT) {
-      darray::copyin(g::q0, n, rsolv, solute::rsolv);
-      darray::copyin(g::q0, n, rdescr, solute::rdescr);
-      darray::copyin(g::q0, n, rborn, solute::rborn);
-      darray::copyin(g::q0, n, shct, solute::shct);
-      waitFor(g::q0);
-
       FstrView bornview = solpot::borntyp;
       if (bornview == "GRYCUK")
          borntyp = Born::GRYCUK;
+      else if (bornview == "HCT")
+         borntyp = Born::HCT;
+      else if (bornview == "OBC")
+         borntyp = Born::OBC;
       else
          borntyp = Born::NONE;
 
       FstrView solvview = solpot::solvtyp;
       if (solvview == "GK")
          solvtyp = Solv::GK;
+      else if (solvview == "GB")
+         solvtyp = Solv::GB;
       else
          solvtyp = Solv::NONE;
+
+      darray::copyin(g::q0, n, rsolv, solute::rsolv);
+      darray::copyin(g::q0, n, shct, solute::shct);
+      if (solvtyp == Solv::GK or solvtyp == Solv::GKHPMF) {
+         darray::copyin(g::q0, n, rdescr, solute::rdescr);
+      }
+      if (borntyp == Born::OBC) {
+         darray::copyin(g::q0, n, aobc, solute::aobc);
+         darray::copyin(g::q0, n, bobc, solute::bobc);
+         darray::copyin(g::q0, n, gobc, solute::gobc);
+      }
+      waitFor(g::q0);
+
+      doffset = solute::doffset;
    }
 }
 }

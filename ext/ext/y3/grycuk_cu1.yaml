@@ -1,5 +1,5 @@
 OUTPUT_DIR: src/cu/solv
-KERNEL_NAME: born_cu1
+KERNEL_NAME: grycuk_cu1
 # TEMPLATE_PARAMS:
 # CONSTEXPR_FLAGS:
 
@@ -41,10 +41,10 @@ FULL_PAIRWISE_INTERACTION: |
     real pairrborni = 0.;
     real pairrbornk = 0.;
     if (computei) {
-      pair_born(r, r2, pi43, @rsi@, @rdi@, @rdk@, @shctk@, pairrborni);
+      pair_grycuk(r, r2, pi43, @rsi@, @rdi@, @rdk@, @shctk@, pairrborni);
     }
     if (computek) {
-      pair_born(r, r2, pi43, @rsk@, @rdk@, @rdi@, @shcti@, pairrbornk);
+      pair_grycuk(r, r2, pi43, @rsk@, @rdk@, @rdi@, @shcti@, pairrbornk);
     }
 
     @rborni@ += pairrborni;

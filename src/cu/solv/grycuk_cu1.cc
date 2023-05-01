@@ -1,6 +1,6 @@
 // ck.py Version 3.1.0
 __global__
-void born_cu1(int n, TINKER_IMAGE_PARAMS, const real* restrict x, const real* restrict y, const real* restrict z,
+void grycuk_cu1(int n, TINKER_IMAGE_PARAMS, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
    const int* restrict lst, real* restrict rborn, const real* restrict rsolv, const real* restrict rdescr,
    const real* restrict shct, real pi43)
@@ -40,10 +40,10 @@ if (incl) {
  real pairrborni = 0.;
  real pairrbornk = 0.;
  if (computei) {
-   pair_born(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+   pair_grycuk(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
  }
  if (computek) {
-   pair_born(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+   pair_grycuk(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
  }
 
  rborni += pairrborni;
@@ -98,10 +98,10 @@ if (incl) {
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_born(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+               pair_grycuk(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
             }
             if (computek) {
-               pair_born(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+               pair_grycuk(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
             }
 
             rborni += pairrborni;
@@ -155,10 +155,10 @@ if (incl) {
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_born(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+               pair_grycuk(r, r2, pi43, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
             }
             if (computek) {
-               pair_born(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+               pair_grycuk(r, r2, pi43, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
             }
 
             rborni += pairrborni;

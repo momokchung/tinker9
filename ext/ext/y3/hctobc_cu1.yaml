@@ -1,0 +1,50 @@
+OUTPUT_DIR: src/cu/solv
+KERNEL_NAME: hctobc_cu1
+# TEMPLATE_PARAMS:
+# CONSTEXPR_FLAGS:
+
+EXTRA_PARAMS: |
+  , real* restrict rborn
+  , const real* restrict roff
+  , const real* restrict shct
+
+I_VARIABLES:
+  - shared real xi       from:x
+  - shared real yi       from:y
+  - shared real zi       from:z
+  - shared real ri       from:roff
+  - shared real shcti    from:shct
+K_VARIABLES:
+  - shared real xk       from:x
+  - shared real yk       from:y
+  - shared real zk       from:z
+  - register real rk     from:roff
+  - register real shctk  from:shct
+I_FORCE:
+  - register real rborni addto:rborn
+K_FORCE:
+  - register real rbornk addto:rborn
+
+FULL_PAIRWISE_INTERACTION: |
+  real xr = @xk@ - @xi@;
+  real yr = @yk@ - @yi@;
+  real zr = @zk@ - @zi@;
+  real r2 = xr*xr + yr*yr + zr*zr;
+  if (incl) {
+    real r = REAL_SQRT(r2);
+    real si = @ri@ * @shcti@;
+    real sk = @rk@ * @shctk@;
+    bool computei = @ri@ < (r+sk);
+    bool computek = @rk@ < (r+si);
+    real pairrborni = 0.;
+    real pairrbornk = 0.;
+    if (computei) {
+      pair_hctobc(r, @ri@, @rk@, sk, pairrborni);
+    }
+    if (computek) {
+      pair_hctobc(r, @rk@, @ri@, si, pairrbornk);
+    }
+
+    @rborni@ += pairrborni;
+    @rbornk@ += pairrbornk;
+  }
