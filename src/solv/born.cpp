@@ -21,8 +21,7 @@ void bornData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(rsolv, rdescr, shct, drobc);
-      darray::deallocate(rborn);
+      darray::deallocate(rsolv, rdescr, shct, drobc, rborn);
       darray::deallocate(aobc, bobc, gobc);
       darray::deallocate(roff);
       
@@ -31,8 +30,7 @@ void bornData(RcOp op)
    }
 
    if (op & RcOp::ALLOC) {
-      darray::allocate(n, &rsolv, &rdescr, &shct, &drobc);
-      darray::allocate(n, &rborn);
+      darray::allocate(n, &rsolv, &rdescr, &shct, &drobc, &rborn);
       darray::allocate(n, &aobc, &bobc, &gobc);
       darray::allocate(n, &roff);
    }
@@ -71,15 +69,25 @@ void bornData(RcOp op)
       doffset = solute::doffset;
    }
 }
-}
 
-namespace tinker {
+TINKER_FVOID2(acc0, cu1, bornInit);
 TINKER_FVOID2(acc0, cu1, born, int);
+TINKER_FVOID2(acc0, cu1, bornFinal, int);
+TINKER_FVOID2(acc0, cu1, bornPrint);
+
 void born(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
    auto do_a = vers & calc::analyz;
 
+   darray::zero(g::q0, n, rborn);
+
+   TINKER_FCALL2(acc0, cu1, bornInit);
+
    TINKER_FCALL2(acc0, cu1, born, vers);
+
+   TINKER_FCALL2(acc0, cu1, bornFinal, vers);
+
+   TINKER_FCALL2(acc0, cu1, bornPrint);
 }
 }

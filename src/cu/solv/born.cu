@@ -22,57 +22,25 @@ static void bornInit_cu1(int n, real doffset, const real* restrict rsolv, real* 
 }
 
 __global__
-static void grycukInit_cu1(int n, real pi43, const real* restrict rsolv, real* restrict rborn)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real ri = rsolv[i];
-      real sum = 0.f;
-      if (ri > 0.f) {
-         sum = pi43 / REAL_POW(ri,3);
-      }
-      rborn[i] = sum; 
-   }
-}
-
-__global__
-static void hctInit_cu1(int n, const real* restrict roff, real* restrict rborn)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      rborn[i] = 1.f / roff[i]; 
-   }
-}
-
-__global__
-static void obcInit_cu1(int n, real* restrict rborn)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      rborn[i] = 0.f; 
-   }
-}
-
-__global__
-static void grycukFinal_cu1(int n, real pi43, const real* restrict rsolv, real* restrict rborn)
+static void grycukFinal_cu1(int n, const real* restrict rsolv, real* restrict rborn)
 {
    real third = 0.333333333333333333;
    for (int i = ITHREAD; i < n; i += STRIDE) {
-      real ri;
-      ri = rsolv[i];
+      real ri = rsolv[i];
       if (ri > 0.f) {
          real rborni = rborn[i];
-         rborni = REAL_POW((rborni/pi43),third);
-         if (rborni < 0.) {
-            rborni = 0.0001;
-         }
+         rborni = REAL_POW((rborni + 1.f/REAL_POW(ri,3)),third);
+         if (rborni < 0.) rborni = 0.0001;
          rborn[i] = 1.f / rborni;
       }
    }
 }
 
 __global__
-static void hctFinal_cu1(int n, real* restrict rborn)
+static void hctFinal_cu1(int n, const real* restrict roff, real* restrict rborn)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
-      real rborni = rborn[i];
+      real rborni = rborn[i] + 1.f/roff[i];
       rborn[i] = 1.f / rborni;
    }
 }
@@ -99,7 +67,7 @@ static void obcFinal_cu1(int n, const real* restrict roff, const real* restrict 
 }
 
 __global__
-static void bornPrint_cu1(int n, real* restrict rborn)
+static void bornPrint_cu1(int n, const real* restrict rborn)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
       real rborni = rborn[i];
@@ -109,64 +77,46 @@ static void bornPrint_cu1(int n, real* restrict rborn)
    }
 }
 
-void grycuk_cu(int vers)
+void bornInit_cu()
 {
-   real pi43 = 4. * M_PI / 3.;
-   const auto& st = *mspatial_v2_unit;
-
-   launch_k1s(g::s0, n, grycukInit_cu1, n, pi43, rsolv, rborn);
-   
-   int ngrid = gpuGridSize(BLOCK_DIM);
-   grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-      rborn, rsolv, rdescr, shct, pi43);
-   
-   launch_k1s(g::s0, n, grycukFinal_cu1, n, pi43, rsolv, rborn);
-
-   launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
-}
-
-void hct_cu(int vers)
-{
-   const auto& st = *mspatial_v2_unit;
-
-   launch_k1s(g::s0, n, hctInit_cu1, n, roff, rborn);
-
-   int ngrid = gpuGridSize(BLOCK_DIM);
-   hctobc_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-      rborn, roff, shct);
-
-   launch_k1s(g::s0, n, hctFinal_cu1, n, rborn);
-
-   launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
-}
-
-void obc_cu(int vers)
-{
-   const auto& st = *mspatial_v2_unit;
-
-   launch_k1s(g::s0, n, obcInit_cu1, n, rborn);
-
-   int ngrid = gpuGridSize(BLOCK_DIM);
-   hctobc_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-      rborn, roff, shct);
-
-   launch_k1s(g::s0, n, obcFinal_cu1, n, roff, rsolv, aobc, bobc, gobc, rborn, drobc);
-
-   launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
+   launch_k1s(g::s0, n, bornInit_cu1, n, doffset, rsolv, roff, drobc);
 }
 
 void born_cu(int vers)
 {
-   launch_k1s(g::s0, n, bornInit_cu1, n, doffset, rsolv, roff, drobc);
+   const auto& st = *mspatial_v2_unit;
+
+   int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (borntyp == Born::GRYCUK) {
-      grycuk_cu(vers);
+      grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+                  rborn, rsolv, rdescr, shct);
    }
    else if (borntyp == Born::HCT) {
-      hct_cu(vers);
+      hctobc_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+                  rborn, roff, shct);
    }
    else if (borntyp == Born::OBC) {
-      obc_cu(vers);
+      hctobc_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+                  rborn, roff, shct);
    }
+}
+
+void bornFinal_cu(int vers)
+{
+   if (borntyp == Born::GRYCUK) {
+      launch_k1s(g::s0, n, grycukFinal_cu1, n, rsolv, rborn);
+   }
+   else if (borntyp == Born::HCT) {
+      launch_k1s(g::s0, n, hctFinal_cu1, n, roff, rborn);
+   }
+   else if (borntyp == Born::OBC) {
+      launch_k1s(g::s0, n, obcFinal_cu1, n, roff, rsolv, aobc, bobc, gobc, rborn, drobc);
+   }
+}
+
+void bornPrint_cu()
+{
+   launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
 }
 }
