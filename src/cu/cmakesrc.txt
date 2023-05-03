@@ -21,6 +21,7 @@ elj.cu
 epolarrecip.cu
 evalence.cu
 solv/born.cu
+solv/esolv.cu
 hippo/cflux.cu
 hippo/echgtrn.cu
 hippo/edisp.cu

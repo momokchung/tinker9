@@ -21,34 +21,20 @@ void bornData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(rsolv, rdescr, rborn, shct, drobc);
+      darray::deallocate(rsolv, rdescr, shct, drobc);
+      darray::deallocate(rborn);
       darray::deallocate(aobc, bobc, gobc);
       darray::deallocate(roff);
-
-      // if (rc_a) {
-      //    bufferDeallocate(rc_flag, esolv, desolvx, desolvy, desolvz);
-      // }
-      // esolv = nullptr;
-      // desolvx = nullptr;
-      // desolvy = nullptr;
-      // desolvz = nullptr;
       
       borntyp = Born::NONE;
       solvtyp = Solv::NONE;
    }
 
    if (op & RcOp::ALLOC) {
-      darray::allocate(n, &rsolv, &rdescr, &rborn, &shct, &drobc);
+      darray::allocate(n, &rsolv, &rdescr, &shct, &drobc);
+      darray::allocate(n, &rborn);
       darray::allocate(n, &aobc, &bobc, &gobc);
       darray::allocate(n, &roff);
-
-      // esolv = eng_buf_elec;
-      // desolvx = gx_elec;
-      // desolvy = gy_elec;
-      // desolvz = gz_elec;
-      // if (rc_a) {
-      //    bufferAllocate(rc_flag, &esolv, &desolvx, &desolvy, &desolvz);
-      // }
    }
 
    if (op & RcOp::INIT) {
@@ -95,12 +81,5 @@ void born(int vers)
    auto do_a = vers & calc::analyz;
 
    TINKER_FCALL2(acc0, cu1, born, vers);
-
-   // zeroOnHost(energy_esolv);
-   // size_t bsize = bufferSize();
-   // if (rc_a) {
-   //    if (do_a)
-   //       darray::zero(g::q0, bsize, esolv);
-   // }
 }
 }

@@ -34,8 +34,10 @@ enum class Solv
 
 /// \ingroup solv
 void bornData(RcOp);
+void esolvData(RcOp);
 /// \ingroup solv
 void born(int vers);
+void esolv(int vers);
 }
 
 //====================================================================//
@@ -70,11 +72,17 @@ TINKER_EXTERN real* vsolv;
 TINKER_EXTERN Born borntyp;
 TINKER_EXTERN Solv solvtyp;
 
-TINKER_EXTERN EnergyBuffer esolv;
-TINKER_EXTERN grad_prec* desolvx;
-TINKER_EXTERN grad_prec* desolvy;
-TINKER_EXTERN grad_prec* desolvz;
-TINKER_EXTERN energy_prec energy_esolv;
+TINKER_EXTERN CountBuffer nes;
+TINKER_EXTERN EnergyBuffer es;
+TINKER_EXTERN grad_prec* desx;
+TINKER_EXTERN grad_prec* desy;
+TINKER_EXTERN grad_prec* desz;
+TINKER_EXTERN energy_prec energy_es;
 
+// BORN
 TINKER_EXTERN real* roff;
+
+// SOLV
+TINKER_EXTERN real* aecav;
+TINKER_EXTERN real* aedisp;
 }

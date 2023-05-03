@@ -5,7 +5,6 @@ namespace tinker {
 const TimeScaleConfig& defaultTSConfig()
 {
    static TimeScaleConfig tsconfig{
-      {"born", 0},
       {"ebond", 0},
       {"eangle", 0},
       {"estrbnd", 0},
@@ -38,6 +37,8 @@ const TimeScaleConfig& defaultTSConfig()
       {"edisp", 0},
       {"erepel", 0},
       {"ehippo", 0},
+
+      {"esolv", 0},
    };
    return tsconfig;
 }
@@ -270,8 +271,10 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
          erepel(vers);
 
    if (use(Potent::BORN))
-      if (tscfg("born", ecore_ele))
-         born(vers);
+      born(vers);
+   if (use(Potent::SOLV))
+      if (tscfg("esolv", ecore_ele))
+         esolv(vers);
 
    pmeStreamFinishWait(use_pme_stream and not static_cast<bool>(vers & calc::analyz));
 
@@ -473,6 +476,9 @@ void energyData(RcOp op)
    RcMan erepel42{erepelData, op};
    RcMan edisp42{edispData, op};
 
+   // SOLV
+   RcMan esolv42{esolvData, op};
+
    // Must call fftData() after all of the electrostatics routines.
    RcMan fft42{fftData, op};
 }
@@ -504,7 +510,7 @@ bool useEnergyElec()
    ans = ans or use(Potent::CHGTRN);
 
    // SOLV
-   ans = ans or use(Potent::BORN);
+   ans = ans or use(Potent::SOLV);
 
    return ans;
 }

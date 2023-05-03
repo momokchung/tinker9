@@ -35,6 +35,7 @@ evalence.cpp
 evdw.cpp
 exec.cpp
 solv/born.cpp
+solv/esolv.cpp
 hippo/cflux.cpp
 hippo/echgtrn.cpp
 hippo/edisp.cpp

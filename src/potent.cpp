@@ -103,6 +103,10 @@ bool use(Potent term)
       val = potent::use_born;
       break;
 
+   case Potent::SOLV:
+      val = potent::use_solv;
+      break;
+
    default:
       assert(false);
       break;

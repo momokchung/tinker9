@@ -25,8 +25,7 @@ __global__
 static void grycukInit_cu1(int n, real pi43, const real* restrict rsolv, real* restrict rborn)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
-      real ri;
-      ri = rsolv[i];
+      real ri = rsolv[i];
       real sum = 0.f;
       if (ri > 0.f) {
          sum = pi43 / REAL_POW(ri,3);
@@ -73,7 +72,8 @@ __global__
 static void hctFinal_cu1(int n, real* restrict rborn)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
-      rborn[i] = 1.f / rborn[i];
+      real rborni = rborn[i];
+      rborn[i] = 1.f / rborni;
    }
 }
 
@@ -86,11 +86,12 @@ static void obcFinal_cu1(int n, const real* restrict roff, const real* restrict 
       real alpha = aobc[i];
       real beta = bobc[i];
       real gamma = gobc[i];
-      real sum = roi * (-rborn[i]);
+      real rborni = rborn[i];
+      real sum = roi * (-rborni);
       real sum2 = sum * sum;
       real sum3 = sum * sum2;
       real tsum = std::tanh(alpha*sum - beta*sum2 + gamma*sum3);
-      real rborni = 1.f/roi - tsum/rsi;
+      rborni = 1.f/roi - tsum/rsi;
       rborn[i] = 1.f / rborni;
       real tchain = roi * (alpha-2.f*beta*sum+3.f*gamma*sum2);
       drobc[i] = (1.f-tsum*tsum) * tchain / rsi;
@@ -101,8 +102,9 @@ __global__
 static void bornPrint_cu1(int n, real* restrict rborn)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
+      real rborni = rborn[i];
       # if __CUDA_ARCH__>=200
-      printf("implicitsolvent %d %f \n", i, rborn[i]);
+      printf("implicitsolvent %d %f \n", i, rborni);
       #endif  
    }
 }
