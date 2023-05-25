@@ -13,6 +13,14 @@ void dfieldNonEwald(real (*field)[3], real (*fieldp)[3])
 }
 
 namespace tinker {
+TINKER_FVOID2(acc0, cu1, dfieldgk, real, real, real, real, real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
+void dfieldgk(real gkc, real fc, real fd, real fq, real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3])
+{
+   TINKER_FCALL2(acc0, cu1, dfieldgk, gkc, fc, fd, fq, field, fieldp, fields, fieldps);
+}
+}
+
+namespace tinker {
 TINKER_FVOID2(acc1, cu1, dfieldEwaldRecipSelfP2, real (*)[3]);
 void dfieldEwaldRecipSelfP1(real (*field)[3])
 {
@@ -69,6 +77,14 @@ void ufieldNonEwald(const real (*uind)[3], const real (*uinp)[3], //
    real (*field)[3], real (*fieldp)[3])
 {
    TINKER_FCALL2(acc1, cu1, ufieldNonEwald, uind, uinp, field, fieldp);
+}
+
+TINKER_FVOID2(acc0, cu1, ufieldgk, real, real, const real (*)[3], const real (*)[3], const real (*)[3], const real (*)[3], //
+   real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
+void ufieldgk(real gkc, real fd, const real (*uind)[3], const real (*uinp)[3], const real (*uinds)[3], const real (*uinps)[3], //
+   real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3])
+{
+   TINKER_FCALL2(acc0, cu1, ufieldgk, gkc, fd, uind, uinp, uinds, uinps, field, fieldp, fields, fieldps);
 }
 }
 

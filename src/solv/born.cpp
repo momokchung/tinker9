@@ -1,14 +1,14 @@
 #include "ff/potent.h"
 #include "ff/energy.h"
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include "ff/atom.h"
 #include "math/zero.h"
 #include "tool/darray.h"
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
+#include <tinker/detail/gkstuf.hh>
 #include <tinker/detail/solpot.hh>
 #include <tinker/detail/solute.hh>
-#include <iostream>
 #include <tinker/routines.h>
 
 
@@ -67,10 +67,11 @@ void bornData(RcOp op)
       waitFor(g::q0);
 
       doffset = solute::doffset;
+      gkc = gkstuf::gkc;
    }
 }
 
-TINKER_FVOID2(acc0, cu1, bornInit);
+TINKER_FVOID2(acc0, cu1, bornInit, int);
 TINKER_FVOID2(acc0, cu1, born, int);
 TINKER_FVOID2(acc0, cu1, bornFinal, int);
 TINKER_FVOID2(acc0, cu1, bornPrint);
@@ -82,12 +83,12 @@ void born(int vers)
 
    darray::zero(g::q0, n, rborn);
 
-   TINKER_FCALL2(acc0, cu1, bornInit);
+   TINKER_FCALL2(acc0, cu1, bornInit, vers);
 
    TINKER_FCALL2(acc0, cu1, born, vers);
 
    TINKER_FCALL2(acc0, cu1, bornFinal, vers);
 
-   TINKER_FCALL2(acc0, cu1, bornPrint);
+   // TINKER_FCALL2(acc0, cu1, bornPrint);
 }
 }

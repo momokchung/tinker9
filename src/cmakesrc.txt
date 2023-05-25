@@ -34,8 +34,6 @@ errprint.cpp
 evalence.cpp
 evdw.cpp
 exec.cpp
-solv/born.cpp
-solv/esolv.cpp
 hippo/cflux.cpp
 hippo/echgtrn.cpp
 hippo/edisp.cpp
@@ -71,6 +69,8 @@ potent.cpp
 rattle.cpp
 rcman.cpp
 rwcrd.cpp
+solv/born.cpp
+solv/esolv.cpp
 spatial.cpp
 switch.cpp
 tinkersuppl.cpp

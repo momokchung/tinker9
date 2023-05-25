@@ -82,7 +82,6 @@ TINKER_EXTERN energy_prec energy_es;
 // BORN
 TINKER_EXTERN real* roff;
 
-// SOLV
-TINKER_EXTERN real* aecav;
-TINKER_EXTERN real* aedisp;
+// GKSTUF
+TINKER_EXTERN real gkc;
 }

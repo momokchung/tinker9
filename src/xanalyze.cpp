@@ -12,6 +12,7 @@
 #include "ff/nblist.h"
 #include "ff/potent.h"
 #include "ff/rwcrd.h"
+#include "ff/solv/solute.h"
 #include "md/osrw.h"
 #include "tool/argkey.h"
 #include "tool/iofortstr.h"
@@ -223,7 +224,8 @@ static void xAnalyzeMoments()
          if (mplpot::use_chgpen)
             induce2(uind);
          else
-            induce(uind, uinp);
+            if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
+            else induce(uind, uinp);
          darray::copyout(g::q0, n * 3, uindv.data(), &uind[0][0]);
       } else {
          std::fill(uindv.begin(), uindv.end(), 0);

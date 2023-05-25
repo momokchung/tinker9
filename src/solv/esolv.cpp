@@ -1,6 +1,6 @@
 #include "ff/potent.h"
 #include "ff/energy.h"
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include "ff/atom.h"
 #include "math/zero.h"
 #include "tool/darray.h"
@@ -8,7 +8,6 @@
 #include "tool/iofortstr.h"
 #include <tinker/detail/solpot.hh>
 #include <tinker/detail/solute.hh>
-#include <iostream>
 #include <tinker/routines.h>
 
 
@@ -21,7 +20,7 @@ void esolvData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(aecav, aedisp);
+      // darray::deallocate(aecav, aedisp);
 
       if (rc_a) {
          bufferDeallocate(rc_flag, nes);
@@ -35,7 +34,7 @@ void esolvData(RcOp op)
    }
 
    if (op & RcOp::ALLOC) {
-      darray::allocate(n, &aecav, &aedisp);
+      // darray::allocate(n, &aecav, &aedisp);
 
       nes = nullptr;
       es = eng_buf_elec;
@@ -53,10 +52,19 @@ void esolvData(RcOp op)
       // waitFor(g::q0);
    }
 }
+
+void enp(int vers)
+{
+   // surface(vers);
+   // // do stuff
+   // if (reff < spoff) {
+   //    volume (vers); // not declared
+   //    // do stuff
+   // }
+   // // do stuff, watch out for switch call
+   // ewca(vers); // not declared
 }
 
-namespace tinker {
-TINKER_FVOID2(acc0, cu1, esolv, int);
 void esolv(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
@@ -75,6 +83,8 @@ void esolv(int vers)
          darray::zero(g::q0, n, desx, desy, desz);
    }
 
-   TINKER_FCALL2(acc0, cu1, esolv, vers);
+   if (solvtyp == Solv::GK or solvtyp == Solv::PB) {
+      enp(vers);
+   }
 }
 }

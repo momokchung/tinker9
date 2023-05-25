@@ -8,6 +8,7 @@
 #include "ff/hippo/cflux.h"
 #include "ff/nblist.h"
 #include "ff/potent.h"
+#include "ff/solv/solute.h"
 #include "math/zero.h"
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
@@ -56,9 +57,10 @@ void epolarData(RcOp op)
 
       darray::deallocate(ufld, dufld);
       darray::deallocate(work01_, work02_, work03_, work04_, work05_);
-      if (not polpot::use_tholed) // AMOEBA
+      if (not polpot::use_tholed) {// AMOEBA
          darray::deallocate(work06_, work07_, work08_, work09_, work10_);
-
+         if (solvtyp == Solv::GK) darray::deallocate(work11_, work12_, work13_, work14_, work15_, work16_, work17_, work18_, work19_, work20_);
+      }
       if (polpred == UPred::ASPC) {
          darray::deallocate(udalt_00, udalt_01, udalt_02, udalt_03, udalt_04,
             udalt_05, udalt_06, udalt_07, udalt_08, udalt_09, udalt_10,
@@ -420,9 +422,10 @@ void epolarData(RcOp op)
       }
 
       darray::allocate(n, &work01_, &work02_, &work03_, &work04_, &work05_);
-      if (not polpot::use_tholed) // AMOEBA
+      if (not polpot::use_tholed) {// AMOEBA
          darray::allocate(n, &work06_, &work07_, &work08_, &work09_, &work10_);
-
+         if (solvtyp == Solv::GK) darray::allocate(n, &work11_, &work12_, &work13_, &work14_, &work15_, &work16_, &work17_, &work18_, &work19_, &work20_);
+      }
       if (uprior::use_pred) {
          FstrView predstr = uprior::polpred;
          if (predstr == "ASPC") {
@@ -540,7 +543,8 @@ static void epolarNonEwald(int vers)
    int ver2 = vers;
    if (edot) ver2 &= ~calc::energy; // toggle off the calc::energy flag
 
-   induce(uind, uinp);
+   if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
+   else induce(uind, uinp);
    if (edot) epolar0DotProd(uind, udirp);
    if (vers != calc::v0)
       TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);

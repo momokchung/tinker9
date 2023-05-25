@@ -4,6 +4,7 @@
 #include "ff/energy.h"
 #include "ff/modhippo.h"
 #include "ff/potent.h"
+#include "ff/solv/solute.h"
 #include "tool/iofortstr.h"
 #include <tinker/detail/atoms.hh>
 #include <tinker/detail/chgpen.hh>
@@ -53,6 +54,7 @@ static void mpoleData(RcOp op)
    if (op & RcOp::DEALLOC) {
       darray::deallocate(zaxis, pole, rpole, udir, udirp, uind, uinp);
       darray::deallocate(trqx, trqy, trqz, vir_trq);
+      darray::deallocate(udirs, udirps, uinds, uinps);
    }
 
    if (op & RcOp::ALLOC) {
@@ -60,11 +62,16 @@ static void mpoleData(RcOp op)
 
       if (use(Potent::POLAR)) {
          darray::allocate(n, &uind, &uinp, &udir, &udirp);
+         darray::allocate(n, &uinds, &uinps, &udirs, &udirps);
       } else {
          uind = nullptr;
          uinp = nullptr;
+         uinds = nullptr;
+         uinps = nullptr;
          udir = nullptr;
          udirp = nullptr;
+         udirs = nullptr;
+         udirps = nullptr;
       }
 
       if (rc_flag & calc::grad) {

@@ -1,4 +1,4 @@
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "seq/add.h"
 #include "seq/launch.h"

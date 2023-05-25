@@ -16,6 +16,13 @@ void diagPrecond(const real (*rsd)[3], const real (*rsdp)[3], real (*zrsd)[3], r
    TINKER_FCALL2(acc1, cu1, diagPrecond, rsd, rsdp, zrsd, zrsdp);
 }
 
+TINKER_FVOID2(acc0, cu1, diagPrecondgk, const real (*)[3], const real (*)[3], const real (*)[3], const real (*)[3], //
+   real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
+void diagPrecondgk(const real (*rsd)[3], const real (*rsdp)[3], const real (*rsds)[3], const real (*rsdps)[3], real (*zrsd)[3], real (*zrsdp)[3], real (*zrsds)[3], real (*zrsdps)[3])
+{
+   TINKER_FCALL2(acc0, cu1, diagPrecondgk, rsd, rsdp, rsds, rsdps, zrsd, zrsdp, zrsds, zrsdps);
+}
+
 void sparsePrecondBuild() {}
 
 TINKER_FVOID2(
@@ -78,6 +85,12 @@ static void induceMutualPcg1(real (*uind)[3], real (*uinp)[3])
    TINKER_FCALL2(acc1, cu1, induceMutualPcg1, uind, uinp);
 }
 
+TINKER_FVOID2(acc0, cu1, induceMutualPcg3, real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
+static void induceMutualPcg3(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3])
+{
+   TINKER_FCALL2(acc0, cu1, induceMutualPcg3, uind, uinp, uinds, uinps);
+}
+
 void inducePrint(const real (*ud)[3])
 {
    if (inform::debug and use(Potent::POLAR)) {
@@ -112,5 +125,12 @@ void induce(real (*ud)[3], real (*up)[3])
    induceMutualPcg1(ud, up);
    ulspredSave(ud, up);
    inducePrint(ud);
+}
+
+void inducegk(real (*ud)[3], real (*up)[3], real (*uds)[3], real (*ups)[3])
+{
+   induceMutualPcg3(ud, up, uds, ups);
+   // ulspredSave(ud, up); TODO_Moses
+   // inducePrint(ud); TODO_Moses
 }
 }

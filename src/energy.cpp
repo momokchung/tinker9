@@ -72,7 +72,7 @@ static bool fts(std::string eng, bool& use_flag, unsigned tsflag, const TimeScal
 #include "ff/nblist.h"
 #include "ff/pmestream.h"
 #include "ff/potent.h"
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include <tinker/detail/mplpot.hh>
 #include <tinker/detail/polpot.hh>
 
@@ -230,6 +230,8 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
    }
 
    // non-bonded terms
+   if (use(Potent::BORN))
+      born(vers);
 
    if (amoeba_evdw(vers))
       if (tscfg("evdw", ecore_vdw))
@@ -270,8 +272,6 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
       if (tscfg("erepel", ecore_vdw))
          erepel(vers);
 
-   if (use(Potent::BORN))
-      born(vers);
    if (use(Potent::SOLV))
       if (tscfg("esolv", ecore_ele))
          esolv(vers);

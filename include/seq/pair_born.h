@@ -1,5 +1,5 @@
 #pragma once
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include "seq/seq.h"
 #include <algorithm>
 #include <cmath>

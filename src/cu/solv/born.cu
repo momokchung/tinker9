@@ -1,4 +1,4 @@
-#include "ff/solv/born.h"
+#include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "seq/add.h"
 #include "seq/launch.h"
@@ -77,7 +77,7 @@ static void bornPrint_cu1(int n, const real* restrict rborn)
    }
 }
 
-void bornInit_cu()
+void bornInit_cu(int vers)
 {
    launch_k1s(g::s0, n, bornInit_cu1, n, doffset, rsolv, roff, drobc);
 }

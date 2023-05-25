@@ -48,8 +48,12 @@ TINKER_EXTERN real* pdamp;
 
 TINKER_EXTERN real (*udir)[3];
 TINKER_EXTERN real (*udirp)[3];
+TINKER_EXTERN real (*udirs)[3];
+TINKER_EXTERN real (*udirps)[3];
 TINKER_EXTERN real (*uind)[3];
 TINKER_EXTERN real (*uinp)[3];
+TINKER_EXTERN real (*uinds)[3];
+TINKER_EXTERN real (*uinps)[3];
 
 TINKER_EXTERN CountBuffer nep;
 TINKER_EXTERN EnergyBuffer ep;
@@ -75,6 +79,16 @@ TINKER_EXTERN real (*work07_)[3];
 TINKER_EXTERN real (*work08_)[3];
 TINKER_EXTERN real (*work09_)[3];
 TINKER_EXTERN real (*work10_)[3];
+TINKER_EXTERN real (*work11_)[3];
+TINKER_EXTERN real (*work12_)[3];
+TINKER_EXTERN real (*work13_)[3];
+TINKER_EXTERN real (*work14_)[3];
+TINKER_EXTERN real (*work15_)[3];
+TINKER_EXTERN real (*work16_)[3];
+TINKER_EXTERN real (*work17_)[3];
+TINKER_EXTERN real (*work18_)[3];
+TINKER_EXTERN real (*work19_)[3];
+TINKER_EXTERN real (*work20_)[3];
 }
 
 // polpot

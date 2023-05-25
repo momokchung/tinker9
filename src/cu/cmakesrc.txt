@@ -20,8 +20,6 @@ ehal.cu
 elj.cu
 epolarrecip.cu
 evalence.cu
-solv/born.cu
-solv/esolv.cu
 hippo/cflux.cu
 hippo/echgtrn.cu
 hippo/edisp.cu
@@ -42,6 +40,9 @@ mdpt.cu
 minimize.cu
 pme.cu
 rattle.cu
+solv/born.cu
+solv/esolv.cu
+solv/pcgsolv.cu
 spatial.cu
 upredict.cu
 )
