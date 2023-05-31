@@ -39,6 +39,7 @@ const TimeScaleConfig& defaultTSConfig()
       {"ehippo", 0},
 
       {"esolv", 0},
+      {"born", 0}
    };
    return tsconfig;
 }
@@ -231,7 +232,8 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
 
    // non-bonded terms
    if (use(Potent::BORN))
-      born(vers);
+      if (tscfg("born", ecore_ele))
+         born(vers);
 
    if (amoeba_evdw(vers))
       if (tscfg("evdw", ecore_vdw))

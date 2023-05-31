@@ -24,7 +24,7 @@ namespace tinker {
 TINKER_FVOID2(cpp0, cu1, epolarDataBinding, RcOp);
 void epolarData(RcOp op)
 {
-   if (not use(Potent::POLAR)) return;
+   if (not use(Potent::POLAR) and not use(Potent::SOLV)) return;
    if (mplpot::use_chgpen and not polpot::use_tholed) // HIPPO Polarization
       return;
 

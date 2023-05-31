@@ -61,7 +61,7 @@ Nbl clistVersion()
 {
    Nbl u;
    // First, forget about VDW, only check partial charge models.
-   if (not use(Potent::CHARGE) /* and not use(Potent::SOLV) */) {
+   if (not use(Potent::CHARGE) and not use(Potent::SOLV)) {
       u = Nbl::UNDEFINED;
    } else if (!limits::use_clist) {
 #if TINKER_GPULANG_CUDA
@@ -117,7 +117,7 @@ Nbl mlistVersion()
 {
    Nbl u;
    if (not use(Potent::MPOLE) and not use(Potent::POLAR) and not use(Potent::CHGTRN) and
-      not use(Potent::REPULS) /* and not use(Potent::SOLV) */) {
+      not use(Potent::REPULS) and not use(Potent::SOLV)) {
       u = Nbl::UNDEFINED;
    } else if (!limits::use_mlist) {
 #if TINKER_GPULANG_CUDA

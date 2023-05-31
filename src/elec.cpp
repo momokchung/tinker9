@@ -48,7 +48,7 @@ TINKER_FVOID2(cpp0, cu1, mpoleDataBinding, RcOp);
 static void mpoleData(RcOp op)
 {
    if (not use(Potent::MPOLE) and not use(Potent::POLAR)
-      and not use(Potent::REPULS))
+      and not use(Potent::REPULS) and not use(Potent::SOLV))
       return;
 
    if (op & RcOp::DEALLOC) {
@@ -60,7 +60,7 @@ static void mpoleData(RcOp op)
    if (op & RcOp::ALLOC) {
       darray::allocate(n, &zaxis, &pole, &rpole);
 
-      if (use(Potent::POLAR)) {
+      if (use(Potent::POLAR) or use(Potent::SOLV)) {
          darray::allocate(n, &uind, &uinp, &udir, &udirp);
          darray::allocate(n, &uinds, &uinps, &udirs, &udirps);
       } else {
@@ -147,7 +147,7 @@ static void mpoleData(RcOp op)
 
 static void mdpuscaleData(RcOp op)
 {
-   if (not use(Potent::MPOLE) and not use(Potent::POLAR)) return;
+   if (not use(Potent::MPOLE) and not use(Potent::POLAR) and not use(Potent::SOLV)) return;
 
    if (op & RcOp::DEALLOC) {
       nmexclude = 0;

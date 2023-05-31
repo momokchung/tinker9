@@ -51,12 +51,14 @@ inline void pair_hctobc(real r, real ri, real rk, real sk, real& pairrborni)
    real lik,lik2;
    real uik,uik2;
    real uik2lik2;
-   lik = 1.f / REAL_MAX(ri,REAL_ABS(r-sk));
-   uik = 1.f / (r+sk);
+   real rpsk = r + sk;
+   real rmsk = REAL_ABS(r - sk);
+   lik = 1.f / REAL_MAX(ri,rmsk);
+   uik = 1.f / (rpsk);
    lik2 = lik * lik;
    uik2 = uik * uik;
-   uik2lik2 = uik2-lik2;
-   if (REAL_ABS(r-sk) > ri) uik2lik2 = -4.f * r * sk / (REAL_POW((r-sk)*(r+sk),2));
+   if (rmsk > ri) uik2lik2 = -4.f * r * sk / (REAL_POW(rmsk*rpsk,2));
+   else uik2lik2 = uik2-lik2;
    pairrborni = lik - uik + 0.25f*r*(uik2lik2) + (0.5f/r)*std::log(uik/lik) + (0.25f*sk2/r)*(-uik2lik2);
    if (ri < sk-r) {
       pairrborni = pairrborni + 2.f*(1.f/ri-lik);

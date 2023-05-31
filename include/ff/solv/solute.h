@@ -84,4 +84,16 @@ TINKER_EXTERN real* roff;
 
 // GKSTUF
 TINKER_EXTERN real gkc;
+
+// NONPOL
+TINKER_EXTERN real epso;
+TINKER_EXTERN real epsh;
+TINKER_EXTERN real rmino;
+TINKER_EXTERN real rminh;
+TINKER_EXTERN real awater;
+TINKER_EXTERN real slevy;
+TINKER_EXTERN real shctd;
+TINKER_EXTERN real cavoff;
+TINKER_EXTERN real dispoff;
+TINKER_EXTERN real* cdisp;
 }

@@ -146,6 +146,8 @@ TINKER_EXTERN virial_prec vlrc_vol;
 TINKER_EXTERN int* jvdw;
 TINKER_EXTERN int* ired;
 TINKER_EXTERN real* kred;
+TINKER_EXTERN real* radvdw;
+TINKER_EXTERN real* epsvdw;
 
 /// \ingroup vdw
 /// \brief Halgren buffered 14-7 reduced x, y, z coordinates for each atom.

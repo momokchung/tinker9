@@ -9,8 +9,8 @@
 namespace tinker
 {
 
-   #include "grycuk_cu1.cc"
-   #include "hctobc_cu1.cc"
+#include "grycuk_cu1.cc"
+#include "hctobc_cu1.cc"
 
 __global__
 static void bornInit_cu1(int n, real doffset, const real* restrict rsolv, real* restrict roff, real* restrict drobc)
