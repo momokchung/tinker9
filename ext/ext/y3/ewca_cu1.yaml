@@ -41,16 +41,10 @@ I_FORCE:
   - register real gxi addto:gx
   - register real gyi addto:gy
   - register real gzi addto:gz
-  # - register real txi addto:trqx
-  # - register real tyi addto:trqy
-  # - register real tzi addto:trqz
 K_FORCE:
   - register real gxk addto:gx
   - register real gyk addto:gy
   - register real gzk addto:gz
-  # - register real txk addto:trqx
-  # - register real tyk addto:trqy
-  # - register real tzk addto:trqz
 
 #SCALED_PAIRWISE_INTERACTION: |
 FULL_PAIRWISE_INTERACTION: |
@@ -62,6 +56,7 @@ FULL_PAIRWISE_INTERACTION: |
   
   if (incl) {
     real r = REAL_SQRT(r2);
+    real r3 = r2 * r;
     real epsi = @epsli@;
     real rmin = @rmini@;
     real emixo = 4. * epso * epsi / REAL_POW((REAL_SQRT(epso)+REAL_SQRT(epsi)),2);
@@ -92,23 +87,44 @@ FULL_PAIRWISE_INTERACTION: |
     real sk = rmkn * shctd;
     real sk2 = sk * sk;
     
-    real sum1, sum2;
-    pair_ewca<do_g>(
-      r, r2, rio, rmixo, rmixo7,
-      sk, sk2, aoi, emixo, sum1, true);
-    pair_ewca<do_g>(
-      r, r2, rih, rmixh, rmixh7,
-      sk, sk2, ahi, emixh, sum2, false);
+    real sum1,sum2;
+    real de,de1,de2;
+    real de11,de12,de21,de22;
+
+    pair_ewca<Ver>(
+      r, r2, r3, rio, rmixo, rmixo7,
+      sk, sk2, aoi, emixo, sum1, de11, true);
+    pair_ewca<Ver>(
+      r, r2, r3, rih, rmixh, rmixh7,
+      sk, sk2, ahi, emixh, sum2, de12, false);
     e = sum1 + sum2;
-    pair_ewca<do_g>(
-      r, r2, rko, rmkxo, rmkxo7,
-      si, si2, aok, emkxo, sum1, true);
-    pair_ewca<do_g>(
-      r, r2, rkh, rmkxh, rmkxh7,
-      si, si2, ahk, emkxh, sum2, false);
+    
+    pair_ewca<Ver>(
+      r, r2, r3, rko, rmkxo, rmkxo7,
+      si, si2, aok, emkxo, sum1, de21, true);
+    pair_ewca<Ver>(
+      r, r2, r3, rkh, rmkxh, rmkxh7,
+      si, si2, ahk, emkxh, sum2, de22, false);
     e += sum1 + sum2;
-    e *= -slevy * awater;
+
+    real slwater = slevy * awater;
+    e *= -slwater;
 
     if CONSTEXPR (do_e)
-        estl += floatTo<ebuf_prec>(e);
+      estl += floatTo<ebuf_prec>(e);
+    if CONSTEXPR (do_g) {
+      de1 = de11 + de12;
+      de2 = de21 + de22;
+      de = de1 + de2;
+      de *= slwater / r;
+      real dedx = de * xr;
+      real dedy = de * yr;
+      real dedz = de * zr;
+      @gxi@ += dedx;
+      @gyi@ += dedy;
+      @gzi@ += dedz;
+      @gxk@ -= dedx;
+      @gyk@ -= dedy;
+      @gzk@ -= dedz;
+    }
   } // end if (include)

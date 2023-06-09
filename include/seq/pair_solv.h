@@ -7,17 +7,20 @@
 
 namespace tinker {
 #pragma acc routine seq
-template <bool do_g>
+template <class Ver>
 SEQ_ROUTINE
-inline void pair_ewca(real r, real r2, real rio, real rmixo, real rmixo7, real sk, real sk2, real aoi, real emixo, real& sum, bool ifo)
+inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo7, real sk, real sk2, real aoi, real emixo, real& sum, real& de, bool ifo)
 {
+   constexpr bool do_g = Ver::g;
+
    sum = 0.;
+   de = 0.;
    real scale;
-   real lik,lik2,lik3,lik4,lik5;
-   real uik,uik2,uik3,uik4,uik5;
-   real lik10,lik11,lik12;
-   real uik10,uik11,uik12;
-   real term,rmax;
+   real lik,lik2,lik3,lik4,lik5,lik6;
+   real uik,uik2,uik3,uik4,uik5,uik6;
+   real lik10,lik11,lik12,lik13;
+   real uik10,uik11,uik12,uik13;
+   real dl,du,term,term1,term2,rmax;
    real iwca,idisp,irepl;
    if (ifo) scale = 1.;
    else scale = 2.;
@@ -35,6 +38,23 @@ inline void pair_ewca(real r, real r2, real rio, real rmixo, real rmixo7, real s
          term = 4. * pi / (48.*r) * (3.*(lik4-uik4) - 8.*r*(lik3-uik3) + 6.*(r2-sk2)*(lik2-uik2));
          iwca = -emixo * term;
          sum += iwca;
+         if (do_g) {
+            if (rio > r-sk) {
+               dl = -lik2 + 2.*r2 + 2.*sk2;
+               dl = dl * lik2;
+            } else {
+               dl = -lik3 + 4.*lik2*r - 6.*lik*r2 + 2.*lik*sk2 + 4.*r3 - 4.*r*sk2;
+               dl = dl * lik;
+            }
+            if (r+sk > rmixo) {
+               du = -uik2 + 2.*r2 + 2.*sk2;
+               du = -du * uik2;
+            } else {
+               du = -uik3 + 4.*uik2*r - 6.*uik*r2 + 2.*uik*sk2 + 4.*r3 - 4.*r*sk2;
+               du = -du * uik;
+            }
+            de += -emixo*pi*(dl+du)/(4.*r2);
+         }
       }
       uik = r + sk;
       if (uik > rmixo) {
@@ -53,14 +73,41 @@ inline void pair_ewca(real r, real r2, real rio, real rmixo, real rmixo7, real s
          lik10 = lik5 * lik5;
          lik11 = lik10 * lik;
          lik12 = lik11 * lik;
-         term = 4. * pi / (120.*r*lik5*uik5) * (15.*uik*lik*r*(uik4-lik4) - 10.*uik2*lik2*(uik3-lik3) + 6.*(sk2-r2)*(uik5-lik5));
-         idisp = -2. * aoi * term;
-         term = 4. * pi / (2640.*r*lik12*uik12) * (120.*uik*lik*r*(uik11-lik11) - 66.*uik2*lik2*(uik10-lik10) + 55.*(sk2-r2)*(uik12-lik12));
-         irepl = aoi * rmixo7 * term;
+         term1 = 4. * pi / (120.*r*lik5*uik5) * (15.*uik*lik*r*(uik4-lik4) - 10.*uik2*lik2*(uik3-lik3) + 6.*(sk2-r2)*(uik5-lik5));
+         idisp = -2. * aoi * term1;
+         term2 = 4. * pi / (2640.*r*lik12*uik12) * (120.*uik*lik*r*(uik11-lik11) - 66.*uik2*lik2*(uik10-lik10) + 55.*(sk2-r2)*(uik12-lik12));
+         irepl = aoi * rmixo7 * term2;
          sum += irepl + idisp;
+         if (do_g) {
+            uik6 = uik5 * uik;
+            uik13 = uik12 * uik;
+            lik6 = lik5 * lik;
+            lik13 = lik12 * lik;
+            if ((rio > r-sk) or (rmax < rmixo)) {
+               dl = -5.*lik2 + 3.*r2 + 3.*sk2;
+               dl = -dl / lik5;
+            } else {
+               dl = 5.*lik3 - 33.*lik*r2 - 3.*lik*sk2 + 15.*(lik2*r+r3-r*sk2);
+               dl = dl / lik6;
+            }
+            du = 5.*uik3 - 33.*uik*r2 - 3.*uik*sk2 + 15.*(uik2*r+r3-r*sk2);
+            du = -du / uik6;
+            de = de -2.*aoi*pi*(dl + du)/(15.*r2);
+            if ((rio>r-sk) or (rmax<rmixo)) {
+               dl = -6.*lik2 + 5.*r2 + 5.*sk2;
+               dl = -dl / lik12;
+            } else {
+               dl = 6.*lik3 - 125.*lik*r2 - 5.*lik*sk2 + 60.*(lik2*r+r3-r*sk2);
+               dl = dl / lik13;
+            }
+            du = 6.*uik3 - 125.*uik*r2 -5.*uik*sk2 + 60.*(uik2*r+r3-r*sk2);
+            du = -du / uik13;
+            de += aoi*rmixo7*pi*(dl + du)/(60.*r2);
+         }
       }
    }
-   sum = sum * scale;
+   sum *= scale;
+   de *= scale;
 }
 }
 

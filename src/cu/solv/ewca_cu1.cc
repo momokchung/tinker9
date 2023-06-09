@@ -46,6 +46,7 @@ real e;
 
 if (incl) {
  real r = REAL_SQRT(r2);
+ real r3 = r2 * r;
  real epsi = epsli[klane];
  real rmin = rmini[klane];
  real emixo = 4. * epso * epsi / REAL_POW((REAL_SQRT(epso)+REAL_SQRT(epsi)),2);
@@ -76,25 +77,46 @@ if (incl) {
  real sk = rmkn * shctd;
  real sk2 = sk * sk;
 
- real sum1, sum2;
- pair_ewca<do_g>(
-   r, r2, rio, rmixo, rmixo7,
-   sk, sk2, aoi, emixo, sum1, true);
- pair_ewca<do_g>(
-   r, r2, rih, rmixh, rmixh7,
-   sk, sk2, ahi, emixh, sum2, false);
+ real sum1,sum2;
+ real de,de1,de2;
+ real de11,de12,de21,de22;
+
+ pair_ewca<Ver>(
+   r, r2, r3, rio, rmixo, rmixo7,
+   sk, sk2, aoi, emixo, sum1, de11, true);
+ pair_ewca<Ver>(
+   r, r2, r3, rih, rmixh, rmixh7,
+   sk, sk2, ahi, emixh, sum2, de12, false);
  e = sum1 + sum2;
- pair_ewca<do_g>(
-   r, r2, rko, rmkxo, rmkxo7,
-   si, si2, aok, emkxo, sum1, true);
- pair_ewca<do_g>(
-   r, r2, rkh, rmkxh, rmkxh7,
-   si, si2, ahk, emkxh, sum2, false);
+
+ pair_ewca<Ver>(
+   r, r2, r3, rko, rmkxo, rmkxo7,
+   si, si2, aok, emkxo, sum1, de21, true);
+ pair_ewca<Ver>(
+   r, r2, r3, rkh, rmkxh, rmkxh7,
+   si, si2, ahk, emkxh, sum2, de22, false);
  e += sum1 + sum2;
- e *= -slevy * awater;
+
+ real slwater = slevy * awater;
+ e *= -slwater;
 
  if CONSTEXPR (do_e)
-     estl += floatTo<ebuf_prec>(e);
+   estl += floatTo<ebuf_prec>(e);
+ if CONSTEXPR (do_g) {
+   de1 = de11 + de12;
+   de2 = de21 + de22;
+   de = de1 + de2;
+   de *= slwater / r;
+   real dedx = de * xr;
+   real dedy = de * yr;
+   real dedz = de * zr;
+   gxi += dedx;
+   gyi += dedy;
+   gzi += dedz;
+   gxk -= dedx;
+   gyk -= dedy;
+   gzk -= dedz;
+ }
 } // end if (include)
 
 
@@ -147,6 +169,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
 
          if (incl) {
             real r = REAL_SQRT(r2);
+            real r3 = r2 * r;
             real epsi = epsli[klane];
             real rmin = rmini[klane];
             real emixo = 4. * epso * epsi / REAL_POW((REAL_SQRT(epso) + REAL_SQRT(epsi)), 2);
@@ -178,16 +201,37 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real sk2 = sk * sk;
 
             real sum1, sum2;
-            pair_ewca<do_g>(r, r2, rio, rmixo, rmixo7, sk, sk2, aoi, emixo, sum1, true);
-            pair_ewca<do_g>(r, r2, rih, rmixh, rmixh7, sk, sk2, ahi, emixh, sum2, false);
+            real de, de1, de2;
+            real de11, de12, de21, de22;
+
+            pair_ewca<Ver>(r, r2, r3, rio, rmixo, rmixo7, sk, sk2, aoi, emixo, sum1, de11, true);
+            pair_ewca<Ver>(r, r2, r3, rih, rmixh, rmixh7, sk, sk2, ahi, emixh, sum2, de12, false);
             e = sum1 + sum2;
-            pair_ewca<do_g>(r, r2, rko, rmkxo, rmkxo7, si, si2, aok, emkxo, sum1, true);
-            pair_ewca<do_g>(r, r2, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, false);
+
+            pair_ewca<Ver>(r, r2, r3, rko, rmkxo, rmkxo7, si, si2, aok, emkxo, sum1, de21, true);
+            pair_ewca<Ver>(r, r2, r3, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, de22, false);
             e += sum1 + sum2;
-            e *= -slevy * awater;
+
+            real slwater = slevy * awater;
+            e *= -slwater;
 
             if CONSTEXPR (do_e)
                estl += floatTo<ebuf_prec>(e);
+            if CONSTEXPR (do_g) {
+               de1 = de11 + de12;
+               de2 = de21 + de22;
+               de = de1 + de2;
+               de *= slwater / r;
+               real dedx = de * xr;
+               real dedy = de * yr;
+               real dedz = de * zr;
+               gxi += dedx;
+               gyi += dedy;
+               gzi += dedz;
+               gxk -= dedx;
+               gyk -= dedy;
+               gzk -= dedz;
+            }
          } // end if (include)
 
          iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
@@ -248,6 +292,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
 
          if (incl) {
             real r = REAL_SQRT(r2);
+            real r3 = r2 * r;
             real epsi = epsli[klane];
             real rmin = rmini[klane];
             real emixo = 4. * epso * epsi / REAL_POW((REAL_SQRT(epso) + REAL_SQRT(epsi)), 2);
@@ -279,16 +324,37 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real sk2 = sk * sk;
 
             real sum1, sum2;
-            pair_ewca<do_g>(r, r2, rio, rmixo, rmixo7, sk, sk2, aoi, emixo, sum1, true);
-            pair_ewca<do_g>(r, r2, rih, rmixh, rmixh7, sk, sk2, ahi, emixh, sum2, false);
+            real de, de1, de2;
+            real de11, de12, de21, de22;
+
+            pair_ewca<Ver>(r, r2, r3, rio, rmixo, rmixo7, sk, sk2, aoi, emixo, sum1, de11, true);
+            pair_ewca<Ver>(r, r2, r3, rih, rmixh, rmixh7, sk, sk2, ahi, emixh, sum2, de12, false);
             e = sum1 + sum2;
-            pair_ewca<do_g>(r, r2, rko, rmkxo, rmkxo7, si, si2, aok, emkxo, sum1, true);
-            pair_ewca<do_g>(r, r2, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, false);
+
+            pair_ewca<Ver>(r, r2, r3, rko, rmkxo, rmkxo7, si, si2, aok, emkxo, sum1, de21, true);
+            pair_ewca<Ver>(r, r2, r3, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, de22, false);
             e += sum1 + sum2;
-            e *= -slevy * awater;
+
+            real slwater = slevy * awater;
+            e *= -slwater;
 
             if CONSTEXPR (do_e)
                estl += floatTo<ebuf_prec>(e);
+            if CONSTEXPR (do_g) {
+               de1 = de11 + de12;
+               de2 = de21 + de22;
+               de = de1 + de2;
+               de *= slwater / r;
+               real dedx = de * xr;
+               real dedy = de * yr;
+               real dedz = de * zr;
+               gxi += dedx;
+               gyi += dedy;
+               gzi += dedz;
+               gxk -= dedx;
+               gyk -= dedy;
+               gzk -= dedz;
+            }
          } // end if (include)
 
          if CONSTEXPR (do_g) {
