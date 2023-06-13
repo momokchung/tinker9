@@ -112,20 +112,53 @@ inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo
 }
 
 namespace tinker {
+struct PairSolvGrad
+{
+   real frcx, frcy, frcz;
+   real ttqi[3];
+   real ttqk[3];
+};
+
+SEQ_ROUTINE
+inline void zero(PairSolvGrad& pgrad)
+{
+   pgrad.frcx = 0;
+   pgrad.frcy = 0;
+   pgrad.frcz = 0;
+   pgrad.ttqi[0] = 0;
+   pgrad.ttqi[1] = 0;
+   pgrad.ttqi[2] = 0;
+   pgrad.ttqk[0] = 0;
+   pgrad.ttqk[1] = 0;
+   pgrad.ttqk[2] = 0;
+}
+
 #pragma acc routine seq
-template <bool do_g>
+template <class Ver>
 SEQ_ROUTINE
 inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, real zr2,
                      real ci, real dix, real diy, real diz, real qixx, real qixy, real qixz,
-                     real qiyy, real qiyz, real qizz, real uidx, real uidy, real uidz, real rbi,
+                     real qiyy, real qiyz, real qizz, real uidx, real uidy, real uidz, 
+                     real uipx, real uipy, real uipz, real rbi,
                      real ck, real dkx, real dky, real dkz, real qkxx, real qkxy, real qkxz,
-                     real qkyy, real qkyz, real qkzz, real ukdx, real ukdy, real ukdz, real rbk,
-                     real gkc, real fc, real fd, real fq, real& e)
+                     real qkyy, real qkyz, real qkzz, real ukdx, real ukdy, real ukdz, 
+                     real ukpx, real ukpy, real ukpz, real rbk,
+                     real gkc, real fc, real fd, real fq,
+                     real& e, PairSolvGrad& pgrad, real& dedx, real& dedy, real& dedz, real& drbi, real& dpbi, real& drbk, real& dpbk)
 {
+   constexpr bool do_g = Ver::g;
+
+   real uix = uidx + uipx;
+   real uiy = uidy + uipy;
+   real uiz = uidz + uipz;
+   real ukx = ukdx + ukpx;
+   real uky = ukdy + ukpy;
+   real ukz = ukdz + ukpz;
+
    real rb2 = rbi * rbk;
    real expterm = REAL_EXP(-r2 / (gkc * rb2));
    real expc = expterm / gkc;
-   real dexpc = -2./(gkc*rbi*rbk);
+   real dexpc = -2./(gkc * rb2);
    real gf2 = 1. / (r2 + rb2*expterm);
    real gf = REAL_SQRT(gf2);
    real gf3 = gf2 * gf;
@@ -133,17 +166,27 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    real gf7 = gf5 * gf2;
    real gf9 = gf7 * gf2;
 
-   real a[5][3];
-   real gc[10];
-   real gux[10];
-   real guy[10];
-   real guz[10];
-   real gqxx[10];
-   real gqxy[10];
-   real gqxz[10];
-   real gqyy[10];
-   real gqyz[10];
-   real gqzz[10];
+   // do_g
+   real expcr,dexpcr,dgfdr,gf11;
+   if (do_g) {
+      expcr = r2*expterm / (gkc*gkc*rb2*rb2);
+      dexpcr = 2. / (gkc*rb2*rb2);
+      dgfdr = 0.5 * expterm * (1.+r2/(rb2*gkc));
+      gf11 = gf9 * gf2;
+   }
+   //
+
+   real a[6][4];
+   real gc[30];
+   real gux[30];
+   real guy[30];
+   real guz[30];
+   real gqxx[30];
+   real gqxy[30];
+   real gqxz[30];
+   real gqyy[30];
+   real gqyz[30];
+   real gqzz[30];
 
    a[0][0] = gf;
    a[1][0] = -gf3;
@@ -151,16 +194,59 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[3][0] = -15. * gf7;
    a[4][0] = 105. * gf9;
 
+   // do_g
+   real b[5][3];
+   if (do_g) {
+      a[5][0] = -945. * gf11;
+
+      b[0][0] = dgfdr * a[1][0];
+      b[1][0] = dgfdr * a[2][0];
+      b[2][0] = dgfdr * a[3][0];
+      b[3][0] = dgfdr * a[4][0];
+      b[4][0] = dgfdr * a[5][0];
+   }
+   //
+
    real expc1 = 1. - expc;
    a[0][1] = expc1 * a[1][0];
    a[1][1] = expc1 * a[2][0];
    a[2][1] = expc1 * a[3][0];
    a[3][1] = expc1 * a[4][0];
 
+   // do_g
+   if (do_g) {
+      a[4][1] = expc1 * a[5][0];
+
+      b[0][1] = b[1][0] - expcr * a[1][0] - expc * b[1][0];
+      b[1][1] = b[2][0] - expcr * a[2][0] - expc * b[2][0];
+      b[2][1] = b[3][0] - expcr * a[3][0] - expc * b[3][0];
+      b[3][1] = b[4][0] - expcr * a[4][0] - expc * b[4][0];
+   }
+   //
+
    real expcdexpc = -expc * dexpc;
    a[0][2] = expc1*a[1][1] + expcdexpc*a[1][0];
    a[1][2] = expc1*a[2][1] + expcdexpc*a[2][0];
    a[2][2] = expc1*a[3][1] + expcdexpc*a[3][0];
+
+   // do_g
+   if (do_g) {
+      a[3][2] = expc1 * a[4][1] + expcdexpc * a[4][0];
+      b[0][2] = b[1][1] - (expcr * (a[1][1] + dexpc * a[1][0]) + expc * (b[1][1] + dexpcr * a[1][0] + dexpc * b[1][0]));
+      b[1][2] = b[2][1] - (expcr * (a[2][1] + dexpc * a[2][0]) + expc * (b[2][1] + dexpcr * a[2][0] + dexpc * b[2][0]));
+      b[2][2] = b[3][1] - (expcr * (a[3][1] + dexpc * a[3][0]) + expc * (b[3][1] + dexpcr * a[3][0] + dexpc * b[3][0]));
+      
+      expcdexpc = 2.0 * expcdexpc;
+      a[0][3] = expc1 * a[1][2] + expcdexpc * a[1][1];
+      a[1][3] = expc1 * a[2][2] + expcdexpc * a[2][1];
+      a[2][3] = expc1 * a[3][2] + expcdexpc * a[3][1];
+
+      expcdexpc = -expc * dexpc * dexpc;
+      a[0][3] = a[0][3] + expcdexpc * a[1][0];
+      a[1][3] = a[1][3] + expcdexpc * a[2][0];
+      a[2][3] = a[2][3] + expcdexpc * a[3][0];
+   }
+   //
 
    a[0][0] = fc * a[0][0];
    a[0][1] = fc * a[0][1];
@@ -172,6 +258,24 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[2][1] = fq * a[2][1];
    a[2][2] = fq * a[2][2];
 
+   // do_g
+   if (do_g) {
+      a[0][3] = fc * a[0][3];
+      a[1][3] = fd * a[1][3];
+      a[2][3] = fq * a[2][3];
+
+      b[0][0] = fc * b[0][0];
+      b[0][1] = fc * b[0][1];
+      b[0][2] = fc * b[0][2];
+      b[1][0] = fd * b[1][0];
+      b[1][1] = fd * b[1][1];
+      b[1][2] = fd * b[1][2];
+      b[2][0] = fq * b[2][0];
+      b[2][1] = fq * b[2][1];
+      b[2][2] = fq * b[2][2];
+   }
+   //
+
    gc[0] = a[0][0];
    gux[0] = xr * a[1][0];
    guy[0] = yr * a[1][0];
@@ -182,6 +286,21 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqxy[0] = xr * yr * a[2][0];
    gqxz[0] = xr * zr * a[2][0];
    gqyz[0] = yr * zr * a[2][0];
+
+   // do_g
+   if (do_g) {
+      gc[20] = b[0][0];
+      gux[20] = xr * b[1][0];
+      guy[20] = yr * b[1][0];
+      guz[20] = zr * b[1][0];
+      gqxx[20] = xr2 * b[2][0];
+      gqyy[20] = yr2 * b[2][0];
+      gqzz[20] = zr2 * b[2][0];
+      gqxy[20] = xr * yr * b[2][0];
+      gqxz[20] = xr * zr * b[2][0];
+      gqyz[20] = yr * zr * b[2][0];
+   }
+   //
 
    gc[1] = xr * a[0][1];
    gc[2] = yr * a[0][1];
@@ -213,6 +332,41 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[1] = gqxy[3];
    gqyz[2] = zr * (a[2][0] + yr2 * a[2][1]);
    gqyz[3] = yr * (a[2][0] + zr2 * a[2][1]);
+
+   // do_g
+   if (do_g) {
+      gc[21] = xr * b[0][1];
+      gc[22] = yr * b[0][1];
+      gc[23] = zr * b[0][1];
+      gux[21] = b[1][0] + xr2 * b[1][1];
+      gux[22] = xr * yr * b[1][1];
+      gux[23] = xr * zr * b[1][1];
+      guy[21] = gux[22];
+      guy[22] = b[1][0] + yr2 * b[1][1];
+      guy[23] = yr * zr * b[1][1];
+      guz[21] = gux[23];
+      guz[22] = guy[23];
+      guz[23] = b[1][0] + zr2 * b[1][1];
+      gqxx[21] = xr * (2.0 * b[2][0] + xr2 * b[2][1]);
+      gqxx[22] = yr * xr2 * b[2][1];
+      gqxx[23] = zr * xr2 * b[2][1];
+      gqyy[21] = xr * yr2 * b[2][1];
+      gqyy[22] = yr * (2.0 * b[2][0] + yr2 * b[2][1]);
+      gqyy[23] = zr * yr2 * b[2][1];
+      gqzz[21] = xr * zr2 * b[2][1];
+      gqzz[22] = yr * zr2 * b[2][1];
+      gqzz[23] = zr * (2.0 * b[2][0] + zr2 * b[2][1]);
+      gqxy[21] = yr * (b[2][0] + xr2 * b[2][1]);
+      gqxy[22] = xr * (b[2][0] + yr2 * b[2][1]);
+      gqxy[23] = zr * xr * yr * b[2][1];
+      gqxz[21] = zr * (b[2][0] + xr2 * b[2][1]);
+      gqxz[22] = gqxy[23];
+      gqxz[23] = xr * (b[2][0] + zr2 * b[2][1]);
+      gqyz[21] = gqxy[23];
+      gqyz[22] = zr * (b[2][0] + yr2 * b[2][1]);
+      gqyz[23] = yr * (b[2][0] + zr2 * b[2][1]);
+   }
+   //
 
    gc[4] = a[0][1] + xr2 * a[0][2];
    gc[5] = xr * yr * a[0][2];
@@ -279,6 +433,171 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[8] = a[2][0] + (yr2 + zr2) * a[2][1] + yr2 * zr2 * a[2][2];
    gqyz[9] = yr * zr * (3.0 * a[2][1] + zr2 * a[2][2]);
 
+   //
+   if (do_g) {
+      gc[24] = b[0][1] + xr2 * b[0][2];
+      gc[25] = xr * yr * b[0][2];
+      gc[26] = xr * zr * b[0][2];
+      gc[27] = b[0][1] + yr2 * b[0][2];
+      gc[28] = yr * zr * b[0][2];
+      gc[29] = b[0][1] + zr2 * b[0][2];
+      gux[24] = xr * (3.0 * b[1][1] + xr2 * b[1][2]);
+      gux[25] = yr * (b[1][1] + xr2 * b[1][2]);
+      gux[26] = zr * (b[1][1] + xr2 * b[1][2]);
+      gux[27] = xr * (b[1][1] + yr2 * b[1][2]);
+      gux[28] = zr * xr * yr * b[1][2];
+      gux[29] = xr * (b[1][1] + zr2 * b[1][2]);
+      guy[24] = yr * (b[1][1] + xr2 * b[1][2]);
+      guy[25] = xr * (b[1][1] + yr2 * b[1][2]);
+      guy[26] = gux[28];
+      guy[27] = yr * (3.0 * b[1][1] + yr2 * b[1][2]);
+      guy[28] = zr * (b[1][1] + yr2 * b[1][2]);
+      guy[29] = yr * (b[1][1] + zr2 * b[1][2]);
+      guz[24] = zr * (b[1][1] + xr2 * b[1][2]);
+      guz[25] = gux[28];
+      guz[26] = xr * (b[1][1] + zr2 * b[1][2]);
+      guz[27] = zr * (b[1][1] + yr2 * b[1][2]);
+      guz[28] = yr * (b[1][1] + zr2 * b[1][2]);
+      guz[29] = zr * (3.0 * b[1][1] + zr2 * b[1][2]);
+      gqxx[24] = 2.0 * b[2][0] + xr2 * (5.0 * b[2][1] + xr2 * b[2][2]);
+      gqxx[25] = yr * xr * (2.0 * b[2][1] + xr2 * b[2][2]);
+      gqxx[26] = zr * xr * (2.0 * b[2][1] + xr2 * b[2][2]);
+      gqxx[27] = xr2 * (b[2][1] + yr2 * b[2][2]);
+      gqxx[28] = zr * yr * xr2 * b[2][2];
+      gqxx[29] = xr2 * (b[2][1] + zr2 * b[2][2]);
+      gqyy[24] = yr2 * (b[2][1] + xr2 * b[2][2]);
+      gqyy[25] = xr * yr * (2.0 * b[2][1] + yr2 * b[2][2]);
+      gqyy[26] = xr * zr * yr2 * b[2][2];
+      gqyy[27] = 2.0 * b[2][0] + yr2 * (5.0 * b[2][1] + yr2 * b[2][2]);
+      gqyy[28] = yr * zr * (2.0 * b[2][1] + yr2 * b[2][2]);
+      gqyy[29] = yr2 * (b[2][1] + zr2 * b[2][2]);
+      gqzz[24] = zr2 * (b[2][1] + xr2 * b[2][2]);
+      gqzz[25] = xr * yr * zr2 * b[2][2];
+      gqzz[26] = xr * zr * (2.0 * b[2][1] + zr2 * b[2][2]);
+      gqzz[27] = zr2 * (b[2][1] + yr2 * b[2][2]);
+      gqzz[28] = yr * zr * (2.0 * b[2][1] + zr2 * b[2][2]);
+      gqzz[29] = 2.0 * b[2][0] + zr2 * (5.0 * b[2][1] + zr2 * b[2][2]);
+      gqxy[24] = xr * yr * (3.0 * b[2][1] + xr2 * b[2][2]);
+      gqxy[25] = b[2][0] + (xr2 + yr2) * b[2][1] + xr2 * yr2 * b[2][2];
+      gqxy[26] = zr * yr * (b[2][1] + xr2 * b[2][2]);
+      gqxy[27] = xr * yr * (3.0 * b[2][1] + yr2 * b[2][2]);
+      gqxy[28] = zr * xr * (b[2][1] + yr2 * b[2][2]);
+      gqxy[29] = xr * yr * (b[2][1] + zr2 * b[2][2]);
+      gqxz[24] = xr * zr * (3.0 * b[2][1] + xr2 * b[2][2]);
+      gqxz[25] = yr * zr * (b[2][1] + xr2 * b[2][2]);
+      gqxz[26] = b[2][0] + (xr2 + zr2) * b[2][1] + xr2 * zr2 * b[2][2];
+      gqxz[27] = xr * zr * (b[2][1] + yr2 * b[2][2]);
+      gqxz[28] = xr * yr * (b[2][1] + zr2 * b[2][2]);
+      gqxz[29] = xr * zr * (3.0 * b[2][1] + zr2 * b[2][2]);
+      gqyz[24] = zr * yr * (b[2][1] + xr2 * b[2][2]);
+      gqyz[25] = xr * zr * (b[2][1] + yr2 * b[2][2]);
+      gqyz[26] = xr * yr * (b[2][1] + zr2 * b[2][2]);
+      gqyz[27] = yr * zr * (3.0 * b[2][1] + yr2 * b[2][2]);
+      gqyz[28] = b[2][0] + (yr2 + zr2) * b[2][1] + yr2 * zr2 * b[2][2];
+      gqyz[29] = yr * zr * (3.0 * b[2][1] + zr2 * b[2][2]);
+
+      gc[10] = xr * (3.0 * a[0][2] + xr2 * a[0][3]);
+      gc[11] = yr * (a[0][2] + xr2 * a[0][3]);
+      gc[12] = zr * (a[0][2] + xr2 * a[0][3]);
+      gc[13] = xr * (a[0][2] + yr2 * a[0][3]);
+      gc[14] = xr * yr * zr * a[0][3];
+      gc[15] = xr * (a[0][2] + zr2 * a[0][3]);
+      gc[16] = yr * (3.0 * a[0][2] + yr2 * a[0][3]);
+      gc[17] = zr * (a[0][2] + yr2 * a[0][3]);
+      gc[18] = yr * (a[0][2] + zr2 * a[0][3]);
+      gc[19] = zr * (3.0 * a[0][2] + zr2 * a[0][3]);
+      gux[10] = 3.0 * a[1][1] + xr2 * (6.0 * a[1][2] + xr2 * a[1][3]);
+      gux[11] = xr * yr * (3.0 * a[1][2] + xr2 * a[1][3]);
+      gux[12] = xr * zr * (3.0 * a[1][2] + xr2 * a[1][3]);
+      gux[13] = a[1][1] + (xr2 + yr2) * a[1][2] + xr2 * yr2 * a[1][3];
+      gux[14] = yr * zr * (a[1][2] + xr2 * a[1][3]);
+      gux[15] = a[1][1] + (xr2 + zr2) * a[1][2] + xr2 * zr2 * a[1][3];
+      gux[16] = xr * yr * (3.0 * a[1][2] + yr2 * a[1][3]);
+      gux[17] = xr * zr * (a[1][2] + yr2 * a[1][3]);
+      gux[18] = xr * yr * (a[1][2] + zr2 * a[1][3]);
+      gux[19] = xr * zr * (3.0 * a[1][2] + zr2 * a[1][3]);
+      guy[10] = gux[11];
+      guy[11] = gux[13];
+      guy[12] = gux[14];
+      guy[13] = gux[16];
+      guy[14] = gux[17];
+      guy[15] = gux[18];
+      guy[16] = 3.0 * a[1][1] + yr2 * (6.0 * a[1][2] + yr2 * a[1][3]);
+      guy[17] = yr * zr * (3.0 * a[1][2] + yr2 * a[1][3]);
+      guy[18] = a[1][1] + (yr2 + zr2) * a[1][2] + yr2 * zr2 * a[1][3];
+      guy[19] = yr * zr * (3.0 * a[1][2] + zr2 * a[1][3]);
+      guz[10] = gux[12];
+      guz[11] = gux[14];
+      guz[12] = gux[15];
+      guz[13] = gux[17];
+      guz[14] = gux[18];
+      guz[15] = gux[19];
+      guz[16] = guy[17];
+      guz[17] = guy[18];
+      guz[18] = guy[19];
+      guz[19] = 3.0 * a[1][1] + zr2 * (6.0 * a[1][2] + zr2 * a[1][3]);
+      gqxx[10] = xr * (12.0 * a[2][1] + xr2 * (9.0 * a[2][2] + xr2 * a[2][3]));
+      gqxx[11] = yr * (2.0 * a[2][1] + xr2 * (5.0 * a[2][2] + xr2 * a[2][3]));
+      gqxx[12] = zr * (2.0 * a[2][1] + xr2 * (5.0 * a[2][2] + xr2 * a[2][3]));
+      gqxx[13] = xr * (2.0 * a[2][1] + yr2 * 2.0 * a[2][2] + xr2 * (a[2][2] + yr2 * a[2][3]));
+      gqxx[14] = xr * yr * zr * (2.0 * a[2][2] + xr2 * a[2][3]);
+      gqxx[15] = xr * (2.0 * a[2][1] + zr2 * 2.0 * a[2][2] + xr2 * (a[2][2] + zr2 * a[2][3]));
+      gqxx[16] = yr * xr2 * (3.0 * a[2][2] + yr2 * a[2][3]);
+      gqxx[17] = zr * xr2 * (a[2][2] + yr2 * a[2][3]);
+      gqxx[18] = yr * xr2 * (a[2][2] + zr2 * a[2][3]);
+      gqxx[19] = zr * xr2 * (3.0 * a[2][2] + zr2 * a[2][3]);
+      gqxy[10] = yr * (3.0 * a[2][1] + xr2 * (6.0 * a[2][2] + xr2 * a[2][3]));
+      gqxy[11] = xr * (3.0 * (a[2][1] + yr2 * a[2][2]) + xr2 * (a[2][2] + yr2 * a[2][3]));
+      gqxy[12] = xr * yr * zr * (3.0 * a[2][2] + xr2 * a[2][3]);
+      gqxy[13] = yr * (3.0 * (a[2][1] + xr2 * a[2][2]) + yr2 * (a[2][2] + xr2 * a[2][3]));
+      gqxy[14] = zr * (a[2][1] + (yr2 + xr2) * a[2][2] + yr2 * xr2 * a[2][3]);
+      gqxy[15] = yr * (a[2][1] + (xr2 + zr2) * a[2][2] + xr2 * zr2 * a[2][3]);
+      gqxy[16] = xr * (3.0 * (a[2][1] + yr2 * a[2][2]) + yr2 * (3.0 * a[2][2] + yr2 * a[2][3]));
+      gqxy[17] = xr * yr * zr * (3.0 * a[2][2] + yr2 * a[2][3]);
+      gqxy[18] = xr * (a[2][1] + (yr2 + zr2) * a[2][2] + yr2 * zr2 * a[2][3]);
+      gqxy[19] = xr * yr * zr * (3.0 * a[2][2] + zr2 * a[2][3]);
+      gqxz[10] = zr * (3.0 * a[2][1] + xr2 * (6.0 * a[2][2] + xr2 * a[2][3]));
+      gqxz[11] = xr * yr * zr * (3.0 * a[2][2] + xr2 * a[2][3]);
+      gqxz[12] = xr * (3.0 * (a[2][1] + zr2 * a[2][2]) + xr2 * (a[2][2] + zr2 * a[2][3]));
+      gqxz[13] = zr * (a[2][1] + (xr2 + yr2) * a[2][2] + xr2 * yr2 * a[2][3]);
+      gqxz[14] = yr * (a[2][1] + (xr2 + zr2) * a[2][2] + zr2 * xr2 * a[2][3]);
+      gqxz[15] = zr * (3.0 * (a[2][1] + xr2 * a[2][2]) + zr2 * (a[2][2] + xr2 * a[2][3]));
+      gqxz[16] = xr * yr * zr * (3.0 * a[2][2] + yr2 * a[2][3]);
+      gqxz[17] = xr * (a[2][1] + (zr2 + yr2) * a[2][2] + zr2 * yr2 * a[2][3]);
+      gqxz[18] = xr * yr * zr * (3.0 * a[2][2] + zr2 * a[2][3]);
+      gqxz[19] = xr * (3.0 * a[2][1] + zr2 * (6.0 * a[2][2] + zr2 * a[2][3]));
+      gqyy[10] = xr * yr2 * (3.0 * a[2][2] + xr2 * a[2][3]);
+      gqyy[11] = yr * (2.0 * a[2][1] + xr2 * 2.0 * a[2][2] + yr2 * (a[2][2] + xr2 * a[2][3]));
+      gqyy[12] = zr * yr2 * (a[2][2] + xr2 * a[2][3]);
+      gqyy[13] = xr * (2.0 * a[2][1] + yr2 * (5.0 * a[2][2] + yr2 * a[2][3]));
+      gqyy[14] = xr * yr * zr * (2.0 * a[2][2] + yr2 * a[2][3]);
+      gqyy[15] = xr * yr2 * (a[2][2] + zr2 * a[2][3]);
+      gqyy[16] = yr * (12.0 * a[2][1] + yr2 * (9.0 * a[2][2] + yr2 * a[2][3]));
+      gqyy[17] = zr * (2.0 * a[2][1] + yr2 * (5.0 * a[2][2] + yr2 * a[2][3]));
+      gqyy[18] = yr * (2.0 * a[2][1] + zr2 * 2.0 * a[2][2] + yr2 * (a[2][2] + zr2 * a[2][3]));
+      gqyy[19] = zr * yr2 * (3.0 * a[2][2] + zr2 * a[2][3]);
+      gqyz[10] = xr * yr * zr * (3.0 * a[2][2] + xr2 * a[2][3]);
+      gqyz[11] = zr * (a[2][1] + (xr2 + yr2) * a[2][2] + xr2 * yr2 * a[2][3]);
+      gqyz[12] = yr * (a[2][1] + (xr2 + zr2) * a[2][2] + xr2 * zr2 * a[2][3]);
+      gqyz[13] = xr * yr * zr * (3.0 * a[2][2] + yr2 * a[2][3]);
+      gqyz[14] = xr * (a[2][1] + (yr2 + zr2) * a[2][2] + yr2 * zr2 * a[2][3]);
+      gqyz[15] = xr * yr * zr * (3.0 * a[2][2] + zr2 * a[2][3]);
+      gqyz[16] = zr * (3.0 * a[2][1] + yr2 * (6.0 * a[2][2] + yr2 * a[2][3]));
+      gqyz[17] = yr * (3.0 * (a[2][1] + zr2 * a[2][2]) + yr2 * (a[2][2] + zr2 * a[2][3]));
+      gqyz[18] = zr * (3.0 * (a[2][1] + yr2 * a[2][2]) + zr2 * (a[2][2] + yr2 * a[2][3]));
+      gqyz[19] = yr * (3.0 * a[2][1] + zr2 * (6.0 * a[2][2] + zr2 * a[2][3]));
+      gqzz[10] = xr * zr2 * (3.0 * a[2][2] + xr2 * a[2][3]);
+      gqzz[11] = yr * (zr2 * a[2][2] + xr2 * (zr2 * a[2][3]));
+      gqzz[12] = zr * (2.0 * a[2][1] + xr2 * 2.0 * a[2][2] + zr2 * (a[2][2] + xr2 * a[2][3]));
+      gqzz[13] = xr * zr2 * (a[2][2] + yr2 * a[2][3]);
+      gqzz[14] = xr * yr * zr * (2.0 * a[2][2] + zr2 * a[2][3]);
+      gqzz[15] = xr * (2.0 * a[2][1] + zr2 * (5.0 * a[2][2] + zr2 * a[2][3]));
+      gqzz[16] = yr * zr2 * (3.0 * a[2][2] + yr2 * a[2][3]);
+      gqzz[17] = zr * (2.0 * a[2][1] + yr2 * 2.0 * a[2][2] + zr2 * (a[2][2] + yr2 * a[2][3]));
+      gqzz[18] = yr * (2.0 * a[2][1] + zr2 * (5.0 * a[2][2] + zr2 * a[2][3]));
+      gqzz[19] = zr * (12.0 * a[2][1] + zr2 * (9.0 * a[2][2] + zr2 * a[2][3]));
+   }
+   //
 
    real esym = ci * ck * gc[0]
          - dix * (dkx * gux[1] + dky * guy[1] + dkz * guz[1])
@@ -386,6 +705,694 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
 
    e = esym + 0.5*(ewi+ewk);
    e += 0.5 * (esymi + 0.5*(ewii+ewki));
+
+   //
+   if (do_g) {
+      real desymdx = ci * ck * gc[1]
+            - (dix * (dkx * gux[4] + dky * guy[4] + dkz * guz[4])
+            +  diy * (dkx * gux[5] + dky * guy[5] + dkz * guz[5])
+            +  diz * (dkx * gux[6] + dky * guy[6] + dkz * guz[6]));
+
+      real dewidx = ci * (dkx * gc[4] + dky * gc[5] + dkz * gc[6])
+                  - ck * (dix * gux[1] + diy * guy[1] + diz * guz[1])
+                  + ci * (qkxx * gc[10] + qkyy * gc[13] + qkzz * gc[15]
+                 + 2.0 * (qkxy * gc[11] + qkxz * gc[12] + qkyz * gc[14]))
+                  + ck * (qixx * gqxx[1] + qiyy * gqyy[1] + qizz * gqzz[1]
+                 + 2.0 * (qixy * gqxy[1] + qixz * gqxz[1] + qiyz * gqyz[1]))
+                 - dix * (qkxx * gux[10] + qkyy * gux[13] + qkzz * gux[15]
+                 + 2.0 * (qkxy * gux[11] + qkxz * gux[12] + qkyz * gux[14]))
+                 - diy * (qkxx * guy[10] + qkyy * guy[13] + qkzz * guy[15]
+                 + 2.0 * (qkxy * guy[11] + qkxz * guy[12] + qkyz * guy[14]))
+                 - diz * (qkxx * guz[10] + qkyy * guz[13] + qkzz * guz[15]
+                 + 2.0 * (qkxy * guz[11] + qkxz * guz[12] + qkyz * guz[14]))
+                 + dkx * (qixx * gqxx[4] + qiyy * gqyy[4] + qizz * gqzz[4]
+                 + 2.0 * (qixy * gqxy[4] + qixz * gqxz[4] + qiyz * gqyz[4]))
+                 + dky * (qixx * gqxx[5] + qiyy * gqyy[5] + qizz * gqzz[5]
+                 + 2.0 * (qixy * gqxy[5] + qixz * gqxz[5] + qiyz * gqyz[5]))
+                 + dkz * (qixx * gqxx[6] + qiyy * gqyy[6] + qizz * gqzz[6]
+                 + 2.0 * (qixy * gqxy[6] + qixz * gqxz[6] + qiyz * gqyz[6]))
+                + qixx * (qkxx * gqxx[10] + qkyy * gqxx[13] + qkzz * gqxx[15]
+                 + 2.0 * (qkxy * gqxx[11] + qkxz * gqxx[12] + qkyz * gqxx[14]))
+                + qiyy * (qkxx * gqyy[10] + qkyy * gqyy[13] + qkzz * gqyy[15]
+                 + 2.0 * (qkxy * gqyy[11] + qkxz * gqyy[12] + qkyz * gqyy[14]))
+                + qizz * (qkxx * gqzz[10] + qkyy * gqzz[13] + qkzz * gqzz[15]
+                 + 2.0 * (qkxy * gqzz[11] + qkxz * gqzz[12] + qkyz * gqzz[14]))
+         + 2.0 * (qixy * (qkxx * gqxy[10] + qkyy * gqxy[13] + qkzz * gqxy[15]
+                 + 2.0 * (qkxy * gqxy[11] + qkxz * gqxy[12] + qkyz * gqxy[14]))
+                + qixz * (qkxx * gqxz[10] + qkyy * gqxz[13] + qkzz * gqxz[15]
+                 + 2.0 * (qkxy * gqxz[11] + qkxz * gqxz[12] + qkyz * gqxz[14]))
+                + qiyz * (qkxx * gqyz[10] + qkyy * gqyz[13] + qkzz * gqyz[15]
+                 + 2.0 * (qkxy * gqyz[11] + qkxz * gqyz[12] + qkyz * gqyz[14])));
+
+      real dewkdx = ci * (dkx * gux[1] + dky * guy[1] + dkz * guz[1])
+                  - ck * (dix * gc[4] + diy * gc[5] + diz * gc[6])
+                  + ci * (qkxx * gqxx[1] + qkyy * gqyy[1] + qkzz * gqzz[1]
+                 + 2.0 * (qkxy * gqxy[1] + qkxz * gqxz[1] + qkyz * gqyz[1]))
+                  + ck * (qixx * gc[10] + qiyy * gc[13] + qizz * gc[15]
+                 + 2.0 * (qixy * gc[11] + qixz * gc[12] + qiyz * gc[14]))
+                 - dix * (qkxx * gqxx[4] + qkyy * gqyy[4] + qkzz * gqzz[4]
+                 + 2.0 * (qkxy * gqxy[4] + qkxz * gqxz[4] + qkyz * gqyz[4]))
+                 - diy * (qkxx * gqxx[5] + qkyy * gqyy[5] + qkzz * gqzz[5]
+                 + 2.0 * (qkxy * gqxy[5] + qkxz * gqxz[5] + qkyz * gqyz[5]))
+                 - diz * (qkxx * gqxx[6] + qkyy * gqyy[6] + qkzz * gqzz[6]
+                 + 2.0 * (qkxy * gqxy[6] + qkxz * gqxz[6] + qkyz * gqyz[6]))
+                 + dkx * (qixx * gux[10] + qiyy * gux[13] + qizz * gux[15]
+                 + 2.0 * (qixy * gux[11] + qixz * gux[12] + qiyz * gux[14]))
+                 + dky * (qixx * guy[10] + qiyy * guy[13] + qizz * guy[15]
+                 + 2.0 * (qixy * guy[11] + qixz * guy[12] + qiyz * guy[14]))
+                 + dkz * (qixx * guz[10] + qiyy * guz[13] + qizz * guz[15]
+                 + 2.0 * (qixy * guz[11] + qixz * guz[12] + qiyz * guz[14]))
+                + qixx * (qkxx * gqxx[10] + qkyy * gqyy[10] + qkzz * gqzz[10]
+                 + 2.0 * (qkxy * gqxy[10] + qkxz * gqxz[10] + qkyz * gqyz[10]))
+                + qiyy * (qkxx * gqxx[13] + qkyy * gqyy[13] + qkzz * gqzz[13]
+                 + 2.0 * (qkxy * gqxy[13] + qkxz * gqxz[13] + qkyz * gqyz[13]))
+                + qizz * (qkxx * gqxx[15] + qkyy * gqyy[15] + qkzz * gqzz[15]
+                 + 2.0 * (qkxy * gqxy[15] + qkxz * gqxz[15] + qkyz * gqyz[15]))
+         + 2.0 * (qixy * (qkxx * gqxx[11] + qkyy * gqyy[11] + qkzz * gqzz[11]
+                 + 2.0 * (qkxy * gqxy[11] + qkxz * gqxz[11] + qkyz * gqyz[11]))
+                + qixz * (qkxx * gqxx[12] + qkyy * gqyy[12] + qkzz * gqzz[12]
+                 + 2.0 * (qkxy * gqxy[12] + qkxz * gqxz[12] + qkyz * gqyz[12]))
+                + qiyz * (qkxx * gqxx[14] + qkyy * gqyy[14] + qkzz * gqzz[14]
+                 + 2.0 * (qkxy * gqxy[14] + qkxz * gqxz[14] + qkyz * gqyz[14])));
+
+      dedx = desymdx + 0.5*(dewidx+dewkdx);
+
+      real desymdy = ci * ck * gc[2]
+               -(dix * (dkx * gux[5] + dky * guy[5] + dkz * guz[5])
+               + diy * (dkx * gux[7] + dky * guy[7] + dkz * guz[7])
+               + diz * (dkx * gux[8] + dky * guy[8] + dkz * guz[8]));
+
+      real dewidy = ci * (dkx * gc[5] + dky * gc[7] + dkz * gc[8])
+                  - ck * (dix * gux[2] + diy * guy[2] + diz * guz[2])
+                  + ci * (qkxx * gc[11] + qkyy * gc[16] + qkzz * gc[18]
+                 + 2.0 * (qkxy * gc[13] + qkxz * gc[14] + qkyz * gc[17]))
+                  + ck * (qixx * gqxx[2] + qiyy * gqyy[2] + qizz * gqzz[2]
+                 + 2.0 * (qixy * gqxy[2] + qixz * gqxz[2] + qiyz * gqyz[2]))
+                 - dix * (qkxx * gux[11] + qkyy * gux[16] + qkzz * gux[18]
+                 + 2.0 * (qkxy * gux[13] + qkxz * gux[14] + qkyz * gux[17]))
+                 - diy * (qkxx * guy[11] + qkyy * guy[16] + qkzz * guy[18]
+                 + 2.0 * (qkxy * guy[13] + qkxz * guy[14] + qkyz * guy[17]))
+                 - diz * (qkxx * guz[11] + qkyy * guz[16] + qkzz * guz[18]
+                 + 2.0 * (qkxy * guz[13] + qkxz * guz[14] + qkyz * guz[17]))
+                 + dkx * (qixx * gqxx[5] + qiyy * gqyy[5] + qizz * gqzz[5]
+                 + 2.0 * (qixy * gqxy[5] + qixz * gqxz[5] + qiyz * gqyz[5]))
+                 + dky * (qixx * gqxx[7] + qiyy * gqyy[7] + qizz * gqzz[7]
+                 + 2.0 * (qixy * gqxy[7] + qixz * gqxz[7] + qiyz * gqyz[7]))
+                 + dkz * (qixx * gqxx[8] + qiyy * gqyy[8] + qizz * gqzz[8]
+                 + 2.0 * (qixy * gqxy[8] + qixz * gqxz[8] + qiyz * gqyz[8]))
+                + qixx * (qkxx * gqxx[11] + qkyy * gqxx[16] + qkzz * gqxx[18]
+                 + 2.0 * (qkxy * gqxx[13] + qkxz * gqxx[14] + qkyz * gqxx[17]))
+                + qiyy * (qkxx * gqyy[11] + qkyy * gqyy[16] + qkzz * gqyy[18]
+                 + 2.0 * (qkxy * gqyy[13] + qkxz * gqyy[14] + qkyz * gqyy[17]))
+                + qizz * (qkxx * gqzz[11] + qkyy * gqzz[16] + qkzz * gqzz[18]
+                 + 2.0 * (qkxy * gqzz[13] + qkxz * gqzz[14] + qkyz * gqzz[17]))
+         + 2.0 * (qixy * (qkxx * gqxy[11] + qkyy * gqxy[16] + qkzz * gqxy[18]
+                 + 2.0 * (qkxy * gqxy[13] + qkxz * gqxy[14] + qkyz * gqxy[17]))
+                + qixz * (qkxx * gqxz[11] + qkyy * gqxz[16] + qkzz * gqxz[18]
+                 + 2.0 * (qkxy * gqxz[13] + qkxz * gqxz[14] + qkyz * gqxz[17]))
+                + qiyz * (qkxx * gqyz[11] + qkyy * gqyz[16] + qkzz * gqyz[18]
+                 + 2.0 * (qkxy * gqyz[13] + qkxz * gqyz[14] + qkyz * gqyz[17])));
+
+      real dewkdy = ci * (dkx * gux[2] + dky * guy[2] + dkz * guz[2])
+                  - ck * (dix * gc[5] + diy * gc[7] + diz * gc[8])
+                  + ci * (qkxx * gqxx[2] + qkyy * gqyy[2] + qkzz * gqzz[2]
+                 + 2.0 * (qkxy * gqxy[2] + qkxz * gqxz[2] + qkyz * gqyz[2]))
+                  + ck * (qixx * gc[11] + qiyy * gc[16] + qizz * gc[18]
+                 + 2.0 * (qixy * gc[13] + qixz * gc[14] + qiyz * gc[17]))
+                 - dix * (qkxx * gqxx[5] + qkyy * gqyy[5] + qkzz * gqzz[5]
+                 + 2.0 * (qkxy * gqxy[5] + qkxz * gqxz[5] + qkyz * gqyz[5]))
+                 - diy * (qkxx * gqxx[7] + qkyy * gqyy[7] + qkzz * gqzz[7]
+                 + 2.0 * (qkxy * gqxy[7] + qkxz * gqxz[7] + qkyz * gqyz[7]))
+                 - diz * (qkxx * gqxx[8] + qkyy * gqyy[8] + qkzz * gqzz[8]
+                 + 2.0 * (qkxy * gqxy[8] + qkxz * gqxz[8] + qkyz * gqyz[8]))
+                 + dkx * (qixx * gux[11] + qiyy * gux[16] + qizz * gux[18]
+                 + 2.0 * (qixy * gux[13] + qixz * gux[14] + qiyz * gux[17]))
+                 + dky * (qixx * guy[11] + qiyy * guy[16] + qizz * guy[18]
+                 + 2.0 * (qixy * guy[13] + qixz * guy[14] + qiyz * guy[17]))
+                 + dkz * (qixx * guz[11] + qiyy * guz[16] + qizz * guz[18]
+                 + 2.0 * (qixy * guz[13] + qixz * guz[14] + qiyz * guz[17]))
+                + qixx * (qkxx * gqxx[11] + qkyy * gqyy[11] + qkzz * gqzz[11]
+                 + 2.0 * (qkxy * gqxy[11] + qkxz * gqxz[11] + qkyz * gqyz[11]))
+                + qiyy * (qkxx * gqxx[16] + qkyy * gqyy[16] + qkzz * gqzz[16]
+                 + 2.0 * (qkxy * gqxy[16] + qkxz * gqxz[16] + qkyz * gqyz[16]))
+                + qizz * (qkxx * gqxx[18] + qkyy * gqyy[18] + qkzz * gqzz[18]
+                 + 2.0 * (qkxy * gqxy[18] + qkxz * gqxz[18] + qkyz * gqyz[18]))
+         + 2.0 * (qixy * (qkxx * gqxx[13] + qkyy * gqyy[13] + qkzz * gqzz[13]
+                 + 2.0 * (qkxy * gqxy[13] + qkxz * gqxz[13] + qkyz * gqyz[13]))
+                + qixz * (qkxx * gqxx[14] + qkyy * gqyy[14] + qkzz * gqzz[14]
+                 + 2.0 * (qkxy * gqxy[14] + qkxz * gqxz[14] + qkyz * gqyz[14]))
+                + qiyz * (qkxx * gqxx[17] + qkyy * gqyy[17] + qkzz * gqzz[17]
+                 + 2.0 * (qkxy * gqxy[17] + qkxz * gqxz[17] + qkyz * gqyz[17])));
+
+      dedy = desymdy + 0.5*(dewidy+dewkdy);
+
+      real desymdz = ci * ck * gc[3]
+                  -(dix * (dkx * gux[6] + dky * guy[6] + dkz * guz[6])
+                  + diy * (dkx * gux[8] + dky * guy[8] + dkz * guz[8])
+                  + diz * (dkx * gux[9] + dky * guy[9] + dkz * guz[9]));
+
+      real dewidz = ci * (dkx * gc[6] + dky * gc[8] + dkz * gc[9])
+                  - ck * (dix * gux[3] + diy * guy[3] + diz * guz[3])
+                  + ci * (qkxx * gc[12] + qkyy * gc[17] + qkzz * gc[19]
+                 + 2.0 * (qkxy * gc[14] + qkxz * gc[15] + qkyz * gc[18]))
+                  + ck * (qixx * gqxx[3] + qiyy * gqyy[3] + qizz * gqzz[3]
+                 + 2.0 * (qixy * gqxy[3] + qixz * gqxz[3] + qiyz * gqyz[3]))
+                 - dix * (qkxx * gux[12] + qkyy * gux[17] + qkzz * gux[19]
+                 + 2.0 * (qkxy * gux[14] + qkxz * gux[15] + qkyz * gux[18]))
+                 - diy * (qkxx * guy[12] + qkyy * guy[17] + qkzz * guy[19]
+                 + 2.0 * (qkxy * guy[14] + qkxz * guy[15] + qkyz * guy[18]))
+                 - diz * (qkxx * guz[12] + qkyy * guz[17] + qkzz * guz[19]
+                 + 2.0 * (qkxy * guz[14] + qkxz * guz[15] + qkyz * guz[18]))
+                 + dkx * (qixx * gqxx[6] + qiyy * gqyy[6] + qizz * gqzz[6]
+                 + 2.0 * (qixy * gqxy[6] + qixz * gqxz[6] + qiyz * gqyz[6]))
+                 + dky * (qixx * gqxx[8] + qiyy * gqyy[8] + qizz * gqzz[8]
+                 + 2.0 * (qixy * gqxy[8] + qixz * gqxz[8] + qiyz * gqyz[8]))
+                 + dkz * (qixx * gqxx[9] + qiyy * gqyy[9] + qizz * gqzz[9]
+                 + 2.0 * (qixy * gqxy[9] + qixz * gqxz[9] + qiyz * gqyz[9]))
+                + qixx * (qkxx * gqxx[12] + qkyy * gqxx[17] + qkzz * gqxx[19]
+                 + 2.0 * (qkxy * gqxx[14] + qkxz * gqxx[15] + qkyz * gqxx[18]))
+                + qiyy * (qkxx * gqyy[12] + qkyy * gqyy[17] + qkzz * gqyy[19]
+                 + 2.0 * (qkxy * gqyy[14] + qkxz * gqyy[15] + qkyz * gqyy[18]))
+                + qizz * (qkxx * gqzz[12] + qkyy * gqzz[17] + qkzz * gqzz[19]
+                 + 2.0 * (qkxy * gqzz[14] + qkxz * gqzz[15] + qkyz * gqzz[18]))
+         + 2.0 * (qixy * (qkxx * gqxy[12] + qkyy * gqxy[17] + qkzz * gqxy[19]
+                 + 2.0 * (qkxy * gqxy[14] + qkxz * gqxy[15] + qkyz * gqxy[18]))
+                + qixz * (qkxx * gqxz[12] + qkyy * gqxz[17] + qkzz * gqxz[19]
+                 + 2.0 * (qkxy * gqxz[14] + qkxz * gqxz[15] + qkyz * gqxz[18]))
+                + qiyz * (qkxx * gqyz[12] + qkyy * gqyz[17] + qkzz * gqyz[19]
+                 + 2.0 * (qkxy * gqyz[14] + qkxz * gqyz[15] + qkyz * gqyz[18])));
+
+      real dewkdz = ci * (dkx * gux[3] + dky * guy[3] + dkz * guz[3])
+                  - ck * (dix * gc[6] + diy * gc[8] + diz * gc[9])
+                  + ci * (qkxx * gqxx[3] + qkyy * gqyy[3] + qkzz * gqzz[3]
+                 + 2.0 * (qkxy * gqxy[3] + qkxz * gqxz[3] + qkyz * gqyz[3]))
+                  + ck * (qixx * gc[12] + qiyy * gc[17] + qizz * gc[19]
+                 + 2.0 * (qixy * gc[14] + qixz * gc[15] + qiyz * gc[18]))
+                 - dix * (qkxx * gqxx[6] + qkyy * gqyy[6] + qkzz * gqzz[6]
+                 + 2.0 * (qkxy * gqxy[6] + qkxz * gqxz[6] + qkyz * gqyz[6]))
+                 - diy * (qkxx * gqxx[8] + qkyy * gqyy[8] + qkzz * gqzz[8]
+                 + 2.0 * (qkxy * gqxy[8] + qkxz * gqxz[8] + qkyz * gqyz[8]))
+                 - diz * (qkxx * gqxx[9] + qkyy * gqyy[9] + qkzz * gqzz[9]
+                 + 2.0 * (qkxy * gqxy[9] + qkxz * gqxz[9] + qkyz * gqyz[9]))
+                 + dkx * (qixx * gux[12] + qiyy * gux[17] + qizz * gux[19]
+                 + 2.0 * (qixy * gux[14] + qixz * gux[15] + qiyz * gux[18]))
+                 + dky * (qixx * guy[12] + qiyy * guy[17] + qizz * guy[19]
+                 + 2.0 * (qixy * guy[14] + qixz * guy[15] + qiyz * guy[18]))
+                 + dkz * (qixx * guz[12] + qiyy * guz[17] + qizz * guz[19]
+                 + 2.0 * (qixy * guz[14] + qixz * guz[15] + qiyz * guz[18]))
+                + qixx * (qkxx * gqxx[12] + qkyy * gqyy[12] + qkzz * gqzz[12]
+                 + 2.0 * (qkxy * gqxy[12] + qkxz * gqxz[12] + qkyz * gqyz[12]))
+                + qiyy * (qkxx * gqxx[17] + qkyy * gqyy[17] + qkzz * gqzz[17]
+                 + 2.0 * (qkxy * gqxy[17] + qkxz * gqxz[17] + qkyz * gqyz[17]))
+                + qizz * (qkxx * gqxx[19] + qkyy * gqyy[19] + qkzz * gqzz[19]
+                 + 2.0 * (qkxy * gqxy[19] + qkxz * gqxz[19] + qkyz * gqyz[19]))
+         + 2.0 * (qixy * (qkxx * gqxx[14] + qkyy * gqyy[14] + qkzz * gqzz[14]
+                 + 2.0 * (qkxy * gqxy[14] + qkxz * gqxz[14] + qkyz * gqyz[14]))
+                + qixz * (qkxx * gqxx[15] + qkyy * gqyy[15] + qkzz * gqzz[15]
+                 + 2.0 * (qkxy * gqxy[15] + qkxz * gqxz[15] + qkyz * gqyz[15]))
+                + qiyz * (qkxx * gqxx[18] + qkyy * gqyy[18] + qkzz * gqzz[18]
+                 + 2.0 * (qkxy * gqxy[18] + qkxz * gqxz[18] + qkyz * gqyz[18])));
+                 
+      dedz = desymdz + 0.5*(dewidz+dewkdz);
+
+      real desymdr = ci * ck * gc[20]
+                   -(dix * (dkx * gux[21] + dky * guy[21] + dkz * guz[21])
+                   + diy * (dkx * gux[22] + dky * guy[22] + dkz * guz[22])
+                   + diz * (dkx * gux[23] + dky * guy[23] + dkz * guz[23]));
+
+      real dewidr = ci * (dkx * gc[21] + dky * gc[22] + dkz * gc[23])
+                  - ck * (dix * gux[20] + diy * guy[20] + diz * guz[20])
+                  + ci * (qkxx * gc[24] + qkyy * gc[27] + qkzz * gc[29]
+                 + 2.0 * (qkxy * gc[25] + qkxz * gc[26] + qkyz * gc[28]))
+                  + ck * (qixx * gqxx[20] + qiyy * gqyy[20] + qizz * gqzz[20]
+                 + 2.0 * (qixy * gqxy[20] + qixz * gqxz[20] + qiyz * gqyz[20]))
+                 - dix * (qkxx * gux[24] + qkyy * gux[27] + qkzz * gux[29]
+                 + 2.0 * (qkxy * gux[25] + qkxz * gux[26] + qkyz * gux[28]))
+                 - diy * (qkxx * guy[24] + qkyy * guy[27] + qkzz * guy[29]
+                 + 2.0 * (qkxy * guy[25] + qkxz * guy[26] + qkyz * guy[28]))
+                 - diz * (qkxx * guz[24] + qkyy * guz[27] + qkzz * guz[29]
+                 + 2.0 * (qkxy * guz[25] + qkxz * guz[26] + qkyz * guz[28]))
+                 + dkx * (qixx * gqxx[21] + qiyy * gqyy[21] + qizz * gqzz[21]
+                 + 2.0 * (qixy * gqxy[21] + qixz * gqxz[21] + qiyz * gqyz[21]))
+                 + dky * (qixx * gqxx[22] + qiyy * gqyy[22] + qizz * gqzz[22]
+                 + 2.0 * (qixy * gqxy[22] + qixz * gqxz[22] + qiyz * gqyz[22]))
+                 + dkz * (qixx * gqxx[23] + qiyy * gqyy[23] + qizz * gqzz[23]
+                 + 2.0 * (qixy * gqxy[23] + qixz * gqxz[23] + qiyz * gqyz[23]))
+                + qixx * (qkxx * gqxx[24] + qkyy * gqxx[27] + qkzz * gqxx[29]
+                 + 2.0 * (qkxy * gqxx[25] + qkxz * gqxx[26] + qkyz * gqxx[28]))
+                + qiyy * (qkxx * gqyy[24] + qkyy * gqyy[27] + qkzz * gqyy[29]
+                 + 2.0 * (qkxy * gqyy[25] + qkxz * gqyy[26] + qkyz * gqyy[28]))
+                + qizz * (qkxx * gqzz[24] + qkyy * gqzz[27] + qkzz * gqzz[29]
+                 + 2.0 * (qkxy * gqzz[25] + qkxz * gqzz[26] + qkyz * gqzz[28]))
+         + 2.0 * (qixy * (qkxx * gqxy[24] + qkyy * gqxy[27] + qkzz * gqxy[29]
+                 + 2.0 * (qkxy * gqxy[25] + qkxz * gqxy[26] + qkyz * gqxy[28]))
+                + qixz * (qkxx * gqxz[24] + qkyy * gqxz[27] + qkzz * gqxz[29]
+                 + 2.0 * (qkxy * gqxz[25] + qkxz * gqxz[26] + qkyz * gqxz[28]))
+                + qiyz * (qkxx * gqyz[24] + qkyy * gqyz[27] + qkzz * gqyz[29]
+                 + 2.0 * (qkxy * gqyz[25] + qkxz * gqyz[26] + qkyz * gqyz[28])));
+
+      real dewkdr = ci * (dkx * gux[20] + dky * guy[20] + dkz * guz[20])
+                  - ck * (dix * gc[21] + diy * gc[22] + diz * gc[23])
+                  + ci * (qkxx * gqxx[20] + qkyy * gqyy[20] + qkzz * gqzz[20]
+                 + 2.0 * (qkxy * gqxy[20] + qkxz * gqxz[20] + qkyz * gqyz[20]))
+                  + ck * (qixx * gc[24] + qiyy * gc[27] + qizz * gc[29]
+                 + 2.0 * (qixy * gc[25] + qixz * gc[26] + qiyz * gc[28]))
+                 - dix * (qkxx * gqxx[21] + qkyy * gqyy[21] + qkzz * gqzz[21]
+                 + 2.0 * (qkxy * gqxy[21] + qkxz * gqxz[21] + qkyz * gqyz[21]))
+                 - diy * (qkxx * gqxx[22] + qkyy * gqyy[22] + qkzz * gqzz[22]
+                 + 2.0 * (qkxy * gqxy[22] + qkxz * gqxz[22] + qkyz * gqyz[22]))
+                 - diz * (qkxx * gqxx[23] + qkyy * gqyy[23] + qkzz * gqzz[23]
+                 + 2.0 * (qkxy * gqxy[23] + qkxz * gqxz[23] + qkyz * gqyz[23]))
+                 + dkx * (qixx * gux[24] + qiyy * gux[27] + qizz * gux[29]
+                 + 2.0 * (qixy * gux[25] + qixz * gux[26] + qiyz * gux[28]))
+                 + dky * (qixx * guy[24] + qiyy * guy[27] + qizz * guy[29]
+                 + 2.0 * (qixy * guy[25] + qixz * guy[26] + qiyz * guy[28]))
+                 + dkz * (qixx * guz[24] + qiyy * guz[27] + qizz * guz[29]
+                 + 2.0 * (qixy * guz[25] + qixz * guz[26] + qiyz * guz[28]))
+                + qixx * (qkxx * gqxx[24] + qkyy * gqyy[24] + qkzz * gqzz[24]
+                 + 2.0 * (qkxy * gqxy[24] + qkxz * gqxz[24] + qkyz * gqyz[24]))
+                + qiyy * (qkxx * gqxx[27] + qkyy * gqyy[27] + qkzz * gqzz[27]
+                 + 2.0 * (qkxy * gqxy[27] + qkxz * gqxz[27] + qkyz * gqyz[27]))
+                + qizz * (qkxx * gqxx[29] + qkyy * gqyy[29] + qkzz * gqzz[29]
+                 + 2.0 * (qkxy * gqxy[29] + qkxz * gqxz[29] + qkyz * gqyz[29]))
+         + 2.0 * (qixy * (qkxx * gqxx[25] + qkyy * gqyy[25] + qkzz * gqzz[25]
+                 + 2.0 * (qkxy * gqxy[25] + qkxz * gqxz[25] + qkyz * gqyz[25]))
+                + qixz * (qkxx * gqxx[26] + qkyy * gqyy[26] + qkzz * gqzz[26]
+                 + 2.0 * (qkxy * gqxy[26] + qkxz * gqxz[26] + qkyz * gqyz[26]))
+                + qiyz * (qkxx * gqxx[28] + qkyy * gqyy[28] + qkzz * gqzz[28]
+                 + 2.0 * (qkxy * gqxy[28] + qkxz * gqxz[28] + qkyz * gqyz[28])));
+   
+      real dsumdr = desymdr + 0.5*(dewidr+dewkdr);
+      drbi = rbk*dsumdr;
+      drbk = rbi*dsumdr;
+
+      real fid[3],fkd[3];
+      real fidg[3][3],fkdg[3][3];
+
+      fid[0] = dkx * gux[1] + dky * gux[2] + dkz * gux[3]
+          + 0.5 * (ck * gux[0] + qkxx * gux[4] + qkyy * gux[7] + qkzz * gux[9]
+          + 2.0 * (qkxy * gux[5] + qkxz * gux[6] + qkyz * gux[8])
+          + ck * gc[1] + qkxx * gqxx[1] + qkyy * gqyy[1] + qkzz * gqzz[1]
+          + 2.0 * (qkxy * gqxy[1] + qkxz * gqxz[1] + qkyz * gqyz[1]));
+      
+      fid[1] = dkx * guy[1] + dky * guy[2] + dkz * guy[3]
+          + 0.5 * (ck * guy[0] + qkxx * guy[4] + qkyy * guy[7] + qkzz * guy[9]
+          + 2.0 * (qkxy * guy[5] + qkxz * guy[6] + qkyz * guy[8])
+          + ck * gc[2] + qkxx * gqxx[2] + qkyy * gqyy[2] + qkzz * gqzz[2]
+          + 2.0 * (qkxy * gqxy[2] + qkxz * gqxz[2] + qkyz * gqyz[2]));
+      
+      fid[2] = dkx * guz[1] + dky * guz[2] + dkz * guz[3]
+          + 0.5 * (ck * guz[0] + qkxx * guz[4] + qkyy * guz[7] + qkzz * guz[9]
+          + 2.0 * (qkxy * guz[5] + qkxz * guz[6] + qkyz * guz[8])
+          + ck * gc[3] + qkxx * gqxx[3] + qkyy * gqyy[3] + qkzz * gqzz[3]
+          + 2.0 * (qkxy * gqxy[3] + qkxz * gqxz[3] + qkyz * gqyz[3]));
+
+      fkd[0] = dix * gux[1] + diy * gux[2] + diz * gux[3]
+          - 0.5 * (ci * gux[0] + qixx * gux[4] + qiyy * gux[7] + qizz * gux[9]
+          + 2.0 * (qixy * gux[5] + qixz * gux[6] + qiyz * gux[8])
+          + ci * gc[1] + qixx * gqxx[1] + qiyy * gqyy[1] + qizz * gqzz[1]
+          + 2.0 * (qixy * gqxy[1] + qixz * gqxz[1] + qiyz * gqyz[1]));
+      
+      fkd[1] = dix * guy[1] + diy * guy[2] + diz * guy[3]
+          - 0.5 * (ci * guy[0] + qixx * guy[4] + qiyy * guy[7] + qizz * guy[9]
+          + 2.0 * (qixy * guy[5] + qixz * guy[6] + qiyz * guy[8])
+          + ci * gc[2] + qixx * gqxx[2] + qiyy * gqyy[2] + qizz * gqzz[2]
+          + 2.0 * (qixy * gqxy[2] + qixz * gqxz[2] + qiyz * gqyz[2]));
+      
+      fkd[2] = dix * guz[1] + diy * guz[2] + diz * guz[3]
+          - 0.5 * (ci * guz[0] + qixx * guz[4] + qiyy * guz[7] + qizz * guz[9]
+          + 2.0 * (qixy * guz[5] + qixz * guz[6] + qiyz * guz[8])
+          + ci * gc[3] + qixx * gqxx[3] + qiyy * gqyy[3] + qizz * gqzz[3]
+          + 2.0 * (qixy * gqxy[3] + qixz * gqxz[3] + qiyz * gqyz[3]));
+
+      pgrad.ttqi[0] = diy*fid[2] - diz*fid[1];
+      pgrad.ttqi[1] = diz*fid[0] - dix*fid[2];
+      pgrad.ttqi[2] = dix*fid[1] - diy*fid[0];
+      pgrad.ttqk[0] = dky*fkd[2] - dkz*fkd[1];
+      pgrad.ttqk[1] = dkz*fkd[0] - dkx*fkd[2];
+      pgrad.ttqk[2] = dkx*fkd[1] - dky*fkd[0];
+
+      fidg[0][0] = -0.5 * (ck * gqxx[0] + dkx * gqxx[1] + dky * gqxx[2] + dkz * gqxx[3]
+          + qkxx * gqxx[4] + qkyy * gqxx[7] + qkzz * gqxx[9]
+          + 2.0 * (qkxy * gqxx[5] + qkxz * gqxx[6] + qkyz * gqxx[8])
+          + ck * gc[4] + dkx * gux[4] + dky * guy[4] + dkz * guz[4]
+          + qkxx * gqxx[4] + qkyy * gqyy[4] + qkzz * gqzz[4]
+          + 2.0 * (qkxy * gqxy[4] + qkxz * gqxz[4] + qkyz * gqyz[4]));
+      
+      fidg[0][1] = -0.5 * (ck * gqxy[0] + dkx * gqxy[1] + dky * gqxy[2] + dkz * gqxy[3]
+          + qkxx * gqxy[4] + qkyy * gqxy[7] + qkzz * gqxy[9]
+          + 2.0 * (qkxy * gqxy[5] + qkxz * gqxy[6] + qkyz * gqxy[8])
+          + ck * gc[5] + dkx * gux[5] + dky * guy[5] + dkz * guz[5]
+          + qkxx * gqxx[5] + qkyy * gqyy[5] + qkzz * gqzz[5]
+          + 2.0 * (qkxy * gqxy[5] + qkxz * gqxz[5] + qkyz * gqyz[5]));
+      
+      fidg[0][2] = -0.5 * (ck * gqxz[0] + dkx * gqxz[1] + dky * gqxz[2] + dkz * gqxz[3]
+          + qkxx * gqxz[4] + qkyy * gqxz[7] + qkzz * gqxz[9]
+          + 2.0 * (qkxy * gqxz[5] + qkxz * gqxz[6] + qkyz * gqxz[8])
+          + ck * gc[6] + dkx * gux[6] + dky * guy[6] + dkz * guz[6]
+          + qkxx * gqxx[6] + qkyy * gqyy[6] + qkzz * gqzz[6]
+          + 2.0 * (qkxy * gqxy[6] + qkxz * gqxz[6] + qkyz * gqyz[6]));
+
+      fidg[1][1] = -0.5 * (ck * gqyy[0] + dkx * gqyy[1] + dky * gqyy[2] + dkz * gqyy[3]
+          + qkxx * gqyy[4] + qkyy * gqyy[7] + qkzz * gqyy[9]
+          + 2.0 * (qkxy * gqyy[5] + qkxz * gqyy[6] + qkyz * gqyy[8])
+          + ck * gc[7] + dkx * gux[7] + dky * guy[7] + dkz * guz[7]
+          + qkxx * gqxx[7] + qkyy * gqyy[7] + qkzz * gqzz[7]
+          + 2.0 * (qkxy * gqxy[7] + qkxz * gqxz[7] + qkyz * gqyz[7]));
+      
+      fidg[1][2] = -0.5 * (ck * gqyz[0] + dkx * gqyz[1] + dky * gqyz[2] + dkz * gqyz[3]
+          + qkxx * gqyz[4] + qkyy * gqyz[7] + qkzz * gqyz[9]
+          + 2.0 * (qkxy * gqyz[5] + qkxz * gqyz[6] + qkyz * gqyz[8])
+          + ck * gc[8] + dkx * gux[8] + dky * guy[8] + dkz * guz[8]
+          + qkxx * gqxx[8] + qkyy * gqyy[8] + qkzz * gqzz[8]
+          + 2.0 * (qkxy * gqxy[8] + qkxz * gqxz[8] + qkyz * gqyz[8]));
+      
+      fidg[2][2] = -0.5 * (ck * gqzz[0] + dkx * gqzz[1] + dky * gqzz[2] + dkz * gqzz[3]
+          + qkxx * gqzz[4] + qkyy * gqzz[7] + qkzz * gqzz[9]
+          + 2.0 * (qkxy * gqzz[5] + qkxz * gqzz[6] + qkyz * gqzz[8])
+          + ck * gc[9] + dkx * gux[9] + dky * guy[9] + dkz * guz[9]
+          + qkxx * gqxx[9] + qkyy * gqyy[9] + qkzz * gqzz[9]
+          + 2.0 * (qkxy * gqxy[9] + qkxz * gqxz[9] + qkyz * gqyz[9]));
+
+      fidg[1][0] = fidg[0][1];
+      fidg[2][0] = fidg[0][2];
+      fidg[2][1] = fidg[1][2];
+
+      fkdg[0][0] = -0.5 * (ci * gqxx[0] - dix * gqxx[1] - diy * gqxx[2] - diz * gqxx[3]
+          + qixx * gqxx[4] + qiyy * gqxx[7] + qizz * gqxx[9]
+          + 2.0 * (qixy * gqxx[5] + qixz * gqxx[6] + qiyz * gqxx[8])
+          + ci * gc[4] - dix * gux[4] - diy * guy[4] - diz * guz[4]
+          + qixx * gqxx[4] + qiyy * gqyy[4] + qizz * gqzz[4]
+          + 2.0 * (qixy * gqxy[4] + qixz * gqxz[4] + qiyz * gqyz[4]));
+      
+      fkdg[0][1] = -0.5 * (ci * gqxy[0] - dix * gqxy[1] - diy * gqxy[2] - diz * gqxy[3]
+          + qixx * gqxy[4] + qiyy * gqxy[7] + qizz * gqxy[9]
+          + 2.0 * (qixy * gqxy[5] + qixz * gqxy[6] + qiyz * gqxy[8])
+          + ci * gc[5] - dix * gux[5] - diy * guy[5] - diz * guz[5]
+          + qixx * gqxx[5] + qiyy * gqyy[5] + qizz * gqzz[5]
+          + 2.0 * (qixy * gqxy[5] + qixz * gqxz[5] + qiyz * gqyz[5]));
+      
+      fkdg[0][2] = -0.5 * (ci * gqxz[0] - dix * gqxz[1] - diy * gqxz[2] - diz * gqxz[3]
+          + qixx * gqxz[4] + qiyy * gqxz[7] + qizz * gqxz[9]
+          + 2.0 * (qixy * gqxz[5] + qixz * gqxz[6] + qiyz * gqxz[8])
+          + ci * gc[6] - dix * gux[6] - diy * guy[6] - diz * guz[6]
+          + qixx * gqxx[6] + qiyy * gqyy[6] + qizz * gqzz[6]
+          + 2.0 * (qixy * gqxy[6] + qixz * gqxz[6] + qiyz * gqyz[6]));
+
+      fkdg[1][1] = -0.5 * (ci * gqyy[0] - dix * gqyy[1] - diy * gqyy[2] - diz * gqyy[3]
+          + qixx * gqyy[4] + qiyy * gqyy[7] + qizz * gqyy[9]
+          + 2.0 * (qixy * gqyy[5] + qixz * gqyy[6] + qiyz * gqyy[8])
+          + ci * gc[7] - dix * gux[7] - diy * guy[7] - diz * guz[7]
+          + qixx * gqxx[7] + qiyy * gqyy[7] + qizz * gqzz[7]
+          + 2.0 * (qixy * gqxy[7] + qixz * gqxz[7] + qiyz * gqyz[7]));
+      
+      fkdg[1][2] = -0.5 * (ci * gqyz[0] - dix * gqyz[1] - diy * gqyz[2] - diz * gqyz[3]
+          + qixx * gqyz[4] + qiyy * gqyz[7] + qizz * gqyz[9]
+          + 2.0 * (qixy * gqyz[5] + qixz * gqyz[6] + qiyz * gqyz[8])
+          + ci * gc[8] - dix * gux[8] - diy * guy[8] - diz * guz[8]
+          + qixx * gqxx[8] + qiyy * gqyy[8] + qizz * gqzz[8]
+          + 2.0 * (qixy * gqxy[8] + qixz * gqxz[8] + qiyz * gqyz[8]));
+      
+      fkdg[2][2] = -0.5 * (ci * gqzz[0] - dix * gqzz[1] - diy * gqzz[2] - diz * gqzz[3]
+          + qixx * gqzz[4] + qiyy * gqzz[7] + qizz * gqzz[9]
+          + 2.0 * (qixy * gqzz[5] + qixz * gqzz[6] + qiyz * gqzz[8])
+          + ci * gc[9] - dix * gux[9] - diy * guy[9] - diz * guz[9]
+          + qixx * gqxx[9] + qiyy * gqyy[9] + qizz * gqzz[9]
+          + 2.0 * (qixy * gqxy[9] + qixz * gqxz[9] + qiyz * gqyz[9]));
+
+      fkdg[1][0] = fkdg[0][1];
+      fkdg[2][0] = fkdg[0][2];
+      fkdg[2][1] = fkdg[1][2];
+
+      pgrad.ttqi[0] += 2.0 * (qixy * fidg[0][2] + qiyy * fidg[1][2] + qiyz * fidg[2][2]
+                            - qixz * fidg[0][1] - qiyz * fidg[1][1] - qizz * fidg[2][1]);
+      pgrad.ttqi[1] += 2.0 * (qixz * fidg[0][0] + qiyz * fidg[1][0] + qizz * fidg[2][0]
+                            - qixx * fidg[0][2] - qixy * fidg[1][2] - qixz * fidg[2][2]);
+      pgrad.ttqi[2] += 2.0 * (qixx * fidg[0][1] + qixy * fidg[1][1] + qixz * fidg[2][1]
+                            - qixy * fidg[0][0] - qiyy * fidg[1][0] - qiyz * fidg[2][0]);
+      pgrad.ttqk[0] += 2.0 * (qkxy * fkdg[0][2] + qkyy * fkdg[1][2] + qkyz * fkdg[2][2]
+                            - qkxz * fkdg[0][1] - qkyz * fkdg[1][1] - qkzz * fkdg[2][1]);
+      pgrad.ttqk[1] += 2.0 * (qkxz * fkdg[0][0] + qkyz * fkdg[1][0] + qkzz * fkdg[2][0]
+                            - qkxx * fkdg[0][2] - qkxy * fkdg[1][2] - qkxz * fkdg[2][2]);
+      pgrad.ttqk[2] += 2.0 * (qkxx * fkdg[0][1] + qkxy * fkdg[1][1] + qkxz * fkdg[2][1]
+                            - qkxy * fkdg[0][0] - qkyy * fkdg[1][0] - qkyz * fkdg[2][0]);
+
+      real dpsymdx = -dix * (ukx * gux[4] + uky * guy[4] + ukz * guz[4])
+                    - diy * (ukx * gux[5] + uky * guy[5] + ukz * guz[5])
+                    - diz * (ukx * gux[6] + uky * guy[6] + ukz * guz[6])
+                    - dkx * (uix * gux[4] + uiy * guy[4] + uiz * guz[4])
+                    - dky * (uix * gux[5] + uiy * guy[5] + uiz * guz[5])
+                    - dkz * (uix * gux[6] + uiy * guy[6] + uiz * guz[6]);
+
+      real dpwidx = ci * (ukx * gc[4] + uky * gc[5] + ukz * gc[6])
+                  - ck * (uix * gux[1] + uiy * guy[1] + uiz * guz[1])
+                  - uix * (qkxx * gux[10] + qkyy * gux[13] + qkzz * gux[15]
+                  + 2.0 * (qkxy * gux[11] + qkxz * gux[12] + qkyz * gux[14]))
+                  - uiy * (qkxx * guy[10] + qkyy * guy[13] + qkzz * guy[15]
+                  + 2.0 * (qkxy * guy[11] + qkxz * guy[12] + qkyz * guy[14]))
+                  - uiz * (qkxx * guz[10] + qkyy * guz[13] + qkzz * guz[15]
+                  + 2.0 * (qkxy * guz[11] + qkxz * guz[12] + qkyz * guz[14]))
+                  + ukx * (qixx * gqxx[4] + qiyy * gqyy[4] + qizz * gqzz[4]
+                  + 2.0 * (qixy * gqxy[4] + qixz * gqxz[4] + qiyz * gqyz[4]))
+                  + uky * (qixx * gqxx[5] + qiyy * gqyy[5] + qizz * gqzz[5]
+                  + 2.0 * (qixy * gqxy[5] + qixz * gqxz[5] + qiyz * gqyz[5]))
+                  + ukz * (qixx * gqxx[6] + qiyy * gqyy[6] + qizz * gqzz[6]
+                  + 2.0 * (qixy * gqxy[6] + qixz * gqxz[6] + qiyz * gqyz[6]));
+
+      real dpwkdx = ci * (ukx * gux[1] + uky * guy[1] + ukz * guz[1])
+                  - ck * (uix * gc[4] + uiy * gc[5] + uiz * gc[6])
+                  - uix * (qkxx * gqxx[4] + qkyy * gqyy[4] + qkzz * gqzz[4]
+                  + 2.0 * (qkxy * gqxy[4] + qkxz * gqxz[4] + qkyz * gqyz[4]))
+                  - uiy * (qkxx * gqxx[5] + qkyy * gqyy[5] + qkzz * gqzz[5]
+                  + 2.0 * (qkxy * gqxy[5] + qkxz * gqxz[5] + qkyz * gqyz[5]))
+                  - uiz * (qkxx * gqxx[6] + qkyy * gqyy[6] + qkzz * gqzz[6]
+                  + 2.0 * (qkxy * gqxy[6] + qkxz * gqxz[6] + qkyz * gqyz[6]))
+                  + ukx * (qixx * gux[10] + qiyy * gux[13] + qizz * gux[15]
+                  + 2.0 * (qixy * gux[11] + qixz * gux[12] + qiyz * gux[14]))
+                  + uky * (qixx * guy[10] + qiyy * guy[13] + qizz * guy[15]
+                  + 2.0 * (qixy * guy[11] + qixz * guy[12] + qiyz * guy[14]))
+                  + ukz * (qixx * guz[10] + qiyy * guz[13] + qizz * guz[15]
+                  + 2.0 * (qixy * guz[11] + qixz * guz[12] + qiyz * guz[14]));
+
+      real dpdx = 0.5 * (dpsymdx + 0.5*(dpwidx + dpwkdx));
+
+      real dpsymdy = -dix * (ukx * gux[5] + uky * guy[5] + ukz * guz[5])
+                    - diy * (ukx * gux[7] + uky * guy[7] + ukz * guz[7])
+                    - diz * (ukx * gux[8] + uky * guy[8] + ukz * guz[8])
+                    - dkx * (uix * gux[5] + uiy * guy[5] + uiz * guz[5])
+                    - dky * (uix * gux[7] + uiy * guy[7] + uiz * guz[7])
+                    - dkz * (uix * gux[8] + uiy * guy[8] + uiz * guz[8]);
+
+      real dpwidy = ci * (ukx * gc[5] + uky * gc[7] + ukz * gc[8])
+                  - ck * (uix * gux[2] + uiy * guy[2] + uiz * guz[2])
+                  - uix * (qkxx * gux[11] + qkyy * gux[16] + qkzz * gux[18]
+                  + 2.0 * (qkxy * gux[13] + qkxz * gux[14] + qkyz * gux[17]))
+                  - uiy * (qkxx * guy[11] + qkyy * guy[16] + qkzz * guy[18]
+                  + 2.0 * (qkxy * guy[13] + qkxz * guy[14] + qkyz * guy[17]))
+                  - uiz * (qkxx * guz[11] + qkyy * guz[16] + qkzz * guz[18]
+                  + 2.0 * (qkxy * guz[13] + qkxz * guz[14] + qkyz * guz[17]))
+                  + ukx * (qixx * gqxx[5] + qiyy * gqyy[5] + qizz * gqzz[5]
+                  + 2.0 * (qixy * gqxy[5] + qixz * gqxz[5] + qiyz * gqyz[5]))
+                  + uky * (qixx * gqxx[7] + qiyy * gqyy[7] + qizz * gqzz[7]
+                  + 2.0 * (qixy * gqxy[7] + qixz * gqxz[7] + qiyz * gqyz[7]))
+                  + ukz * (qixx * gqxx[8] + qiyy * gqyy[8] + qizz * gqzz[8]
+                  + 2.0 * (qixy * gqxy[8] + qixz * gqxz[8] + qiyz * gqyz[8]));
+
+      real dpwkdy = ci * (ukx * gux[2] + uky * guy[2] + ukz * guz[2])
+                  - ck * (uix * gc[5] + uiy * gc[7] + uiz * gc[8])
+                  - uix * (qkxx * gqxx[5] + qkyy * gqyy[5] + qkzz * gqzz[5]
+                  + 2.0 * (qkxy * gqxy[5] + qkxz * gqxz[5] + qkyz * gqyz[5]))
+                  - uiy * (qkxx * gqxx[7] + qkyy * gqyy[7] + qkzz * gqzz[7]
+                  + 2.0 * (qkxy * gqxy[7] + qkxz * gqxz[7] + qkyz * gqyz[7]))
+                  - uiz * (qkxx * gqxx[8] + qkyy * gqyy[8] + qkzz * gqzz[8]
+                  + 2.0 * (qkxy * gqxy[8] + qkxz * gqxz[8] + qkyz * gqyz[8]))
+                  + ukx * (qixx * gux[11] + qiyy * gux[16] + qizz * gux[18]
+                  + 2.0 * (qixy * gux[13] + qixz * gux[14] + qiyz * gux[17]))
+                  + uky * (qixx * guy[11] + qiyy * guy[16] + qizz * guy[18]
+                  + 2.0 * (qixy * guy[13] + qixz * guy[14] + qiyz * guy[17]))
+                  + ukz * (qixx * guz[11] + qiyy * guz[16] + qizz * guz[18]
+                  + 2.0 * (qixy * guz[13] + qixz * guz[14] + qiyz * guz[17]));
+
+      real dpdy = 0.5 * (dpsymdy + 0.5*(dpwidy + dpwkdy));
+
+      real dpsymdz = -dix * (ukx * gux[6] + uky * guy[6] + ukz * guz[6])
+                    - diy * (ukx * gux[8] + uky * guy[8] + ukz * guz[8])
+                    - diz * (ukx * gux[9] + uky * guy[9] + ukz * guz[9])
+                    - dkx * (uix * gux[6] + uiy * guy[6] + uiz * guz[6])
+                    - dky * (uix * gux[8] + uiy * guy[8] + uiz * guz[8])
+                    - dkz * (uix * gux[9] + uiy * guy[9] + uiz * guz[9]);
+
+      real dpwidz = ci * (ukx * gc[6] + uky * gc[8] + ukz * gc[9])
+                  - ck * (uix * gux[3] + uiy * guy[3] + uiz * guz[3])
+                  - uix * (qkxx * gux[12] + qkyy * gux[17] + qkzz * gux[19]
+                  + 2.0 * (qkxy * gux[14] + qkxz * gux[15] + qkyz * gux[18]))
+                  - uiy * (qkxx * guy[12] + qkyy * guy[17] + qkzz * guy[19]
+                  + 2.0 * (qkxy * guy[14] + qkxz * guy[15] + qkyz * guy[18]))
+                  - uiz * (qkxx * guz[12] + qkyy * guz[17] + qkzz * guz[19]
+                  + 2.0 * (qkxy * guz[14] + qkxz * guz[15] + qkyz * guz[18]))
+                  + ukx * (qixx * gqxx[6] + qiyy * gqyy[6] + qizz * gqzz[6]
+                  + 2.0 * (qixy * gqxy[6] + qixz * gqxz[6] + qiyz * gqyz[6]))
+                  + uky * (qixx * gqxx[8] + qiyy * gqyy[8] + qizz * gqzz[8]
+                  + 2.0 * (qixy * gqxy[8] + qixz * gqxz[8] + qiyz * gqyz[8]))
+                  + ukz * (qixx * gqxx[9] + qiyy * gqyy[9] + qizz * gqzz[9]
+                  + 2.0 * (qixy * gqxy[9] + qixz * gqxz[9] + qiyz * gqyz[9]));
+
+      real dpwkdz = ci * (ukx * gux[3] + uky * guy[3] + ukz * guz[3])
+                  - ck * (uix * gc[6] + uiy * gc[8] + uiz * gc[9])
+                  - uix * (qkxx * gqxx[6] + qkyy * gqyy[6] + qkzz * gqzz[6]
+                  + 2.0 * (qkxy * gqxy[6] + qkxz * gqxz[6] + qkyz * gqyz[6]))
+                  - uiy * (qkxx * gqxx[8] + qkyy * gqyy[8] + qkzz * gqzz[8]
+                  + 2.0 * (qkxy * gqxy[8] + qkxz * gqxz[8] + qkyz * gqyz[8]))
+                  - uiz * (qkxx * gqxx[9] + qkyy * gqyy[9] + qkzz * gqzz[9]
+                  + 2.0 * (qkxy * gqxy[9] + qkxz * gqxz[9] + qkyz * gqyz[9]))
+                  + ukx * (qixx * gux[12] + qiyy * gux[17] + qizz * gux[19]
+                  + 2.0 * (qixy * gux[14] + qixz * gux[15] + qiyz * gux[18]))
+                  + uky * (qixx * guy[12] + qiyy * guy[17] + qizz * guy[19]
+                  + 2.0 * (qixy * guy[14] + qixz * guy[15] + qiyz * guy[18]))
+                  + ukz * (qixx * guz[12] + qiyy * guz[17] + qizz * guz[19]
+                  + 2.0 * (qixy * guz[14] + qixz * guz[15] + qiyz * guz[18]));
+
+      real dpdz = 0.5 * (dpsymdz + 0.5*(dpwidz+dpwkdz));
+
+      real dsymdr = -dix * (ukx * gux[21] + uky * guy[21] + ukz * guz[21])
+                   - diy * (ukx * gux[22] + uky * guy[22] + ukz * guz[22])
+                   - diz * (ukx * gux[23] + uky * guy[23] + ukz * guz[23])
+                   - dkx * (uix * gux[21] + uiy * guy[21] + uiz * guz[21])
+                   - dky * (uix * gux[22] + uiy * guy[22] + uiz * guz[22])
+                   - dkz * (uix * gux[23] + uiy * guy[23] + uiz * guz[23]);
+
+      real dwipdr = ci * (ukx * gc[21] + uky * gc[22] + ukz * gc[23])
+                  - ck * (uix * gux[20] + uiy * guy[20] + uiz * guz[20])
+                 - uix * (qkxx * gux[24] + qkyy * gux[27] + qkzz * gux[29]
+                 + 2.0 * (qkxy * gux[25] + qkxz * gux[26] + qkyz * gux[28]))
+                 - uiy * (qkxx * guy[24] + qkyy * guy[27] + qkzz * guy[29]
+                 + 2.0 * (qkxy * guy[25] + qkxz * guy[26] + qkyz * guy[28]))
+                 - uiz * (qkxx * guz[24] + qkyy * guz[27] + qkzz * guz[29]
+                 + 2.0 * (qkxy * guz[25] + qkxz * guz[26] + qkyz * guz[28]))
+                 + ukx * (qixx * gqxx[21] + qiyy * gqyy[21] + qizz * gqzz[21]
+                 + 2.0 * (qixy * gqxy[21] + qixz * gqxz[21] + qiyz * gqyz[21]))
+                 + uky * (qixx * gqxx[22] + qiyy * gqyy[22] + qizz * gqzz[22]
+                 + 2.0 * (qixy * gqxy[22] + qixz * gqxz[22] + qiyz * gqyz[22]))
+                 + ukz * (qixx * gqxx[23] + qiyy * gqyy[23] + qizz * gqzz[23]
+                 + 2.0 * (qixy * gqxy[23] + qixz * gqxz[23] + qiyz * gqyz[23]));
+
+      real dwkpdr = ci * (ukx * gux[20] + uky * guy[20] + ukz * guz[20])
+                  - ck * (uix * gc[21] + uiy * gc[22] + uiz * gc[23])
+                 - uix * (qkxx * gqxx[21] + qkyy * gqyy[21] + qkzz * gqzz[21]
+                 + 2.0 * (qkxy * gqxy[21] + qkxz * gqxz[21] + qkyz * gqyz[21]))
+                 - uiy * (qkxx * gqxx[22] + qkyy * gqyy[22] + qkzz * gqzz[22]
+                 + 2.0 * (qkxy * gqxy[22] + qkxz * gqxz[22] + qkyz * gqyz[22]))
+                 - uiz * (qkxx * gqxx[23] + qkyy * gqyy[23] + qkzz * gqzz[23]
+                 + 2.0 * (qkxy * gqxy[23] + qkxz * gqxz[23] + qkyz * gqyz[23]))
+                 + ukx * (qixx * gux[24] + qiyy * gux[27] + qizz * gux[29]
+                 + 2.0 * (qixy * gux[25] + qixz * gux[26] + qiyz * gux[28]))
+                 + uky * (qixx * guy[24] + qiyy * guy[27] + qizz * guy[29]
+                 + 2.0 * (qixy * guy[25] + qixz * guy[26] + qiyz * guy[28]))
+                 + ukz * (qixx * guz[24] + qiyy * guz[27] + qizz * guz[29]
+                 + 2.0 * (qixy * guz[25] + qixz * guz[26] + qiyz * guz[28]));
+
+      dsumdr = dsymdr + 0.5*(dwipdr+dwkpdr);
+      dpbi = 0.5*rbk*dsumdr;
+      dpbk = 0.5*rbi*dsumdr;
+
+      dpdx = dpdx - 0.5 * (
+             uidx * (ukpx * gux[4] + ukpy * gux[5] + ukpz * gux[6])
+           + uidy * (ukpx * guy[4] + ukpy * guy[5] + ukpz * guy[6])
+           + uidz * (ukpx * guz[4] + ukpy * guz[5] + ukpz * guz[6])
+           + ukdx * (uipx * gux[4] + uipy * gux[5] + uipz * gux[6])
+           + ukdy * (uipx * guy[4] + uipy * guy[5] + uipz * guy[6])
+           + ukdz * (uipx * guz[4] + uipy * guz[5] + uipz * guz[6]));
+
+      dpdy = dpdy - 0.5 * (
+             uidx * (ukpx * gux[5] + ukpy * gux[7] + ukpz * gux[8])
+           + uidy * (ukpx * guy[5] + ukpy * guy[7] + ukpz * guy[8])
+           + uidz * (ukpx * guz[5] + ukpy * guz[7] + ukpz * guz[8])
+           + ukdx * (uipx * gux[5] + uipy * gux[7] + uipz * gux[8])
+           + ukdy * (uipx * guy[5] + uipy * guy[7] + uipz * guy[8])
+           + ukdz * (uipx * guz[5] + uipy * guz[7] + uipz * guz[8]));
+
+      dpdz = dpdz - 0.5 * (
+             uidx * (ukpx * gux[6] + ukpy * gux[8] + ukpz * gux[9])
+           + uidy * (ukpx * guy[6] + ukpy * guy[8] + ukpz * guy[9])
+           + uidz * (ukpx * guz[6] + ukpy * guz[8] + ukpz * guz[9])
+           + ukdx * (uipx * gux[6] + uipy * gux[8] + uipz * gux[9])
+           + ukdy * (uipx * guy[6] + uipy * guy[8] + uipz * guy[9])
+           + ukdz * (uipx * guz[6] + uipy * guz[8] + uipz * guz[9]));
+
+      real duvdr = uidx * (ukpx * gux[21] + ukpy * gux[22] + ukpz * gux[23])
+                 + uidy * (ukpx * guy[21] + ukpy * guy[22] + ukpz * guy[23])
+                 + uidz * (ukpx * guz[21] + ukpy * guz[22] + ukpz * guz[23])
+                 + ukdx * (uipx * gux[21] + uipy * gux[22] + uipz * gux[23])
+                 + ukdy * (uipx * guy[21] + uipy * guy[22] + uipz * guy[23])
+                 + ukdz * (uipx * guz[21] + uipy * guz[22] + uipz * guz[23]);
+
+      dpbi = dpbi - 0.5*rbk*duvdr;
+      dpbk = dpbk - 0.5*rbi*duvdr;
+
+      fid[0] = 0.5 * (ukx * gux[1] + uky * guy[1] + ukz * guz[1]);
+      fid[1] = 0.5 * (ukx * gux[2] + uky * guy[2] + ukz * guz[2]);
+      fid[2] = 0.5 * (ukx * gux[3] + uky * guy[3] + ukz * guz[3]);
+      fkd[0] = 0.5 * (uix * gux[1] + uiy * guy[1] + uiz * guz[1]);
+      fkd[1] = 0.5 * (uix * gux[2] + uiy * guy[2] + uiz * guz[2]);
+      fkd[2] = 0.5 * (uix * gux[3] + uiy * guy[3] + uiz * guz[3]);
+
+      pgrad.ttqi[0] += diy * fid[2] - diz * fid[1];
+      pgrad.ttqi[1] += diz * fid[0] - dix * fid[2];
+      pgrad.ttqi[2] += dix * fid[1] - diy * fid[0];
+      pgrad.ttqk[0] += dky * fkd[2] - dkz * fkd[1];
+      pgrad.ttqk[1] += dkz * fkd[0] - dkx * fkd[2];
+      pgrad.ttqk[2] += dkx * fkd[1] - dky * fkd[0];
+
+      fidg[0][0] = -0.25 * ((ukx * gqxx[1] + uky * gqxx[2] + ukz * gqxx[3])
+                          + (ukx * gux[4] + uky * guy[4] + ukz * guz[4]));
+      fidg[0][1] = -0.25 * ((ukx * gqxy[1] + uky * gqxy[2] + ukz * gqxy[3])
+                          + (ukx * gux[5] + uky * guy[5] + ukz * guz[5]));
+      fidg[0][2] = -0.25 * ((ukx * gqxz[1] + uky * gqxz[2] + ukz * gqxz[3])
+                          + (ukx * gux[6] + uky * guy[6] + ukz * guz[6]));
+      fidg[1][1] = -0.25 * ((ukx * gqyy[1] + uky * gqyy[2] + ukz * gqyy[3])
+                          + (ukx * gux[7] + uky * guy[7] + ukz * guz[7]));
+      fidg[1][2] = -0.25 * ((ukx * gqyz[1] + uky * gqyz[2] + ukz * gqyz[3])
+                          + (ukx * gux[8] + uky * guy[8] + ukz * guz[8]));
+      fidg[2][2] = -0.25 * ((ukx * gqzz[1] + uky * gqzz[2] + ukz * gqzz[3])
+                          + (ukx * gux[9] + uky * guy[9] + ukz * guz[9]));
+      fidg[1][0] = fidg[0][1];
+      fidg[2][0] = fidg[0][2];
+      fidg[2][1] = fidg[1][2];
+
+      fkdg[0][0] = 0.25 * ((uix * gqxx[1] + uiy * gqxx[2] + uiz * gqxx[3])
+                         + (uix * gux[4] + uiy * guy[4] + uiz * guz[4]));
+      fkdg[0][1] = 0.25 * ((uix * gqxy[1] + uiy * gqxy[2] + uiz * gqxy[3])
+                         + (uix * gux[5] + uiy * guy[5] + uiz * guz[5]));
+      fkdg[0][2] = 0.25 * ((uix * gqxz[1] + uiy * gqxz[2] + uiz * gqxz[3])
+                         + (uix * gux[6] + uiy * guy[6] + uiz * guz[6]));
+      fkdg[1][1] = 0.25 * ((uix * gqyy[1] + uiy * gqyy[2] + uiz * gqyy[3])
+                         + (uix * gux[7] + uiy * guy[7] + uiz * guz[7]));
+      fkdg[1][2] = 0.25 * ((uix * gqyz[1] + uiy * gqyz[2] + uiz * gqyz[3])
+                         + (uix * gux[8] + uiy * guy[8] + uiz * guz[8]));
+      fkdg[2][2] = 0.25 * ((uix * gqzz[1] + uiy * gqzz[2] + uiz * gqzz[3])
+                         + (uix * gux[9] + uiy * guy[9] + uiz * guz[9]));
+      fkdg[1][0] = fkdg[0][1];
+      fkdg[2][0] = fkdg[0][2];
+      fkdg[2][1] = fkdg[1][2];
+
+      pgrad.ttqi[0] += 2.0 * (qixy * fidg[0][2] + qiyy * fidg[1][2] + qiyz * fidg[2][2]
+                            - qixz * fidg[0][1] - qiyz * fidg[1][1] - qizz * fidg[2][1]);
+      pgrad.ttqi[1] += 2.0 * (qixz * fidg[0][0] + qiyz * fidg[1][0] + qizz * fidg[2][0]
+                            - qixx * fidg[0][2] - qixy * fidg[1][2] - qixz * fidg[2][2]);
+      pgrad.ttqi[2] += 2.0 * (qixx * fidg[0][1] + qixy * fidg[1][1] + qixz * fidg[2][1]
+                            - qixy * fidg[0][0] - qiyy * fidg[1][0] - qiyz * fidg[2][0]);
+      pgrad.ttqk[0] += 2.0 * (qkxy * fkdg[0][2] + qkyy * fkdg[1][2] + qkyz * fkdg[2][2]
+                            - qkxz * fkdg[0][1] - qkyz * fkdg[1][1] - qkzz * fkdg[2][1]);
+      pgrad.ttqk[1] += 2.0 * (qkxz * fkdg[0][0] + qkyz * fkdg[1][0] + qkzz * fkdg[2][0]
+                            - qkxx * fkdg[0][2] - qkxy * fkdg[1][2] - qkxz * fkdg[2][2]);
+      pgrad.ttqk[2] += 2.0 * (qkxx * fkdg[0][1] + qkxy * fkdg[1][1] + qkxz * fkdg[2][1]
+                            - qkxy * fkdg[0][0] - qkyy * fkdg[1][0] - qkyz * fkdg[2][0]);
+
+      pgrad.frcx = -(dedx + dpdx);
+      pgrad.frcy = -(dedy + dpdy);
+      pgrad.frcz = -(dedz + dpdz);
+   }
+   //
 }
 }
 

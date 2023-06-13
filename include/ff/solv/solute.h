@@ -74,10 +74,12 @@ TINKER_EXTERN Solv solvtyp;
 
 TINKER_EXTERN CountBuffer nes;
 TINKER_EXTERN EnergyBuffer es;
+TINKER_EXTERN VirialBuffer vir_es;
 TINKER_EXTERN grad_prec* desx;
 TINKER_EXTERN grad_prec* desy;
 TINKER_EXTERN grad_prec* desz;
 TINKER_EXTERN energy_prec energy_es;
+TINKER_EXTERN virial_prec virial_es[9];
 
 // BORN
 TINKER_EXTERN real* roff;

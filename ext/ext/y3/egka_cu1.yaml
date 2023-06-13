@@ -4,12 +4,15 @@ TEMPLATE_PARAMS: template<class Ver>
 CONSTEXPR_FLAGS: |
   constexpr bool do_a = Ver::a;
   constexpr bool do_e = Ver::e;
+  constexpr bool do_v = Ver::v;
   constexpr bool do_g = Ver::g;
 
 # COUNT:
 #   - nes
 ENERGY:
   - es
+VIRIAL:
+  - vs
 GRADIENT:
   - gx
   - gy
@@ -19,9 +22,15 @@ GRADIENT:
 OFF_DISTANCE: 'off'
 
 EXTRA_PARAMS: |
+  , real *restrict trqx
+  , real *restrict trqy
+  , real *restrict trqz
+  , real *restrict drb
+  , real *restrict drbp
   , const real* restrict rborn
   , const real (*restrict rpole)[10]
   , const real (*restrict uinds)[3]
+  , const real (*restrict uinps)[3]
   , real gkc, real fc, real fd, real fq
 # IMPLICIT_PARAMS:
 
@@ -42,6 +51,9 @@ I_VARIABLES:
   - shared real uidx from:uinds,0
   - shared real uidy from:uinds,1
   - shared real uidz from:uinds,2
+  - shared real uipx from:uinps,0
+  - shared real uipy from:uinps,1
+  - shared real uipz from:uinps,2
   - shared real rbi  from:rborn
 K_VARIABLES:
   - shared   real xk   from:x
@@ -60,21 +72,28 @@ K_VARIABLES:
   - shared   real ukdx from:uinds,0
   - shared   real ukdy from:uinds,1
   - shared   real ukdz from:uinds,2
+  - shared   real ukpx from:uinps,0
+  - shared   real ukpy from:uinps,1
+  - shared   real ukpz from:uinps,2
   - register real rbk  from:rborn
 I_FORCE:
-  - register real frcxi addto:gx
-  - register real frcyi addto:gy
-  - register real frczi addto:gz
-  # - register real trqxi addto:trqx
-  # - register real trqyi addto:trqy
-  # - register real trqzi addto:trqz
+  - register real gxi  addto:gx
+  - register real gyi  addto:gy
+  - register real gzi  addto:gz
+  - register real txi  addto:trqx
+  - register real tyi  addto:trqy
+  - register real tzi  addto:trqz
+  - register real drbi addto:drb
+  - register real dpbi addto:drbp
 K_FORCE:
-  - register real frcxk addto:gx
-  - register real frcyk addto:gy
-  - register real frczk addto:gz
-  # - register real trqxk addto:trqx
-  # - register real trqyk addto:trqy
-  # - register real trqzk addto:trqz
+  - register real gxk  addto:gx
+  - register real gyk  addto:gy
+  - register real gzk  addto:gz
+  - register real txk  addto:trqx
+  - register real tyk  addto:trqy
+  - register real tzk  addto:trqz
+  - register real drbk addto:drb
+  - register real dpbk addto:drbp
 
 #SCALED_PAIRWISE_INTERACTION: |
 FULL_PAIRWISE_INTERACTION: |
@@ -87,12 +106,48 @@ FULL_PAIRWISE_INTERACTION: |
   real r2 = xr2 + yr2 + zr2;
   if (r2 <= off * off and incl) {
     real e;
-    pair_egka<do_g>(
+    PairSolvGrad pgrad;
+    zero(pgrad);
+
+    real tdrbi,tdpbi,tdrbk,tdpbk;
+    real dedx,dedy,dedz;
+
+    pair_egka<Ver>(
       r2, xr, yr, zr, xr2, yr2, zr2,
-      @ci@, @dix@, @diy@, @diz@, @qixx@, @qixy@, @qixz@, @qiyy@, @qiyz@, @qizz@, @uidx@, @uidy@, @uidz@, @rbi@,
-      @ck@, @dkx@, @dky@, @dkz@, @qkxx@, @qkxy@, @qkxz@, @qkyy@, @qkyz@, @qkzz@, @ukdx@, @ukdy@, @ukdz@, @rbk@,
-      gkc, fc, fd, fq, e);
+      @ci@, @dix@, @diy@, @diz@, @qixx@, @qixy@, @qixz@, @qiyy@, @qiyz@, @qizz@,
+      @uidx@, @uidy@, @uidz@, @uipx@, @uipy@, @uipz@, @rbi@,
+      @ck@, @dkx@, @dky@, @dkz@, @qkxx@, @qkxy@, @qkxz@, @qkyy@, @qkyz@, @qkzz@,
+      @ukdx@, @ukdy@, @ukdz@, @ukpx@, @ukpy@, @ukpz@, @rbk@,
+      gkc, fc, fd, fq, e, pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
     if CONSTEXPR (do_e) {
       estl += floatTo<ebuf_prec>(e);
+    }
+    if CONSTEXPR (do_g) {
+      @gxi@ += pgrad.frcx;
+      @gyi@ += pgrad.frcy;
+      @gzi@ += pgrad.frcz;
+      @gxk@ -= pgrad.frcx;
+      @gyk@ -= pgrad.frcy;
+      @gzk@ -= pgrad.frcz;
+
+      @txi@ += pgrad.ttqi[0];
+      @tyi@ += pgrad.ttqi[1];
+      @tzi@ += pgrad.ttqi[2];
+      @txk@ += pgrad.ttqk[0];
+      @tyk@ += pgrad.ttqk[1];
+      @tzk@ += pgrad.ttqk[2];
+
+      @drbi@ += tdrbi;
+      @drbk@ += tdrbk;
+      @dpbi@ += tdpbi;
+      @dpbk@ += tdpbk;
+    }
+    if CONSTEXPR (do_v) {
+      vstlxx += floatTo<vbuf_prec>(xr * dedx);
+      vstlyx += floatTo<vbuf_prec>(yr * dedx);
+      vstlzx += floatTo<vbuf_prec>(zr * dedx);
+      vstlyy += floatTo<vbuf_prec>(yr * dedy);
+      vstlzy += floatTo<vbuf_prec>(zr * dedy);
+      vstlzz += floatTo<vbuf_prec>(zr * dedz);
     }
   } // end if (include)
