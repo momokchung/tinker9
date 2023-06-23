@@ -120,3 +120,34 @@ void bornPrint_cu()
    launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
 }
 }
+
+namespace tinker
+{
+#include "grycuk1_cu1.cc"
+
+template <class Ver>
+static void born1_cu2(bool use_gk)
+{
+   const auto& st = *mspatial_v2_unit;
+
+   int ngrid = gpuGridSize(BLOCK_DIM);
+
+   grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, vir_es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+      st.niak, st.iak, st.lst, rsolv, rdescr, shct, rborn, drb, drbp, use_gk);
+}
+
+void born1_cu(int vers)
+{
+   bool use_gk = false;
+   if (solvtyp == Solv::GK) use_gk = true;
+
+   if (vers == calc::v1)
+      born1_cu2<calc::V1>(use_gk);
+   else if (vers == calc::v4)
+      born1_cu2<calc::V4>(use_gk);
+   else if (vers == calc::v5)
+      born1_cu2<calc::V5>(use_gk);
+   else if (vers == calc::v6)
+      born1_cu2<calc::V6>(use_gk);
+}
+}

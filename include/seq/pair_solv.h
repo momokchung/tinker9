@@ -38,7 +38,7 @@ inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo
          term = 4. * pi / (48.*r) * (3.*(lik4-uik4) - 8.*r*(lik3-uik3) + 6.*(r2-sk2)*(lik2-uik2));
          iwca = -emixo * term;
          sum += iwca;
-         if (do_g) {
+         if CONSTEXPR (do_g) {
             if (rio > r-sk) {
                dl = -lik2 + 2.*r2 + 2.*sk2;
                dl = dl * lik2;
@@ -78,7 +78,7 @@ inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo
          term2 = 4. * pi / (2640.*r*lik12*uik12) * (120.*uik*lik*r*(uik11-lik11) - 66.*uik2*lik2*(uik10-lik10) + 55.*(sk2-r2)*(uik12-lik12));
          irepl = aoi * rmixo7 * term2;
          sum += irepl + idisp;
-         if (do_g) {
+         if CONSTEXPR (do_g) {
             uik6 = uik5 * uik;
             uik13 = uik12 * uik;
             lik6 = lik5 * lik;
@@ -168,7 +168,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
 
    // do_g
    real expcr,dexpcr,dgfdr,gf11;
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       expcr = r2*expterm / (gkc*gkc*rb2*rb2);
       dexpcr = 2. / (gkc*rb2*rb2);
       dgfdr = 0.5 * expterm * (1.+r2/(rb2*gkc));
@@ -196,7 +196,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
 
    // do_g
    real b[5][3];
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       a[5][0] = -945. * gf11;
 
       b[0][0] = dgfdr * a[1][0];
@@ -214,7 +214,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[3][1] = expc1 * a[4][0];
 
    // do_g
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       a[4][1] = expc1 * a[5][0];
 
       b[0][1] = b[1][0] - expcr * a[1][0] - expc * b[1][0];
@@ -230,7 +230,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[2][2] = expc1*a[3][1] + expcdexpc*a[3][0];
 
    // do_g
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       a[3][2] = expc1 * a[4][1] + expcdexpc * a[4][0];
       b[0][2] = b[1][1] - (expcr * (a[1][1] + dexpc * a[1][0]) + expc * (b[1][1] + dexpcr * a[1][0] + dexpc * b[1][0]));
       b[1][2] = b[2][1] - (expcr * (a[2][1] + dexpc * a[2][0]) + expc * (b[2][1] + dexpcr * a[2][0] + dexpc * b[2][0]));
@@ -259,7 +259,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[2][2] = fq * a[2][2];
 
    // do_g
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       a[0][3] = fc * a[0][3];
       a[1][3] = fd * a[1][3];
       a[2][3] = fq * a[2][3];
@@ -288,7 +288,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[0] = yr * zr * a[2][0];
 
    // do_g
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       gc[20] = b[0][0];
       gux[20] = xr * b[1][0];
       guy[20] = yr * b[1][0];
@@ -334,7 +334,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[3] = yr * (a[2][0] + zr2 * a[2][1]);
 
    // do_g
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       gc[21] = xr * b[0][1];
       gc[22] = yr * b[0][1];
       gc[23] = zr * b[0][1];
@@ -434,7 +434,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[9] = yr * zr * (3.0 * a[2][1] + zr2 * a[2][2]);
 
    //
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       gc[24] = b[0][1] + xr2 * b[0][2];
       gc[25] = xr * yr * b[0][2];
       gc[26] = xr * zr * b[0][2];
@@ -707,7 +707,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    e += 0.5 * (esymi + 0.5*(ewii+ewki));
 
    //
-   if (do_g) {
+   if CONSTEXPR (do_g) {
       real desymdx = ci * ck * gc[1]
             - (dix * (dkx * gux[4] + dky * guy[4] + dkz * guz[4])
             +  diy * (dkx * gux[5] + dky * guy[5] + dkz * guz[5])

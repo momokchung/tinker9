@@ -9,17 +9,17 @@ EXTRA_PARAMS: |
   , const real* restrict shct
 
 I_VARIABLES:
-  - shared real xi       from:x
-  - shared real yi       from:y
-  - shared real zi       from:z
-  - shared real ri       from:roff
-  - shared real shcti    from:shct
+  - shared real xi    from:x
+  - shared real yi    from:y
+  - shared real zi    from:z
+  - shared real ri    from:roff
+  - shared real shcti from:shct
 K_VARIABLES:
-  - shared real xk       from:x
-  - shared real yk       from:y
-  - shared real zk       from:z
-  - register real rk     from:roff
-  - register real shctk  from:shct
+  - shared real xk      from:x
+  - shared real yk      from:y
+  - shared real zk      from:z
+  - register real rk    from:roff
+  - register real shctk from:shct
 I_FORCE:
   - register real rborni addto:rborn
 K_FORCE:

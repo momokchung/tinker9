@@ -120,6 +120,12 @@ void egka(int vers)
    TINKER_FCALL2(acc0, cu1, egka, vers);
 }
 
+TINKER_FVOID2(acc0, cu1, born1, int);
+void born1(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, born1, vers);
+}
+
 TINKER_FVOID2(acc0, cu1, ediff, int);
 void ediff(int vers)
 {
@@ -129,6 +135,8 @@ void ediff(int vers)
 void egk(int vers)
 {
    egka(vers);
+
+   born1(vers);
    
    // if (use(Potent::POLAR)) {
    //    ediff(vers);

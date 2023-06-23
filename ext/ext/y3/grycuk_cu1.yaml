@@ -10,19 +10,19 @@ EXTRA_PARAMS: |
   , const real* restrict shct
 
 I_VARIABLES:
-  - shared real xi       from:x
-  - shared real yi       from:y
-  - shared real zi       from:z
-  - shared real rsi      from:rsolv
-  - shared real rdi      from:rdescr
-  - shared real shcti    from:shct
+  - shared real xi    from:x
+  - shared real yi    from:y
+  - shared real zi    from:z
+  - shared real rsi   from:rsolv
+  - shared real rdi   from:rdescr
+  - shared real shcti from:shct
 K_VARIABLES:
-  - shared real xk       from:x
-  - shared real yk       from:y
-  - shared real zk       from:z
-  - register real rsk    from:rsolv
-  - register real rdk    from:rdescr
-  - register real shctk  from:shct
+  - shared real xk      from:x
+  - shared real yk      from:y
+  - shared real zk      from:z
+  - register real rsk   from:rsolv
+  - register real rdk   from:rdescr
+  - register real shctk from:shct
 I_FORCE:
   - register real rborni addto:rborn
 K_FORCE:
@@ -35,15 +35,19 @@ FULL_PAIRWISE_INTERACTION: |
   real r2 = xr*xr + yr*yr + zr*zr;
   if (incl) {
     real r = REAL_SQRT(r2);
-    bool computei = (@rsi@ > 0.) and (@rdk@ > 0.);
-    bool computek = (@rdi@ > 0.) and (@rsk@ > 0.);
+    real rmi = REAL_MAX(@rsi@,@rdi@);
+    real si = @rdi@ * @shcti@;
+    real rmk = REAL_MAX(@rsk@,@rdk@);
+    real sk = @rdk@ * @shctk@;
+    bool computei = (@rsi@ > 0.) and (@rdk@ > 0.) and (rmi < r+sk);
+    bool computek = (@rdi@ > 0.) and (@rsk@ > 0.) and (rmk < r+si);
     real pairrborni = 0.;
     real pairrbornk = 0.;
     if (computei) {
-      pair_grycuk(r, r2, @rsi@, @rdi@, @rdk@, @shctk@, pairrborni);
+      pair_grycuk(r, r2, rmi, sk, pairrborni);
     }
     if (computek) {
-      pair_grycuk(r, r2, @rsk@, @rdk@, @rdi@, @shcti@, pairrbornk);
+      pair_grycuk(r, r2, rmk, si, pairrbornk);
     }
 
     @rborni@ += pairrborni;

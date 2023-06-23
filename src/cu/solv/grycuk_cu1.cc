@@ -35,15 +35,19 @@ real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
 if (incl) {
  real r = REAL_SQRT(r2);
- bool computei = (rsi[klane] > 0.) and (rdk > 0.);
- bool computek = (rdi[klane] > 0.) and (rsk > 0.);
+ real rmi = REAL_MAX(rsi[klane],rdi[klane]);
+ real si = rdi[klane] * shcti[klane];
+ real rmk = REAL_MAX(rsk,rdk);
+ real sk = rdk * shctk;
+ bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r+sk);
+ bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r+si);
  real pairrborni = 0.;
  real pairrbornk = 0.;
  if (computei) {
-   pair_grycuk(r, r2, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+   pair_grycuk(r, r2, rmi, sk, pairrborni);
  }
  if (computek) {
-   pair_grycuk(r, r2, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+   pair_grycuk(r, r2, rmk, si, pairrbornk);
  }
 
  rborni += pairrborni;
@@ -93,15 +97,19 @@ if (incl) {
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.);
+            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real si = rdi[klane] * shcti[klane];
+            real rmk = REAL_MAX(rsk, rdk);
+            real sk = rdk * shctk;
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
+            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_grycuk(r, r2, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+               pair_grycuk(r, r2, rmi, sk, pairrborni);
             }
             if (computek) {
-               pair_grycuk(r, r2, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+               pair_grycuk(r, r2, rmk, si, pairrbornk);
             }
 
             rborni += pairrborni;
@@ -150,15 +158,19 @@ if (incl) {
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.);
+            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real si = rdi[klane] * shcti[klane];
+            real rmk = REAL_MAX(rsk, rdk);
+            real sk = rdk * shctk;
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
+            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_grycuk(r, r2, rsi[klane], rdi[klane], rdk, shctk, pairrborni);
+               pair_grycuk(r, r2, rmi, sk, pairrborni);
             }
             if (computek) {
-               pair_grycuk(r, r2, rsk, rdk, rdi[klane], shcti[klane], pairrbornk);
+               pair_grycuk(r, r2, rmk, si, pairrbornk);
             }
 
             rborni += pairrborni;

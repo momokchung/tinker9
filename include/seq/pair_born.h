@@ -7,40 +7,65 @@
 namespace tinker {
 #pragma acc routine seq
 SEQ_ROUTINE
-inline void pair_grycuk(real r, real r2, real rsi, real rdi, real rdk, real shctk, real& pairrborni)
+inline void pair_grycuk(real r, real r2, real rmi, real sk, real& pairrborni)
 {
-   real rmi = REAL_MAX(rsi,rdi);
-
-   real sk = rdk * shctk;
-   if (rmi < r+sk) {
-      real sk2 = sk * sk;
-      real lik,uik;
-      if (rmi+r < sk) {
-         lik = rmi;
-         uik = sk - r;
-         pairrborni = 1.f/REAL_POW(uik,3)-1.f/REAL_POW(lik,3);
-      }
-      uik = r + sk;
-      if (rmi+r < sk) {
-         lik = sk - r;
-      }
-      else if (r < rmi+sk) {
-         lik = rmi;
-      }
-      else {
-         lik = r - sk;
-      }
-      real l2 = lik * lik;
-      real l4 = l2 * l2;
-      real lr = lik * r;
-      real l4r = l4 * r;
-      real u2 = uik * uik;
-      real u4 = u2 * u2;
-      real ur = uik * r;
-      real u4r = u4 * r;
-      real term = (3.f*(r2-sk2)+6.f*u2-8.f*ur)/u4r - (3.f*(r2-sk2)+6.f*l2-8.f*lr)/l4r;
-      pairrborni = pairrborni - term/16.f;
+   real sk2 = sk * sk;
+   real lik,uik;
+   if (rmi+r < sk) {
+      lik = rmi;
+      uik = sk - r;
+      pairrborni = 1.f/REAL_POW(uik,3)-1.f/REAL_POW(lik,3);
    }
+   uik = r + sk;
+   if (rmi+r < sk) {
+      lik = sk - r;
+   }
+   else if (r < rmi+sk) {
+      lik = rmi;
+   }
+   else {
+      lik = r - sk;
+   }
+   real l2 = lik * lik;
+   real l4 = l2 * l2;
+   real lr = lik * r;
+   real l4r = l4 * r;
+   real u2 = uik * uik;
+   real u4 = u2 * u2;
+   real ur = uik * r;
+   real u4r = u4 * r;
+   real term = (3.f*(r2-sk2)+6.f*u2-8.f*ur)/u4r - (3.f*(r2-sk2)+6.f*l2-8.f*lr)/l4r;
+   pairrborni = pairrborni - term/16.f;
+}
+
+#pragma acc routine seq
+SEQ_ROUTINE
+inline void pair_dgrycuk(real r, real r2, real ri, real sk, real drbi, real drbpi, real term, bool use_gk, real& de)
+{
+   real sk2 = sk * sk;
+   real uik,lik;
+   if (ri+r < sk) {
+      uik = sk - r;
+      de = -4. * pi / REAL_POW(uik,4);
+   }
+   if (ri+r < sk) {
+      lik = sk - r;
+      de = de + 0.25*pi*(sk2-4.*sk*r+17.*r2) / (r2*REAL_POW(lik,4));
+   }
+   else if (r < ri+sk) {
+      lik = ri;
+      de = de + 0.25*pi*(2.*ri*ri-sk2-r2) / (r2*REAL_POW(lik,4));
+   }
+   else {
+      lik = r - sk;
+      de = de + 0.25*pi*(sk2-4.*sk*r+r2) / (r2*REAL_POW(lik,4));
+   }
+   uik = r + sk;
+   de = de - 0.25*pi*(sk2+4.*sk*r+r2) / (r2*REAL_POW(uik,4));
+   real dbr = term * de/r;
+   real dborn = drbi;
+   if (use_gk)  dborn = dborn + drbpi;
+   de = dbr * dborn;
 }
 
 #pragma acc routine seq
