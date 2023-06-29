@@ -73,14 +73,7 @@ void esolvData(RcOp op)
 
 void esolvInit(int vers)
 {
-   if (vers & calc::grad)
-      darray::zero(g::q0, n, trqx, trqy, trqz);
-   if (vers & calc::virial)
-      darray::zero(g::q0, bufferSize(), vir_trq);
-
-   if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
-      mpoleInit(vers);
-   }
+   mpoleInit(vers);
 }
 
 TINKER_FVOID2(acc0, cu1, ewca, int);
@@ -138,9 +131,11 @@ void egk(int vers)
 
    born1(vers);
    
-   // if (use(Potent::POLAR)) {
-   //    ediff(vers);
-   // }
+   if (use(Potent::POLAR)) {
+      ediff(vers);
+   } else if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
+      ediff(vers);
+   }
 }
 
 void esolv(int vers)
@@ -150,11 +145,6 @@ void esolv(int vers)
    auto do_e = vers & calc::energy;
    auto do_v = vers & calc::virial;
    auto do_g = vers & calc::grad;
-
-   printf("rc_a: %s\n", rc_a ? "true" : "false");
-   printf("do_a: %s\n", do_a ? "true" : "false");
-   printf("do_e: %s\n", do_e ? "true" : "false");
-   printf("do_g: %s\n", do_g ? "true" : "false");
 
    zeroOnHost(energy_es, virial_es);
    size_t bsize = bufferSize();
@@ -172,15 +162,14 @@ void esolv(int vers)
 
    esolvInit(vers);
 
-   // if (solvtyp == Solv::GK or solvtyp == Solv::PB) {
-   //    enp(vers);
-   // }
+   if (solvtyp == Solv::GK or solvtyp == Solv::PB) {
+      enp(vers);
+   }
 
    if (solvtyp == Solv::GK) {
-      if (not use(Potent::POLAR)) {
+      if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
          inducegk(uind, uinp, uinds, uinps);
       }
-
       egk(vers);
    }
 
@@ -214,7 +203,5 @@ void esolv(int vers)
       if (do_g)
          sumGradient(gx_elec, gy_elec, gz_elec, desx, desy, desz);
    }
-
-   printf("esolv %15.6e\n", energy_es);
 }
 }

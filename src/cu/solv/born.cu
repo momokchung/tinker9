@@ -66,16 +66,16 @@ static void obcFinal_cu1(int n, const real* restrict roff, const real* restrict 
    }
 }
 
-__global__
-static void bornPrint_cu1(int n, const real* restrict rborn)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real rborni = rborn[i];
-      # if __CUDA_ARCH__>=200
-      printf("implicitsolvent %d %f \n", i, rborni);
-      #endif  
-   }
-}
+// __global__
+// static void bornPrint_cu1(int n, const real* restrict rborn)
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real rborni = rborn[i];
+//       # if __CUDA_ARCH__>=200
+//       printf("implicitsolvent %d %f \n", i, rborni);
+//       #endif  
+//    }
+// }
 
 void bornInit_cu(int vers)
 {
@@ -113,11 +113,6 @@ void bornFinal_cu(int vers)
    else if (borntyp == Born::OBC) {
       launch_k1s(g::s0, n, obcFinal_cu1, n, roff, rsolv, aobc, bobc, gobc, rborn, drobc);
    }
-}
-
-void bornPrint_cu()
-{
-   launch_k1s(g::s0, n, bornPrint_cu1, n, rborn);
 }
 }
 

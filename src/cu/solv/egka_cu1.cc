@@ -1,12 +1,13 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void egka_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, VirialBuffer restrict vs, grad_prec* restrict gx,
-   grad_prec* restrict gy, grad_prec* restrict gz, real off, const real* restrict x, const real* restrict y,
-   const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak,
-   const int* restrict iak, const int* restrict lst, real* restrict trqx, real* restrict trqy, real* restrict trqz,
-   real* restrict drb, real* restrict drbp, const real* restrict rborn, const real (*restrict rpole)[10],
-   const real (*restrict uinds)[3], const real (*restrict uinps)[3], real gkc, real fc, real fd, real fq)
+void egka_cu1(int n, TINKER_IMAGE_PARAMS, CountBuffer restrict nes, EnergyBuffer restrict es, VirialBuffer restrict vs,
+   grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off, const real* restrict x,
+   const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
+   const int* restrict iakpl, int niak, const int* restrict iak, const int* restrict lst, real* restrict trqx,
+   real* restrict trqy, real* restrict trqz, real* restrict drb, real* restrict drbp, const real* restrict rborn,
+   const real (*restrict rpole)[10], const real (*restrict uinds)[3], const real (*restrict uinps)[3], real gkc,
+   real fc, real fd, real fq)
 {
    constexpr bool do_a = Ver::a;
    constexpr bool do_e = Ver::e;
@@ -17,6 +18,10 @@ void egka_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, VirialBuffer
    const int nwarp = blockDim.x * gridDim.x / WARP_SIZE;
    const int ilane = threadIdx.x & (WARP_SIZE - 1);
 
+   int nestl;
+   if CONSTEXPR (do_a) {
+      nestl = 0;
+   }
    using ebuf_prec = EnergyBufferTraits::type;
    ebuf_prec estl;
    if CONSTEXPR (do_e) {
@@ -86,7 +91,9 @@ if (r2 <= off * off and incl) {
 qizz[klane], uidx[klane], uidy[klane], uidz[klane], uipx[klane], uipy[klane], uipz[klane], rbi[klane], ck,
 dkx[threadIdx.x], dky[threadIdx.x], dkz[threadIdx.x], qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, ukdx[threadIdx.x],
 ukdy[threadIdx.x], ukdz[threadIdx.x], ukpx[threadIdx.x], ukpy[threadIdx.x], ukpz[threadIdx.x], rbk, gkc, fc, fd, fq, e,
-pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk); if CONSTEXPR (do_e) { estl += floatTo<ebuf_prec>(e);
+pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk); if CONSTEXPR (do_e) { estl += floatTo<ebuf_prec>(e); if CONSTEXPR
+(do_a) { nestl += 1;
+   }
  }
  if CONSTEXPR (do_g) {
    gxi += pgrad.frcx;
@@ -225,6 +232,9 @@ trqz, k);atomic_add(drbk, drb, k);atomic_add(dpbk, drbp, k);}
                pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
             if CONSTEXPR (do_e) {
                estl += floatTo<ebuf_prec>(e);
+               if CONSTEXPR (do_a) {
+                  nestl += 1;
+               }
             }
             if CONSTEXPR (do_g) {
                gxi += pgrad.frcx;
@@ -384,6 +394,9 @@ trqz, k);atomic_add(drbk, drb, k);atomic_add(dpbk, drbp, k);}
                pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
             if CONSTEXPR (do_e) {
                estl += floatTo<ebuf_prec>(e);
+               if CONSTEXPR (do_a) {
+                  nestl += 1;
+               }
             }
             if CONSTEXPR (do_g) {
                gxi += pgrad.frcx;
@@ -448,6 +461,9 @@ trqz, k);atomic_add(drbk, drb, k);atomic_add(dpbk, drbp, k);}
       __syncwarp();
    }
 
+   if CONSTEXPR (do_a) {
+      atomic_add(nestl, nes, ithread);
+   }
    if CONSTEXPR (do_e) {
       atomic_add(estl, es, ithread);
    }

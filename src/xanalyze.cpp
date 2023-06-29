@@ -108,6 +108,9 @@ static void xAnalyzeE()
    if (use(Potent::CHGTRN))
       print(out, fmt, "Charge Transfer", energy_ect, countReduce(nct));
 
+   if (use(Potent::SOLV))
+      print(out, fmt, "Implicit Solvation", energy_es, countReduce(nes));
+
    if (use(Potent::GEOM))
       print(out, fmt, "Geometric Restraints", energy_eg, countBondedTerm(Potent::GEOM));
 }

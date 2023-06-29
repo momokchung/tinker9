@@ -6,6 +6,7 @@
 #include "ff/image.h"
 #include "ff/modamoeba.h"
 #include "ff/pme.h"
+#include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"
 #include "seq/damp.h"
@@ -565,7 +566,8 @@ template <class Ver>
 static void emplarNonEwald_cu()
 {
    // induce
-   induce(uind, uinp);
+   if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
+   else induce(uind, uinp);
 
    // empole and epolar
    emplar_cu<Ver, NON_EWALD>(uind, uinp);

@@ -7,7 +7,6 @@ void ewca_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, grad_prec* r
    const int* restrict lst, const real* restrict epsvdw, const real* restrict radvdw, real epso, real epsh, real rmino,
    real rminh, real shctd, real dispoff, real slevy, real awater)
 {
-   constexpr bool do_a = Ver::a;
    constexpr bool do_e = Ver::e;
    constexpr bool do_g = Ver::g;
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;

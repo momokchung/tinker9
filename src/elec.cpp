@@ -307,7 +307,7 @@ static void mdpuscaleData(RcOp op)
          }
       }
 
-      const bool usepolar = use(Potent::POLAR);
+      const bool usepolar = use(Potent::POLAR) or use(Potent::SOLV);
       for (int i = 0; usepolar and i < n; ++i) {
          // p
          if (p2scale != 1 || p2iscale != 1) {
@@ -589,7 +589,7 @@ static void chgpenData(RcOp op)
       const real p5iscale = polpot::p5iscale;
 
       // setup dscale values based on polar-scale and polar-iscale
-      const bool usepolar = use(Potent::POLAR);
+      const bool usepolar = use(Potent::POLAR) or use(Potent::SOLV);
       for (int i = 0; usepolar and i < n; ++i) {
          if (p2scale != 1 or p2iscale != 1) {
             nn = couple::n12[i];

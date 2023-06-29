@@ -74,7 +74,6 @@ void bornData(RcOp op)
 TINKER_FVOID2(acc0, cu1, bornInit, int);
 TINKER_FVOID2(acc0, cu1, born, int);
 TINKER_FVOID2(acc0, cu1, bornFinal, int);
-TINKER_FVOID2(acc0, cu1, bornPrint);
 
 void born(int vers)
 {
@@ -88,7 +87,5 @@ void born(int vers)
    TINKER_FCALL2(acc0, cu1, born, vers);
 
    TINKER_FCALL2(acc0, cu1, bornFinal, vers);
-
-   // TINKER_FCALL2(acc0, cu1, bornPrint);
 }
 }

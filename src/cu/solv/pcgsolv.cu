@@ -13,57 +13,57 @@
 
 namespace tinker {
 
-__global__
-static void pcg_dPrint_cu1(int n, real (*array)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      # if __CUDA_ARCH__>=200
-      printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-      #endif  
-   }
-}
+// __global__
+// static void pcg_dPrint_cu1(int n, real (*array)[3])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real arrayi0 = array[i][0];
+//       real arrayi1 = array[i][1];
+//       real arrayi2 = array[i][2];
+//       # if __CUDA_ARCH__>=200
+//       printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
+//       #endif  
+//    }
+// }
 
-__global__
-static void pcg_dpPrint_cu1(int n, real (*array)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      # if __CUDA_ARCH__>=200
-      printf("dp %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-      #endif  
-   }
-}
+// __global__
+// static void pcg_dpPrint_cu1(int n, real (*array)[3])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real arrayi0 = array[i][0];
+//       real arrayi1 = array[i][1];
+//       real arrayi2 = array[i][2];
+//       # if __CUDA_ARCH__>=200
+//       printf("dp %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
+//       #endif  
+//    }
+// }
 
-__global__
-static void pcg_dsPrint_cu1(int n, real (*array)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      # if __CUDA_ARCH__>=200
-      printf("ds %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-      #endif  
-   }
-}
+// __global__
+// static void pcg_dsPrint_cu1(int n, real (*array)[3])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real arrayi0 = array[i][0];
+//       real arrayi1 = array[i][1];
+//       real arrayi2 = array[i][2];
+//       # if __CUDA_ARCH__>=200
+//       printf("ds %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
+//       #endif  
+//    }
+// }
 
-__global__
-static void pcg_dpsPrint_cu1(int n, real (*array)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      # if __CUDA_ARCH__>=200
-      printf("dps %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-      #endif  
-   }
-}
+// __global__
+// static void pcg_dpsPrint_cu1(int n, real (*array)[3])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real arrayi0 = array[i][0];
+//       real arrayi1 = array[i][1];
+//       real arrayi2 = array[i][2];
+//       # if __CUDA_ARCH__>=200
+//       printf("dps %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
+//       #endif  
+//    }
+// }
 
 void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3])
 {

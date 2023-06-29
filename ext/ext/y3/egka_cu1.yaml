@@ -7,8 +7,8 @@ CONSTEXPR_FLAGS: |
   constexpr bool do_v = Ver::v;
   constexpr bool do_g = Ver::g;
 
-# COUNT:
-#   - nes
+COUNT:
+  - nes
 ENERGY:
   - es
 VIRIAL:
@@ -121,6 +121,9 @@ FULL_PAIRWISE_INTERACTION: |
       gkc, fc, fd, fq, e, pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
     if CONSTEXPR (do_e) {
       estl += floatTo<ebuf_prec>(e);
+      if CONSTEXPR (do_a) {
+        nestl += 1;
+      }
     }
     if CONSTEXPR (do_g) {
       @gxi@ += pgrad.frcx;

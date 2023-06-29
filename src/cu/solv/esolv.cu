@@ -13,6 +13,25 @@
 
 namespace tinker
 {
+
+template <class Ver>
+__global__
+static void ewcaFinal_cu1(int n, const real* restrict cdisp, CountBuffer restrict nes, EnergyBuffer restrict es)
+{
+   constexpr bool do_e = Ver::e;
+   constexpr bool do_a = Ver::a;
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      if CONSTEXPR (do_e) {
+         real cdispi = cdisp[i];
+         using ebuf_prec = EnergyBufferTraits::type;
+         ebuf_prec estl;
+         estl = floatTo<ebuf_prec>(cdispi);
+         atomic_add(estl, es, i);
+      }
+      if CONSTEXPR (do_a) atomic_add(2, nes, i);
+}
+}
+
 #include "ewca_cu1.cc"
 
 template <class Ver>
@@ -23,18 +42,8 @@ static void ewca_cu2()
    int ngrid = gpuGridSize(BLOCK_DIM);
    ewca_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
       st.niak, st.iak, st.lst, epsvdw, radvdw, epso, epsh, rmino, rminh, shctd, dispoff, slevy, awater);
-}
-
-__global__
-static void ewcaFinal_cu1(int n, const real* restrict cdisp, EnergyBuffer restrict es)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real cdispi = cdisp[i];
-      using ebuf_prec = EnergyBufferTraits::type;
-      ebuf_prec estl;
-      estl = floatTo<ebuf_prec>(cdispi);
-      atomic_add(estl, es, i);
-}
+   
+   launch_k1s(g::s0, n, ewcaFinal_cu1<Ver>, n, cdisp, nes, es);
 }
 
 void ewca_cu(int vers)
@@ -47,8 +56,6 @@ void ewca_cu(int vers)
       ewca_cu2<calc::V4>();
    else if (vers == calc::v5)
       ewca_cu2<calc::V5>();
-
-   launch_k1s(g::s0, n, ewcaFinal_cu1, n, cdisp, es);
 }
 }
 
@@ -56,9 +63,11 @@ namespace tinker {
 
 template <class Ver>
 __global__
-static void egkaFinal_cu1(int n, EnergyBuffer restrict es, real* restrict drb, real* restrict drbp, real* restrict trqx, real* restrict trqy, real* restrict trqz,
+static void egkaFinal_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, real* restrict drb, real* restrict drbp, real* restrict trqx, real* restrict trqy, real* restrict trqz,
    const real* restrict rborn, const real (*restrict rpole)[10], const real (*restrict uinds)[3], const real (*restrict uinps)[3], real gkc, real fc, real fd, real fq)
 {
+   constexpr bool do_e = Ver::e;
+   constexpr bool do_a = Ver::a;
    constexpr bool do_g = Ver::g;
 
    for (int i = ITHREAD; i < n; i += STRIDE) {
@@ -115,12 +124,16 @@ static void egkaFinal_cu1(int n, EnergyBuffer restrict es, real* restrict drb, r
       e += ei;
       e *= 0.5;
 
-      using ebuf_prec = EnergyBufferTraits::type;
-      ebuf_prec estl;
-      estl = floatTo<ebuf_prec>(e);
-      atomic_add(estl, es, i);
+      if CONSTEXPR (do_e) {
+         using ebuf_prec = EnergyBufferTraits::type;
+         ebuf_prec estl;
+         estl = floatTo<ebuf_prec>(e);
+         atomic_add(estl, es, i);
+      }
 
-      if (do_g) {
+      if CONSTEXPR (do_a) atomic_add(1, nes, i);
+
+      if CONSTEXPR (do_g) {
          real uipx = uinps[i][0];
          real uipy = uinps[i][1];
          real uipz = uinps[i][2];
@@ -194,10 +207,10 @@ static void egka_cu2(real fc, real fd, real fq)
    const real off = switchOff(Switch::MPOLE);
 
    int ngrid = gpuGridSize(BLOCK_DIM);
-   egka_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, vir_es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+   egka_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, vir_es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
       st.niak, st.iak, st.lst, trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
 
-   launch_k1s(g::s0, n, egkaFinal_cu1<Ver>, n, es, drb, drbp, trqx, trqy, trqz, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
+   launch_k1s(g::s0, n, egkaFinal_cu1<Ver>, n, nes, es, drb, drbp, trqx, trqy, trqz, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
 }
 
 void egka_cu(int vers)
@@ -231,13 +244,23 @@ static void ediff_cu2()
    const auto& st = *mspatial_v2_unit;
    const real off = switchOff(Switch::MPOLE);
 
-   const real f = 0.5 * electric / dielec;
+   const real f = electric / dielec;
 
    int ngrid = gpuGridSize(BLOCK_DIM);
-   ediff_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, desx, desy, desz,
+   ediff_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, desx, desy, desz,
       off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niak, st.iak, st.lst, rpole, uind, uinds, f);
+      st.niak, st.iak, st.lst, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
 }
+
+// __global__
+// static void arrayPrint_cu1(int n, const real (*restrict rpole)[10])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       # if __CUDA_ARCH__>=200
+//       printf("pole %d %10.6e %10.6e %10.6e\n", i, rpole[i][MPL_PME_0], rpole[i][MPL_PME_X], rpole[i][MPL_PME_XX]);
+//       #endif  
+//    }
+// }
 
 void ediff_cu(int vers)
 {

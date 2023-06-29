@@ -166,7 +166,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    real gf7 = gf5 * gf2;
    real gf9 = gf7 * gf2;
 
-   // do_g
    real expcr,dexpcr,dgfdr,gf11;
    if CONSTEXPR (do_g) {
       expcr = r2*expterm / (gkc*gkc*rb2*rb2);
@@ -174,7 +173,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       dgfdr = 0.5 * expterm * (1.+r2/(rb2*gkc));
       gf11 = gf9 * gf2;
    }
-   //
 
    real a[6][4];
    real gc[30];
@@ -194,7 +192,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[3][0] = -15. * gf7;
    a[4][0] = 105. * gf9;
 
-   // do_g
    real b[5][3];
    if CONSTEXPR (do_g) {
       a[5][0] = -945. * gf11;
@@ -205,7 +202,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       b[3][0] = dgfdr * a[4][0];
       b[4][0] = dgfdr * a[5][0];
    }
-   //
 
    real expc1 = 1. - expc;
    a[0][1] = expc1 * a[1][0];
@@ -213,7 +209,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[2][1] = expc1 * a[3][0];
    a[3][1] = expc1 * a[4][0];
 
-   // do_g
    if CONSTEXPR (do_g) {
       a[4][1] = expc1 * a[5][0];
 
@@ -222,14 +217,12 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       b[2][1] = b[3][0] - expcr * a[3][0] - expc * b[3][0];
       b[3][1] = b[4][0] - expcr * a[4][0] - expc * b[4][0];
    }
-   //
 
    real expcdexpc = -expc * dexpc;
    a[0][2] = expc1*a[1][1] + expcdexpc*a[1][0];
    a[1][2] = expc1*a[2][1] + expcdexpc*a[2][0];
    a[2][2] = expc1*a[3][1] + expcdexpc*a[3][0];
 
-   // do_g
    if CONSTEXPR (do_g) {
       a[3][2] = expc1 * a[4][1] + expcdexpc * a[4][0];
       b[0][2] = b[1][1] - (expcr * (a[1][1] + dexpc * a[1][0]) + expc * (b[1][1] + dexpcr * a[1][0] + dexpc * b[1][0]));
@@ -246,7 +239,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       a[1][3] = a[1][3] + expcdexpc * a[2][0];
       a[2][3] = a[2][3] + expcdexpc * a[3][0];
    }
-   //
 
    a[0][0] = fc * a[0][0];
    a[0][1] = fc * a[0][1];
@@ -258,7 +250,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    a[2][1] = fq * a[2][1];
    a[2][2] = fq * a[2][2];
 
-   // do_g
    if CONSTEXPR (do_g) {
       a[0][3] = fc * a[0][3];
       a[1][3] = fd * a[1][3];
@@ -274,7 +265,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       b[2][1] = fq * b[2][1];
       b[2][2] = fq * b[2][2];
    }
-   //
 
    gc[0] = a[0][0];
    gux[0] = xr * a[1][0];
@@ -287,7 +277,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqxz[0] = xr * zr * a[2][0];
    gqyz[0] = yr * zr * a[2][0];
 
-   // do_g
    if CONSTEXPR (do_g) {
       gc[20] = b[0][0];
       gux[20] = xr * b[1][0];
@@ -300,7 +289,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       gqxz[20] = xr * zr * b[2][0];
       gqyz[20] = yr * zr * b[2][0];
    }
-   //
 
    gc[1] = xr * a[0][1];
    gc[2] = yr * a[0][1];
@@ -333,7 +321,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[2] = zr * (a[2][0] + yr2 * a[2][1]);
    gqyz[3] = yr * (a[2][0] + zr2 * a[2][1]);
 
-   // do_g
    if CONSTEXPR (do_g) {
       gc[21] = xr * b[0][1];
       gc[22] = yr * b[0][1];
@@ -366,7 +353,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       gqyz[22] = zr * (b[2][0] + yr2 * b[2][1]);
       gqyz[23] = yr * (b[2][0] + zr2 * b[2][1]);
    }
-   //
 
    gc[4] = a[0][1] + xr2 * a[0][2];
    gc[5] = xr * yr * a[0][2];
@@ -433,7 +419,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    gqyz[8] = a[2][0] + (yr2 + zr2) * a[2][1] + yr2 * zr2 * a[2][2];
    gqyz[9] = yr * zr * (3.0 * a[2][1] + zr2 * a[2][2]);
 
-   //
    if CONSTEXPR (do_g) {
       gc[24] = b[0][1] + xr2 * b[0][2];
       gc[25] = xr * yr * b[0][2];
@@ -597,7 +582,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       gqzz[18] = yr * (2.0 * a[2][1] + zr2 * (5.0 * a[2][2] + zr2 * a[2][3]));
       gqzz[19] = zr * (12.0 * a[2][1] + zr2 * (9.0 * a[2][2] + zr2 * a[2][3]));
    }
-   //
 
    real esym = ci * ck * gc[0]
          - dix * (dkx * gux[1] + dky * guy[1] + dkz * guz[1])
@@ -706,7 +690,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    e = esym + 0.5*(ewi+ewk);
    e += 0.5 * (esymi + 0.5*(ewii+ewki));
 
-   //
    if CONSTEXPR (do_g) {
       real desymdx = ci * ck * gc[1]
             - (dix * (dkx * gux[4] + dky * guy[4] + dkz * guz[4])
@@ -1392,7 +1375,6 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
       pgrad.frcy = -(dedy + dpdy);
       pgrad.frcz = -(dedz + dpdz);
    }
-   //
 }
 }
 
@@ -1400,39 +1382,21 @@ namespace tinker {
 #pragma acc routine seq
 template <class Ver>
 SEQ_ROUTINE
-inline void pair_ediff(real r2, real xr, real yr, real zr, real dscale, real pscale, real uscale,
-                       real ci, real dix, real diy, real diz,
-                       real qixx, real qixy, real qixz, real qiyy, real qiyz, real qizz,
-                       real uidx, real uidy, real uidz, real uidsx, real uidsy, real uidsz, 
-                       real pdi, real pti, //
-                       real ck, real dkx, real dky, real dkz,
-                       real qkxx, real qkxy, real qkxz, real qkyy, real qkyz, real qkzz,
-                       real ukdx, real ukdy, real ukdz, real ukdsx, real ukdsy, real ukdsz,
-                       real pdk, real ptk, //
-                       real f, real& e)
+inline void pair_ediff(
+   real r2, real xr, real yr, real zr, real dscale, real pscale, real uscale,
+   real ci, real dix, real diy, real diz,
+   real qixx, real qixy, real qixz, real qiyy, real qiyz, real qizz,
+   real uidx, real uidy, real uidz, real uidsx, real uidsy, real uidsz,
+   real uipx, real uipy, real uipz, real uipsx, real uipsy, real uipsz, 
+   real pdi, real pti, //
+   real ck, real dkx, real dky, real dkz,
+   real qkxx, real qkxy, real qkxz, real qkyy, real qkyz, real qkzz,
+   real ukdx, real ukdy, real ukdz, real ukdsx, real ukdsy, real ukdsz,
+   real ukpx, real ukpy, real ukpz, real ukpsx, real ukpsy, real ukpsz,
+   real pdk, real ptk, //
+   real f, real& restrict e, PairSolvGrad& pgrad)
 {
-   constexpr bool do_e = Ver::e;
    constexpr bool do_g = Ver::g;
-
-   real uix = uidsx - uidx;
-   real uiy = uidsy - uidy;
-   real uiz = uidsz - uidz;
-   real ukx = ukdsx - ukdx;
-   real uky = ukdsy - ukdy;
-   real ukz = ukdsz - ukdz;
-
-   real dir = dix * xr + diy * yr + diz * zr;
-   real qix = qixx * xr + qixy * yr + qixz * zr;
-   real qiy = qixy * xr + qiyy * yr + qiyz * zr;
-   real qiz = qixz * xr + qiyz * yr + qizz * zr;
-   real qir = qix * xr + qiy * yr + qiz * zr;
-   real dkr = dkx * xr + dky * yr + dkz * zr;
-   real qkx = qkxx * xr + qkxy * yr + qkxz * zr;
-   real qky = qkxy * xr + qkyy * yr + qkyz * zr;
-   real qkz = qkxz * xr + qkyz * yr + qkzz * zr;
-   real qkr = qkx * xr + qky * yr + qkz * zr;
-   real uir = uix * xr + uiy * yr + uiz * zr;
-   real ukr = ukx * xr + uky * yr + ukz * zr;
 
    real r = REAL_SQRT(r2);
    real invr1 = REAL_RECIP(r);
@@ -1444,278 +1408,466 @@ inline void pair_ediff(real r2, real xr, real yr, real zr, real dscale, real psc
    real rr7 = 5 * rr5 * rr2;
    MAYBE_UNUSED real rr9;
    if CONSTEXPR (do_g) rr9 = 7 * rr7 * rr2;
-   real bn[5];
-   bn[1] = rr3;
-   bn[2] = rr5;
-   bn[3] = rr7;
-   if CONSTEXPR (do_g) bn[4] = rr9;
-
-   // if use_thole
-   real ex3, ex5, ex7;
-   MAYBE_UNUSED real rc31, rc32, rc33, rc51, rc52, rc53, rc71, rc72, rc73;
-   if CONSTEXPR (!do_g) {
-      damp_thole3(r, pdi, pti, pdk, ptk, //
-         ex3, ex5, ex7);
-      ex3 = 1 - ex3;
-      ex5 = 1 - ex5;
-      ex7 = 1 - ex7;
-   } else {
-      damp_thole3g(          //
-         r, rr2, xr, yr, zr, //
-         pdi, pti, pdk, ptk, //
-         ex3, ex5, ex7,      //
-         rc31, rc32, rc33,   //
-         rc51, rc52, rc53,   //
-         rc71, rc72, rc73);
-      rc31 *= rr3;
-      rc32 *= rr3;
-      rc33 *= rr3;
-      rc51 *= rr5;
-      rc52 *= rr5;
-      rc53 *= rr5;
-      rc71 *= rr7;
-      rc72 *= rr7;
-      rc73 *= rr7;
-   }
-   // end if use_thole
-
-   real sr3 = bn[1] - ex3 * rr3;
-   real sr5 = bn[2] - ex5 * rr5;
-   real sr7 = bn[3] - ex7 * rr7;
-
-   if CONSTEXPR (do_e) {
-      real diu = dix * ukx + diy * uky + diz * ukz;
-      real qiu = qix * ukx + qiy * uky + qiz * ukz;
-      real dku = dkx * uix + dky * uiy + dkz * uiz;
-      real qku = qkx * uix + qky * uiy + qkz * uiz;
-      real term1 = ck * uir - ci * ukr + diu + dku;
-      real term2 = 2 * (qiu - qku) - uir * dkr - dir * ukr;
-      real term3 = uir * qkr - ukr * qir;
-      e = pscale * f * (term1 * sr3 + term2 * sr5 + term3 * sr7);
+   real scale3 = 1.;
+   real scale5 = 1.;
+   real scale7 = 1.;
+   real ddsc3[3],ddsc5[3],ddsc7[3];
+   for (int i = 0; i < 3; i++) {
+      ddsc3[i] = 0.;
+      ddsc5[i] = 0.;
+      ddsc7[i] = 0.;
    }
 
-   // if CONSTEXPR (do_g) {
-   //    real uirp = uixp * xr + uiyp * yr + uizp * zr;
-   //    real ukrp = ukxp * xr + ukyp * yr + ukzp * zr;
+   real pgamma = REAL_MIN(pti, ptk);
+   real damp = pdi * pdk;
+   real ratio = r * REAL_RECIP(damp);
+   damp = (damp == 0 ? ((real)1.0e16) : pgamma * ratio * ratio * ratio);
+   real expdamp = REAL_EXP(-damp);
+   scale3 = 1 - expdamp;
+   scale5 = 1 - expdamp * (1 + damp);
+   scale7 = 1 - expdamp * (1 + damp + (real)0.6 * damp * damp);
+   ddsc3[0] = 3 * damp * expdamp * xr / r2;
+   ddsc3[1] = 3 * damp * expdamp * yr / r2;
+   ddsc3[2] = 3 * damp * expdamp * zr / r2;
+   ddsc5[0] = damp * ddsc3[0];
+   ddsc5[1] = damp * ddsc3[1];
+   ddsc5[2] = damp * ddsc3[2];
+   ddsc7[0] = ((real)-0.2 + (real)0.6 * damp) * ddsc5[0];
+   ddsc7[1] = ((real)-0.2 + (real)0.6 * damp) * ddsc5[1];
+   ddsc7[2] = ((real)-0.2 + (real)0.6 * damp) * ddsc5[2];
 
-   //    // get the induced dipole field used for dipole torques
+   real scale3i = scale3 * uscale;
+   real scale5i = scale5 * uscale;
+   real scale7i = scale7 * uscale;
+   real dsc3 = scale3 * dscale;
+   real dsc5 = scale5 * dscale;
+   real dsc7 = scale7 * dscale;
+   real psc3 = scale3 * pscale;
+   real psc5 = scale5 * pscale;
+   real psc7 = scale7 * pscale;
+   real qir[3];
+   qir[0] = qixx * xr + qixy * yr + qixz * zr;
+   qir[1] = qixy * xr + qiyy * yr + qiyz * zr;
+   qir[2] = qixz * xr + qiyz * yr + qizz * zr;
+   real qkr[3];
+   qkr[0] = qkxx * xr + qkxy * yr + qkxz * zr;
+   qkr[1] = qkxy * xr + qkyy * yr + qkyz * zr;
+   qkr[2] = qkxz * xr + qkyz * yr + qkzz * zr;
+   real sc[10];
+   sc[2] = dix * xr + diy * yr + diz * zr;
+   sc[3] = dkx * xr + dky * yr + dkz * zr;
+   sc[4] = qir[0] * xr + qir[1] * yr + qir[2] * zr;
+   sc[5] = qkr[0] * xr + qkr[1] * yr + qkr[2] * zr;
+   real sci[8];
+   sci[0] = uidsx * dkx + uidsy * dky + uidsz * dkz + dix * ukdsx + diy * ukdsy + diz * ukdsz;
+   sci[1] = uidsx * ukdsx + uidsy * ukdsy + uidsz * ukdsz;
+   sci[2] = uidsx * xr + uidsy * yr + uidsz * zr;
+   sci[3] = ukdsx * xr + ukdsy * yr + ukdsz * zr;
+   sci[6] = qir[0] * ukdsx + qir[1] * ukdsy + qir[2] * ukdsz;
+   sci[7] = qkr[0] * uidsx + qkr[1] * uidsy + qkr[2] * uidsz;
+   real gli[7];
+   gli[0] = ck * sci[2] - ci * sci[3];
+   gli[1] = -sc[2] * sci[3] - sci[2] * sc[3];
+   gli[2] = sci[2] * sc[5] - sci[3] * sc[4];
+   gli[5] = sci[0];
+   gli[6] = 2 * (sci[6] - sci[7]);
+   real ei = (real)0.5 * (rr3 * (gli[0] + gli[5]) * psc3
+               + rr5 * (gli[1] + gli[6]) * psc5
+               + rr7 * gli[2] * psc7);
+   e = f * ei;
 
-   //    real tuir, tukr;
+   MAYBE_UNUSED real dixr[3], dkxr[3];
+   MAYBE_UNUSED real ttm2i[3], ttm3i[3];
+   MAYBE_UNUSED real rxqir[3], rxqkr[3];
+   MAYBE_UNUSED real dixuk[3], dkxui[3], dixukp[3], dkxuip[3];
+   MAYBE_UNUSED real qiuk[3], qkui[3], qiukp[3], qkuip[3];
+   MAYBE_UNUSED real uixqkr[3], ukxqir[3], uixqkrp[3], ukxqirp[3];
+   MAYBE_UNUSED real rxqiuk[3], rxqkui[3], rxqiukp[3], rxqkuip[3];
+   MAYBE_UNUSED real scip[8], glip[7], gfi[6], gti[6];
+   MAYBE_UNUSED real ftm2i[3], fridmp[3], findmp[3];
+   if CONSTEXPR (do_g) {
+      dixr[0] = diy * zr - diz * yr;
+      dixr[1] = diz * xr - dix * zr;
+      dixr[2] = dix * yr - diy * xr;
+      dkxr[0] = dky * zr - dkz * yr;
+      dkxr[1] = dkz * xr - dkx * zr;
+      dkxr[2] = dkx * yr - dky * xr;
+      rxqir[0] = yr * qir[2] - zr * qir[1];
+      rxqir[1] = zr * qir[0] - xr * qir[2];
+      rxqir[2] = xr * qir[1] - yr * qir[0];
+      rxqkr[0] = yr * qkr[2] - zr * qkr[1];
+      rxqkr[1] = zr * qkr[0] - xr * qkr[2];
+      rxqkr[2] = xr * qkr[1] - yr * qkr[0];
+      dixuk[0] = diy * ukdsz - diz * ukdsy;
+      dixuk[1] = diz * ukdsx - dix * ukdsz;
+      dixuk[2] = dix * ukdsy - diy * ukdsx;
+      dkxui[0] = dky * uidsz - dkz * uidsy;
+      dkxui[1] = dkz * uidsx - dkx * uidsz;
+      dkxui[2] = dkx * uidsy - dky * uidsx;
+      dixukp[0] = diy * ukpsz - diz * ukpsy;
+      dixukp[1] = diz * ukpsx - dix * ukpsz;
+      dixukp[2] = dix * ukpsy - diy * ukpsx;
+      dkxuip[0] = dky * uipsz - dkz * uipsy;
+      dkxuip[1] = dkz * uipsx - dkx * uipsz;
+      dkxuip[2] = dkx * uipsy - dky * uipsx;
+      
+      qiuk[0] = qixx * ukdsx + qixy * ukdsy + qixz * ukdsz;
+      qiuk[1] = qixy * ukdsx + qiyy * ukdsy + qiyz * ukdsz;
+      qiuk[2] = qixz * ukdsx + qiyz * ukdsy + qizz * ukdsz;
+      
+      qkui[0] = qkxx * uidsx + qkxy * uidsy + qkxz * uidsz;
+      qkui[1] = qkxy * uidsx + qkyy * uidsy + qkyz * uidsz;
+      qkui[2] = qkxz * uidsx + qkyz * uidsy + qkzz * uidsz;
+      
+      qiukp[0] = qixx * ukpsx + qixy * ukpsy + qixz * ukpsz;
+      qiukp[1] = qixy * ukpsx + qiyy * ukpsy + qiyz * ukpsz;
+      qiukp[2] = qixz * ukpsx + qiyz * ukpsy + qizz * ukpsz;
+      
+      qkuip[0] = qkxx * uipsx + qkxy * uipsy + qkxz * uipsz;
+      qkuip[1] = qkxy * uipsx + qkyy * uipsy + qkyz * uipsz;
+      qkuip[2] = qkxz * uipsx + qkyz * uipsy + qkzz * uipsz;
+      
+      uixqkr[0] = uidsy * qkr[2] - uidsz * qkr[1];
+      uixqkr[1] = uidsz * qkr[0] - uidsx * qkr[2];
+      uixqkr[2] = uidsx * qkr[1] - uidsy * qkr[0];
+      
+      ukxqir[0] = ukdsy * qir[2] - ukdsz * qir[1];
+      ukxqir[1] = ukdsz * qir[0] - ukdsx * qir[2];
+      ukxqir[2] = ukdsx * qir[1] - ukdsy * qir[0];
+      
+      uixqkrp[0] = uipsy * qkr[2] - uipsz * qkr[1];
+      uixqkrp[1] = uipsz * qkr[0] - uipsx * qkr[2];
+      uixqkrp[2] = uipsx * qkr[1] - uipsy * qkr[0];
+      
+      ukxqirp[0] = ukpsy * qir[2] - ukpsz * qir[1];
+      ukxqirp[1] = ukpsz * qir[0] - ukpsx * qir[2];
+      ukxqirp[2] = ukpsx * qir[1] - ukpsy * qir[0];
+      
+      rxqiuk[0] = yr * qiuk[2] - zr * qiuk[1];
+      rxqiuk[1] = zr * qiuk[0] - xr * qiuk[2];
+      rxqiuk[2] = xr * qiuk[1] - yr * qiuk[0];
+      
+      rxqkui[0] = yr * qkui[2] - zr * qkui[1];
+      rxqkui[1] = zr * qkui[0] - xr * qkui[2];
+      rxqkui[2] = xr * qkui[1] - yr * qkui[0];
+      
+      rxqiukp[0] = yr * qiukp[2] - zr * qiukp[1];
+      rxqiukp[1] = zr * qiukp[0] - xr * qiukp[2];
+      rxqiukp[2] = xr * qiukp[1] - yr * qiukp[0];
+      
+      rxqkuip[0] = yr * qkuip[2] - zr * qkuip[1];
+      rxqkuip[1] = zr * qkuip[0] - xr * qkuip[2];
+      rxqkuip[2] = xr * qkuip[1] - yr * qkuip[0];
+      
+      scip[0] = uipsx * dkx + uipsy * dky + uipsz * dkz + dix * ukpsx + diy * ukpsy + diz * ukpsz;
+      scip[1] = uidsx * ukpsx + uidsy * ukpsy + uidsz * ukpsz + uipsx * ukdsx + uipsy * ukdsy + uipsz * ukdsz;
+      scip[2] = uipsx * xr + uipsy * yr + uipsz * zr;
+      scip[3] = ukpsx * xr + ukpsy * yr + ukpsz * zr;
+      scip[6] = qir[0] * ukpsx + qir[1] * ukpsy + qir[2] * ukpsz;
+      scip[7] = qkr[0] * uipsx + qkr[1] * uipsy + qkr[2] * uipsz;
+      
+      glip[0] = ck * scip[2] - ci * scip[3];
+      glip[1] = -sc[2] * scip[3] - scip[2] * sc[3];
+      glip[2] = scip[2] * sc[5] - scip[3] * sc[4];
+      glip[5] = scip[0];
+      glip[6] = 2 * (scip[6] - scip[7]);
+      
+      gfi[0] = (real)0.5 * rr5 * ((gli[0] + gli[5]) * psc3
+         + (glip[0] + glip[5]) * dsc3 + scip[1] * scale3i)
+         + (real)0.5 * rr7 * ((gli[6] + gli[1]) * psc5
+         + (glip[6] + glip[1]) * dsc5
+         - (sci[2] * scip[3] + scip[2] * sci[3]) * scale5i)
+         + (real)0.5 * rr9 * (gli[2] * psc7 + glip[2] * dsc7);
+      gfi[1] = -rr3 * ck + rr5 * sc[3] - rr7 * sc[5];
+      gfi[2] = rr3 * ci + rr5 * sc[2] + rr7 * sc[4];
+      gfi[3] = 2 * rr5;
+      gfi[4] = rr7 * (sci[3] * psc7 + scip[3] * dsc7);
+      gfi[5] = -rr7 * (sci[2] * psc7 + scip[2] * dsc7);
+      
+      ftm2i[0] = gfi[0] * xr + (real)0.5 * (-rr3 * ck * (uidsx * psc3 + uipsx * dsc3)
+         + rr5 * sc[3] * (uidsx * psc5 + uipsx * dsc5)
+         - rr7 * sc[5] * (uidsx * psc7 + uipsx * dsc7))
+         + (rr3 * ci * (ukdsx * psc3 + ukpsx * dsc3)
+         + rr5 * sc[2] * (ukdsx * psc5 + ukpsx * dsc5)
+         + rr7 * sc[4] * (ukdsx * psc7 + ukpsx * dsc7)) * (real)0.5
+         + rr5 * scale5i * (sci[3] * uipsx + scip[3] * uidsx
+         + sci[2] * ukpsx + scip[2] * ukdsx) * (real)0.5
+         + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * dix
+         + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dkx
+         + (real)0.5 * gfi[3] * ((qkui[0] - qiuk[0]) * psc5
+         + (qkuip[0] - qiukp[0]) * dsc5)
+         + gfi[4] * qir[0] + gfi[5] * qkr[0];
+      ftm2i[1] = gfi[0] * yr + (real)0.5 * (-rr3 * ck * (uidsy * psc3 + uipsy * dsc3)
+         + rr5 * sc[3] * (uidsy * psc5 + uipsy * dsc5)
+         - rr7 * sc[5] * (uidsy * psc7 + uipsy * dsc7))
+         + (rr3 * ci * (ukdsy * psc3 + ukpsy * dsc3)
+         + rr5 * sc[2] * (ukdsy * psc5 + ukpsy * dsc5)
+         + rr7 * sc[4] * (ukdsy * psc7 + ukpsy * dsc7)) * (real)0.5
+         + rr5 * scale5i * (sci[3] * uipsy + scip[3] * uidsy
+         + sci[2] * ukpsy + scip[2] * ukdsy) * (real)0.5
+         + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * diy
+         + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dky
+         + (real)0.5 * gfi[3] * ((qkui[1] - qiuk[1]) * psc5
+         + (qkuip[1] - qiukp[1]) * dsc5)
+         + gfi[4] * qir[1] + gfi[5] * qkr[1];
+      ftm2i[2] = gfi[0] * zr + (real)0.5 * (-rr3 * ck * (uidsz * psc3 + uipsz * dsc3)
+         + rr5 * sc[3] * (uidsz * psc5 + uipsz * dsc5)
+         - rr7 * sc[5] * (uidsz * psc7 + uipsz * dsc7))
+         + (rr3 * ci * (ukdsz * psc3 + ukpsz * dsc3)
+         + rr5 * sc[2] * (ukdsz * psc5 + ukpsz * dsc5)
+         + rr7 * sc[4] * (ukdsz * psc7 + ukpsz * dsc7)) * (real)0.5
+         + rr5 * scale5i * (sci[3] * uipsz + scip[3] * uidsz
+         + sci[2] * ukpsz + scip[2] * ukdsz) * (real)0.5
+         + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * diz
+         + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dkz
+         + (real)0.5 * gfi[3] * ((qkui[2] - qiuk[2]) * psc5
+         + (qkuip[2] - qiukp[2]) * dsc5)
+         + gfi[4] * qir[2] + gfi[5] * qkr[2];
+      
+      fridmp[0] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+         + (glip[0] + glip[5]) * dscale) * ddsc3[0]
+         + rr5 * ((gli[1] + gli[6]) * pscale
+         + (glip[1] + glip[6]) * dscale) * ddsc5[0]
+         + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[0]);
+      fridmp[1] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+         + (glip[0] + glip[5]) * dscale) * ddsc3[1]
+         + rr5 * ((gli[1] + gli[6]) * pscale
+         + (glip[1] + glip[6]) * dscale) * ddsc5[1]
+         + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[1]);
+      fridmp[2] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+         + (glip[0] + glip[5]) * dscale) * ddsc3[2]
+         + rr5 * ((gli[1] + gli[6]) * pscale
+         + (glip[1] + glip[6]) * dscale) * ddsc5[2]
+         + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[2]);
+      
+      findmp[0] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[0]
+         - rr5 * ddsc5[0] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      findmp[1] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[1]
+         - rr5 * ddsc5[1] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      findmp[2] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[2]
+         - rr5 * ddsc5[2] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      ftm2i[0] -= fridmp[0] + findmp[0];
+      ftm2i[1] -= fridmp[1] + findmp[1];
+      ftm2i[2] -= fridmp[2] + findmp[2];
+      
+      gti[1] = (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5;
+      gti[2] = (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5;
+      gti[3] = gfi[3];
+      gti[4] = gfi[4];
+      gti[5] = gfi[5];
+      ttm2i[0] = -rr3 * (dixuk[0] * psc3 + dixukp[0] * dsc3) * (real)0.5
+         + gti[1] * dixr[0] + gti[3] * ((ukxqir[0] + rxqiuk[0]) * psc5
+         + (ukxqirp[0] + rxqiukp[0]) * dsc5) * (real)0.5 - gti[4] * rxqir[0];
+      ttm2i[1] = -rr3 * (dixuk[1] * psc3 + dixukp[1] * dsc3) * (real)0.5
+         + gti[1] * dixr[1] + gti[3] * ((ukxqir[1] + rxqiuk[1]) * psc5
+         + (ukxqirp[1] + rxqiukp[1]) * dsc5) * (real)0.5 - gti[4] * rxqir[1];
+      ttm2i[2] = -rr3 * (dixuk[2] * psc3 + dixukp[2] * dsc3) * (real)0.5
+         + gti[1] * dixr[2] + gti[3] * ((ukxqir[2] + rxqiuk[2]) * psc5
+         + (ukxqirp[2] + rxqiukp[2]) * dsc5) * (real)0.5 - gti[4] * rxqir[2];
+      ttm3i[0] = -rr3 * (dkxui[0] * psc3 + dkxuip[0] * dsc3) * (real)0.5
+         + gti[2] * dkxr[0] - gti[3] * ((uixqkr[0] + rxqkui[0]) * psc5
+         + (uixqkrp[0] + rxqkuip[0]) * dsc5) * (real)0.5 - gti[5] * rxqkr[0];
+      ttm3i[1] = -rr3 * (dkxui[1] * psc3 + dkxuip[1] * dsc3) * (real)0.5
+         + gti[2] * dkxr[1] - gti[3] * ((uixqkr[1] + rxqkui[1]) * psc5
+         + (uixqkrp[1] + rxqkuip[1]) * dsc5) * (real)0.5 - gti[5] * rxqkr[1];
+      ttm3i[2] = -rr3 * (dkxui[2] * psc3 + dkxuip[2] * dsc3) * (real)0.5
+         + gti[2] * dkxr[2] - gti[3] * ((uixqkr[2] + rxqkui[2]) * psc5
+         + (uixqkrp[2] + rxqkuip[2]) * dsc5) * (real)0.5 - gti[5] * rxqkr[2];
+      pgrad.frcx = f * ftm2i[0];
+      pgrad.frcy = f * ftm2i[1];
+      pgrad.frcz = f * ftm2i[2];
+      pgrad.ttqi[0] = f*ttm2i[0];
+      pgrad.ttqi[1] = f*ttm2i[1];
+      pgrad.ttqi[2] = f*ttm2i[2];
+      pgrad.ttqk[0] = f*ttm3i[0];
+      pgrad.ttqk[1] = f*ttm3i[1];
+      pgrad.ttqk[2] = f*ttm3i[2];
+   }
 
-   //    real tix3 = pscale * sr3 * ukx + dscale * sr3 * ukxp;
-   //    real tiy3 = pscale * sr3 * uky + dscale * sr3 * ukyp;
-   //    real tiz3 = pscale * sr3 * ukz + dscale * sr3 * ukzp;
-   //    real tkx3 = pscale * sr3 * uix + dscale * sr3 * uixp;
-   //    real tky3 = pscale * sr3 * uiy + dscale * sr3 * uiyp;
-   //    real tkz3 = pscale * sr3 * uiz + dscale * sr3 * uizp;
-   //    tuir = -pscale * sr5 * ukr - dscale * sr5 * ukrp;
-   //    tukr = -pscale * sr5 * uir - dscale * sr5 * uirp;
+   sci[0] = uidx * dkx + uidy * dky + uidz * dkz + dix * ukdx + diy * ukdy + diz * ukdz;
+   sci[1] = uidx * ukdx + uidy * ukdy + uidz * ukdz;
+   sci[2] = uidx * xr + uidy * yr + uidz * zr;
+   sci[3] = ukdx * xr + ukdy * yr + ukdz * zr;
+   sci[6] = qir[0] * ukdx + qir[1] * ukdy + qir[2] * ukdz;
+   sci[7] = qkr[0] * uidx + qkr[1] * uidy + qkr[2] * uidz;
+   gli[0] = ck * sci[2] - ci * sci[3];
+   gli[1] = -sc[2] * sci[3] - sci[2] * sc[3];
+   gli[2] = sci[2] * sc[5] - sci[3] * sc[4];
+   gli[5] = sci[0];
+   gli[6] = 2 * (sci[6] - sci[7]);
+   ei = (real)-0.5 * (rr3 * (gli[0] + gli[5]) * psc3
+               + rr5 * (gli[1] + gli[6]) * psc5
+               + rr7 * gli[2] * psc7);
+   e += f * ei;
 
-   //    uf0i += f * (tix3 + xr * tuir);
-   //    uf1i += f * (tiy3 + yr * tuir);
-   //    uf2i += f * (tiz3 + zr * tuir);
-   //    uf0k += f * (tkx3 + xr * tukr);
-   //    uf1k += f * (tky3 + yr * tukr);
-   //    uf2k += f * (tkz3 + zr * tukr);
+   if CONSTEXPR (do_g) {
+      dixuk[0] = diy * ukdz - diz * ukdy;
+      dixuk[1] = diz * ukdx - dix * ukdz;
+      dixuk[2] = dix * ukdy - diy * ukdx;
+      dkxui[0] = dky * uidz - dkz * uidy;
+      dkxui[1] = dkz * uidx - dkx * uidz;
+      dkxui[2] = dkx * uidy - dky * uidx;
+      dixukp[0] = diy * ukpz - diz * ukpy;
+      dixukp[1] = diz * ukpx - dix * ukpz;
+      dixukp[2] = dix * ukpy - diy * ukpx;
+      dkxuip[0] = dky * uipz - dkz * uipy;
+      dkxuip[1] = dkz * uipx - dkx * uipz;
+      dkxuip[2] = dkx * uipy - dky * uipx;
+      qiuk[0] = qixx * ukdx + qixy * ukdy + qixz * ukdz;
+      qiuk[1] = qixy * ukdx + qiyy * ukdy + qiyz * ukdz;
+      qiuk[2] = qixz * ukdx + qiyz * ukdy + qizz * ukdz;
+      qkui[0] = qkxx * uidx + qkxy * uidy + qkxz * uidz;
+      qkui[1] = qkxy * uidx + qkyy * uidy + qkyz * uidz;
+      qkui[2] = qkxz * uidx + qkyz * uidy + qkzz * uidz;
+      qiukp[0] = qixx * ukpx + qixy * ukpy + qixz * ukpz;
+      qiukp[1] = qixy * ukpx + qiyy * ukpy + qiyz * ukpz;
+      qiukp[2] = qixz * ukpx + qiyz * ukpy + qizz * ukpz;
+      qkuip[0] = qkxx * uipx + qkxy * uipy + qkxz * uipz;
+      qkuip[1] = qkxy * uipx + qkyy * uipy + qkyz * uipz;
+      qkuip[2] = qkxz * uipx + qkyz * uipy + qkzz * uipz;
+      uixqkr[0] = uidy * qkr[2] - uidz * qkr[1];
+      uixqkr[1] = uidz * qkr[0] - uidx * qkr[2];
+      uixqkr[2] = uidx * qkr[1] - uidy * qkr[0];
+      ukxqir[0] = ukdy * qir[2] - ukdz * qir[1];
+      ukxqir[1] = ukdz * qir[0] - ukdx * qir[2];
+      ukxqir[2] = ukdx * qir[1] - ukdy * qir[0];
+      uixqkrp[0] = uipy * qkr[2] - uipz * qkr[1];
+      uixqkrp[1] = uipz * qkr[0] - uipx * qkr[2];
+      uixqkrp[2] = uipx * qkr[1] - uipy * qkr[0];
+      ukxqirp[0] = ukpy * qir[2] - ukpz * qir[1];
+      ukxqirp[1] = ukpz * qir[0] - ukpx * qir[2];
+      ukxqirp[2] = ukpx * qir[1] - ukpy * qir[0];
+      rxqiuk[0] = yr * qiuk[2] - zr * qiuk[1];
+      rxqiuk[1] = zr * qiuk[0] - xr * qiuk[2];
+      rxqiuk[2] = xr * qiuk[1] - yr * qiuk[0];
+      rxqkui[0] = yr * qkui[2] - zr * qkui[1];
+      rxqkui[1] = zr * qkui[0] - xr * qkui[2];
+      rxqkui[2] = xr * qkui[1] - yr * qkui[0];
+      rxqiukp[0] = yr * qiukp[2] - zr * qiukp[1];
+      rxqiukp[1] = zr * qiukp[0] - xr * qiukp[2];
+      rxqiukp[2] = xr * qiukp[1] - yr * qiukp[0];
+      rxqkuip[0] = yr * qkuip[2] - zr * qkuip[1];
+      rxqkuip[1] = zr * qkuip[0] - xr * qkuip[2];
+      rxqkuip[2] = xr * qkuip[1] - yr * qkuip[0];
+      scip[0] = uipx * dkx + uipy * dky + uipz * dkz + dix * ukpx + diy * ukpy + diz * ukpz;
+      scip[1] = uidx * ukpx + uidy * ukpy + uidz * ukpz + uipx * ukdx + uipy * ukdy + uipz * ukdz;
+      scip[2] = uipx * xr + uipy * yr + uipz * zr;
+      scip[3] = ukpx * xr + ukpy * yr + ukpz * zr;
+      scip[6] = qir[0] * ukpx + qir[1] * ukpy + qir[2] * ukpz;
+      scip[7] = qkr[0] * uipx + qkr[1] * uipy + qkr[2] * uipz;
+      glip[0] = ck * scip[2] - ci * scip[3];
+      glip[1] = -sc[2] * scip[3] - scip[2] * sc[3];
+      glip[2] = scip[2] * sc[5] - scip[3] * sc[4];
+      glip[5] = scip[0];
+      glip[6] = 2 * (scip[6] - scip[7]);
+      gfi[0] = (real)0.5 * rr5 * ((gli[0] + gli[5]) * psc3
+                           + (glip[0] + glip[5]) * dsc3 + scip[1] * scale3i)
+               + (real)0.5 * rr7 * ((gli[6] + gli[1]) * psc5
+                              + (glip[6] + glip[1]) * dsc5
+                              - (sci[2] * scip[3] + scip[2] * sci[3]) * scale5i)
+               + (real)0.5 * rr9 * (gli[2] * psc7 + glip[2] * dsc7);
+      gfi[1] = -rr3 * ck + rr5 * sc[3] - rr7 * sc[5];
+      gfi[2] = rr3 * ci + rr5 * sc[2] + rr7 * sc[4];
+      gfi[3] = 2 * rr5;
+      gfi[4] = rr7 * (sci[3] * psc7 + scip[3] * dsc7);
+      gfi[5] = -rr7 * (sci[2] * psc7 + scip[2] * dsc7);
+      ftm2i[0] = gfi[0] * xr + (real)0.5 * (-rr3 * ck * (uidx * psc3 + uipx * dsc3)
+                                    + rr5 * sc[3] * (uidx * psc5 + uipx * dsc5)
+                                    - rr7 * sc[5] * (uidx * psc7 + uipx * dsc7))
+               + (rr3 * ci * (ukdx * psc3 + ukpx * dsc3)
+                  + rr5 * sc[2] * (ukdx * psc5 + ukpx * dsc5)
+                  + rr7 * sc[4] * (ukdx * psc7 + ukpx * dsc7)) * (real)0.5
+               + rr5 * scale5i * (sci[3] * uipx + scip[3] * uidx
+                                    + sci[2] * ukpx + scip[2] * ukdx) * (real)0.5
+               + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * dix
+               + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dkx
+               + (real)0.5 * gfi[3] * ((qkui[0] - qiuk[0]) * psc5
+                                 + (qkuip[0] - qiukp[0]) * dsc5)
+               + gfi[4] * qir[0] + gfi[5] * qkr[0];
+      ftm2i[1] = gfi[0] * yr + (real)0.5 * (-rr3 * ck * (uidy * psc3 + uipy * dsc3)
+                                    + rr5 * sc[3] * (uidy * psc5 + uipy * dsc5)
+                                    - rr7 * sc[5] * (uidy * psc7 + uipy * dsc7))
+               + (rr3 * ci * (ukdy * psc3 + ukpy * dsc3)
+                  + rr5 * sc[2] * (ukdy * psc5 + ukpy * dsc5)
+                  + rr7 * sc[4] * (ukdy * psc7 + ukpy * dsc7)) * (real)0.5
+               + rr5 * scale5i * (sci[3] * uipy + scip[3] * uidy
+                                    + sci[2] * ukpy + scip[2] * ukdy) * (real)0.5
+               + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * diy
+               + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dky
+               + (real)0.5 * gfi[3] * ((qkui[1] - qiuk[1]) * psc5
+                                 + (qkuip[1] - qiukp[1]) * dsc5)
+               + gfi[4] * qir[1] + gfi[5] * qkr[1];
+      ftm2i[2] = gfi[0] * zr + (real)0.5 * (-rr3 * ck * (uidz * psc3 + uipz * dsc3)
+                                    + rr5 * sc[3] * (uidz * psc5 + uipz * dsc5)
+                                    - rr7 * sc[5] * (uidz * psc7 + uipz * dsc7))
+               + (rr3 * ci * (ukdz * psc3 + ukpz * dsc3)
+                  + rr5 * sc[2] * (ukdz * psc5 + ukpz * dsc5)
+                  + rr7 * sc[4] * (ukdz * psc7 + ukpz * dsc7)) * (real)0.5
+               + rr5 * scale5i * (sci[3] * uipz + scip[3] * uidz
+                                    + sci[2] * ukpz + scip[2] * ukdz) * (real)0.5
+               + (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5 * diz
+               + (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5 * dkz
+               + (real)0.5 * gfi[3] * ((qkui[2] - qiuk[2]) * psc5
+                                 + (qkuip[2] - qiukp[2]) * dsc5)
+               + gfi[4] * qir[2] + gfi[5] * qkr[2];
+      fridmp[0] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+                              + (glip[0] + glip[5]) * dscale) * ddsc3[0]
+                        + rr5 * ((gli[1] + gli[6]) * pscale
+                                 + (glip[1] + glip[6]) * dscale) * ddsc5[0]
+                        + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[0]);
 
-   //    // get induced dipole field gradient used for quadrupole torques
+      fridmp[1] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+                              + (glip[0] + glip[5]) * dscale) * ddsc3[1]
+                        + rr5 * ((gli[1] + gli[6]) * pscale
+                                 + (glip[1] + glip[6]) * dscale) * ddsc5[1]
+                        + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[1]);
 
-   //    real tix5 = 2 * (pscale * sr5 * ukx + dscale * sr5 * ukxp);
-   //    real tiy5 = 2 * (pscale * sr5 * uky + dscale * sr5 * ukyp);
-   //    real tiz5 = 2 * (pscale * sr5 * ukz + dscale * sr5 * ukzp);
-   //    real tkx5 = 2 * (pscale * sr5 * uix + dscale * sr5 * uixp);
-   //    real tky5 = 2 * (pscale * sr5 * uiy + dscale * sr5 * uiyp);
-   //    real tkz5 = 2 * (pscale * sr5 * uiz + dscale * sr5 * uizp);
-   //    tuir = -pscale * sr7 * ukr - dscale * sr7 * ukrp;
-   //    tukr = -pscale * sr7 * uir - dscale * sr7 * uirp;
-
-   //    duf0i += f * (xr * tix5 + xr * xr * tuir);
-   //    duf1i += f * (xr * tiy5 + yr * tix5 + 2 * xr * yr * tuir);
-   //    duf2i += f * (yr * tiy5 + yr * yr * tuir);
-   //    duf3i += f * (xr * tiz5 + zr * tix5 + 2 * xr * zr * tuir);
-   //    duf4i += f * (yr * tiz5 + zr * tiy5 + 2 * yr * zr * tuir);
-   //    duf5i += f * (zr * tiz5 + zr * zr * tuir);
-   //    duf0k += f * (-xr * tkx5 - xr * xr * tukr);
-   //    duf1k += f * (-xr * tky5 - yr * tkx5 - 2 * xr * yr * tukr);
-   //    duf2k += f * (-yr * tky5 - yr * yr * tukr);
-   //    duf3k += f * (-xr * tkz5 - zr * tkx5 - 2 * xr * zr * tukr);
-   //    duf4k += f * (-yr * tkz5 - zr * tky5 - 2 * yr * zr * tukr);
-   //    duf5k += f * (-zr * tkz5 - zr * zr * tukr);
-
-   //    // get the field gradient for direct polarization force
-
-   //    real term1, term2, term3, term4, term5, term6, term7;
-
-   //    term1 = bn[2] - ex3 * rr5;
-   //    term2 = bn[3] - ex5 * rr7;
-   //    term3 = -sr3 + term1 * xr * xr - xr * rc31;
-   //    term4 = rc31 - term1 * xr - sr5 * xr;
-   //    term5 = term2 * xr * xr - sr5 - xr * rc51;
-   //    term6 = (bn[4] - ex7 * rr9) * xr * xr - bn[3] - xr * rc71;
-   //    term7 = rc51 - 2 * bn[3] * xr + (ex5 + 1.5f * ex7) * rr7 * xr;
-   //    real tixx = ci * term3 + dix * term4 + dir * term5 + 2 * sr5 * qixx
-   //       + (qiy * yr + qiz * zr) * ex7 * rr7 + 2 * qix * term7 + qir * term6;
-   //    real tkxx = ck * term3 - dkx * term4 - dkr * term5 + 2 * sr5 * qkxx
-   //       + (qky * yr + qkz * zr) * ex7 * rr7 + 2 * qkx * term7 + qkr * term6;
-
-   //    term3 = -sr3 + term1 * yr * yr - yr * rc32;
-   //    term4 = rc32 - term1 * yr - sr5 * yr;
-   //    term5 = term2 * yr * yr - sr5 - yr * rc52;
-   //    term6 = (bn[4] - ex7 * rr9) * yr * yr - bn[3] - yr * rc72;
-   //    term7 = rc52 - 2 * bn[3] * yr + (ex5 + 1.5f * ex7) * rr7 * yr;
-   //    real tiyy = ci * term3 + diy * term4 + dir * term5 + 2 * sr5 * qiyy
-   //       + (qix * xr + qiz * zr) * ex7 * rr7 + 2 * qiy * term7 + qir * term6;
-   //    real tkyy = ck * term3 - dky * term4 - dkr * term5 + 2 * sr5 * qkyy
-   //       + (qkx * xr + qkz * zr) * ex7 * rr7 + 2 * qky * term7 + qkr * term6;
-
-   //    term3 = -sr3 + term1 * zr * zr - zr * rc33;
-   //    term4 = rc33 - term1 * zr - sr5 * zr;
-   //    term5 = term2 * zr * zr - sr5 - zr * rc53;
-   //    term6 = (bn[4] - ex7 * rr9) * zr * zr - bn[3] - zr * rc73;
-   //    term7 = rc53 - 2 * bn[3] * zr + (ex5 + 1.5f * ex7) * rr7 * zr;
-   //    real tizz = ci * term3 + diz * term4 + dir * term5 + 2 * sr5 * qizz
-   //       + (qix * xr + qiy * yr) * ex7 * rr7 + 2 * qiz * term7 + qir * term6;
-   //    real tkzz = ck * term3 - dkz * term4 - dkr * term5 + 2 * sr5 * qkzz
-   //       + (qkx * xr + qky * yr) * ex7 * rr7 + 2 * qkz * term7 + qkr * term6;
-
-   //    term3 = term1 * xr * yr - yr * rc31;
-   //    term4 = rc31 - term1 * xr;
-   //    term5 = term2 * xr * yr - yr * rc51;
-   //    term6 = (bn[4] - ex7 * rr9) * xr * yr - yr * rc71;
-   //    term7 = rc51 - term2 * xr;
-   //    real tixy = ci * term3 - sr5 * dix * yr + diy * term4 + dir * term5
-   //       + 2 * sr5 * qixy - 2 * sr7 * yr * qix + 2 * qiy * term7 + qir * term6;
-   //    real tkxy = ck * term3 + sr5 * dkx * yr - dky * term4 - dkr * term5
-   //       + 2 * sr5 * qkxy - 2 * sr7 * yr * qkx + 2 * qky * term7 + qkr * term6;
-
-   //    term3 = term1 * xr * zr - zr * rc31;
-   //    term5 = term2 * xr * zr - zr * rc51;
-   //    term6 = (bn[4] - ex7 * rr9) * xr * zr - zr * rc71;
-   //    real tixz = ci * term3 - sr5 * dix * zr + diz * term4 + dir * term5
-   //       + 2 * sr5 * qixz - 2 * sr7 * zr * qix + 2 * qiz * term7 + qir * term6;
-   //    real tkxz = ck * term3 + sr5 * dkx * zr - dkz * term4 - dkr * term5
-   //       + 2 * sr5 * qkxz - 2 * sr7 * zr * qkx + 2 * qkz * term7 + qkr * term6;
-
-   //    term3 = term1 * yr * zr - zr * rc32;
-   //    term4 = rc32 - term1 * yr;
-   //    term5 = term2 * yr * zr - zr * rc52;
-   //    term6 = (bn[4] - ex7 * rr9) * yr * zr - zr * rc72;
-   //    term7 = rc52 - term2 * yr;
-   //    real tiyz = ci * term3 - sr5 * diy * zr + diz * term4 + dir * term5
-   //       + 2 * sr5 * qiyz - 2 * sr7 * zr * qiy + 2 * qiz * term7 + qir * term6;
-   //    real tkyz = ck * term3 + sr5 * dky * zr - dkz * term4 - dkr * term5
-   //       + 2 * sr5 * qkyz - 2 * sr7 * zr * qky + 2 * qkz * term7 + qkr * term6;
-
-   //    // get the dEd/dR terms for Thole direct polarization force
-
-   //    real depx, depy, depz;
-   //    real frcx, frcy, frcz;
-
-   //    depx = tixx * ukxp + tixy * ukyp + tixz * ukzp - tkxx * uixp - tkxy * uiyp
-   //       - tkxz * uizp;
-   //    depy = tixy * ukxp + tiyy * ukyp + tiyz * ukzp - tkxy * uixp - tkyy * uiyp
-   //       - tkyz * uizp;
-   //    depz = tixz * ukxp + tiyz * ukyp + tizz * ukzp - tkxz * uixp - tkyz * uiyp
-   //       - tkzz * uizp;
-   //    if CONSTEXPR (eq<ETYP, EWALD>()) {
-   //       frcx = -depx;
-   //       frcy = -depy;
-   //       frcz = -depz;
-   //    } else if CONSTEXPR (eq<ETYP, NON_EWALD>()) {
-   //       frcx = -depx * dscale;
-   //       frcy = -depy * dscale;
-   //       frcz = -depz * dscale;
-   //    }
-
-   //    // get the dEp/dR terms for Thole direct polarization force
-
-   //    depx = tixx * ukx + tixy * uky + tixz * ukz - tkxx * uix - tkxy * uiy
-   //       - tkxz * uiz;
-   //    depy = tixy * ukx + tiyy * uky + tiyz * ukz - tkxy * uix - tkyy * uiy
-   //       - tkyz * uiz;
-   //    depz = tixz * ukx + tiyz * uky + tizz * ukz - tkxz * uix - tkyz * uiy
-   //       - tkzz * uiz;
-   //    if CONSTEXPR (eq<ETYP, EWALD>()) {
-   //       frcx -= depx;
-   //       frcy -= depy;
-   //       frcz -= depz;
-   //    } else if CONSTEXPR (eq<ETYP, NON_EWALD>()) {
-   //       frcx -= pscale * depx;
-   //       frcy -= pscale * depy;
-   //       frcz -= pscale * depz;
-   //    }
-
-   //    // get the dtau/dr terms used for mutual polarization force
-
-   //    term1 = bn[2] - ex3 * rr5;
-   //    term2 = bn[3] - ex5 * rr7;
-   //    term3 = sr5 + term1;
-
-   //    term5 = -xr * term3 + rc31;
-   //    term6 = -sr5 + xr * xr * term2 - xr * rc51;
-   //    tixx = uix * term5 + uir * term6;
-   //    tkxx = ukx * term5 + ukr * term6;
-
-   //    term5 = -yr * term3 + rc32;
-   //    term6 = -sr5 + yr * yr * term2 - yr * rc52;
-   //    tiyy = uiy * term5 + uir * term6;
-   //    tkyy = uky * term5 + ukr * term6;
-
-   //    term5 = -zr * term3 + rc33;
-   //    term6 = -sr5 + zr * zr * term2 - zr * rc53;
-   //    tizz = uiz * term5 + uir * term6;
-   //    tkzz = ukz * term5 + ukr * term6;
-
-   //    term4 = -sr5 * yr;
-   //    term5 = -xr * term1 + rc31;
-   //    term6 = xr * yr * term2 - yr * rc51;
-   //    tixy = uix * term4 + uiy * term5 + uir * term6;
-   //    tkxy = ukx * term4 + uky * term5 + ukr * term6;
-
-   //    term4 = -sr5 * zr;
-   //    term6 = xr * zr * term2 - zr * rc51;
-   //    tixz = uix * term4 + uiz * term5 + uir * term6;
-   //    tkxz = ukx * term4 + ukz * term5 + ukr * term6;
-
-   //    term5 = -yr * term1 + rc32;
-   //    term6 = yr * zr * term2 - zr * rc52;
-   //    tiyz = uiy * term4 + uiz * term5 + uir * term6;
-   //    tkyz = uky * term4 + ukz * term5 + ukr * term6;
-
-   //    depx = tixx * ukxp + tixy * ukyp + tixz * ukzp + tkxx * uixp + tkxy * uiyp
-   //       + tkxz * uizp;
-   //    depy = tixy * ukxp + tiyy * ukyp + tiyz * ukzp + tkxy * uixp + tkyy * uiyp
-   //       + tkyz * uizp;
-   //    depz = tixz * ukxp + tiyz * ukyp + tizz * ukzp + tkxz * uixp + tkyz * uiyp
-   //       + tkzz * uizp;
-   //    if CONSTEXPR (eq<ETYP, EWALD>()) {
-   //       frcx -= depx;
-   //       frcy -= depy;
-   //       frcz -= depz;
-   //    } else if CONSTEXPR (eq<ETYP, NON_EWALD>()) {
-   //       frcx -= uscale * depx;
-   //       frcy -= uscale * depy;
-   //       frcz -= uscale * depz;
-   //    }
-
-   //    frcx *= f;
-   //    frcy *= f;
-   //    frcz *= f;
-   //    frcxi += frcx;
-   //    frcyi += frcy;
-   //    frczi += frcz;
-   //    frcxk -= frcx;
-   //    frcyk -= frcy;
-   //    frczk -= frcz;
-
-   //    if CONSTEXPR (do_v) {
-   //       vxx = -xr * frcx;
-   //       vxy = -0.5f * (yr * frcx + xr * frcy);
-   //       vxz = -0.5f * (zr * frcx + xr * frcz);
-   //       vyy = -yr * frcy;
-   //       vyz = -0.5f * (zr * frcy + yr * frcz);
-   //       vzz = -zr * frcz;
-   //    }
-   // }
+      fridmp[2] = (real)0.5 * (rr3 * ((gli[0] + gli[5]) * pscale
+                              + (glip[0] + glip[5]) * dscale) * ddsc3[2]
+                        + rr5 * ((gli[1] + gli[6]) * pscale
+                                 + (glip[1] + glip[6]) * dscale) * ddsc5[2]
+                        + rr7 * (gli[2] * pscale + glip[2] * dscale) * ddsc7[2]);
+      findmp[0] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[0]
+                                    - rr5 * ddsc5[0] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      findmp[1] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[1]
+                                    - rr5 * ddsc5[1] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      findmp[2] = (real)0.5 * uscale * (scip[1] * rr3 * ddsc3[2]
+                                    - rr5 * ddsc5[2] * (sci[2] * scip[3] + scip[2] * sci[3]));
+      ftm2i[0] = ftm2i[0] - fridmp[0] - findmp[0];
+      ftm2i[1] = ftm2i[1] - fridmp[1] - findmp[1];
+      ftm2i[2] = ftm2i[2] - fridmp[2] - findmp[2];
+      gti[1] = (real)0.5 * (sci[3] * psc5 + scip[3] * dsc5) * rr5;
+      gti[2] = (real)0.5 * (sci[2] * psc5 + scip[2] * dsc5) * rr5;
+      gti[3] = gfi[3];
+      gti[4] = gfi[4];
+      gti[5] = gfi[5];
+      ttm2i[0] = -rr3 * (dixuk[0] * psc3 + dixukp[0] * dsc3) * (real)0.5
+         + gti[1] * dixr[0] + gti[3] * ((ukxqir[0] + rxqiuk[0]) * psc5
+         + (ukxqirp[0] + rxqiukp[0]) * dsc5) * (real)0.5 - gti[4] * rxqir[0];
+      ttm2i[1] = -rr3 * (dixuk[1] * psc3 + dixukp[1] * dsc3) * (real)0.5
+         + gti[1] * dixr[1] + gti[3] * ((ukxqir[1] + rxqiuk[1]) * psc5
+         + (ukxqirp[1] + rxqiukp[1]) * dsc5) * (real)0.5 - gti[4] * rxqir[1];
+      ttm2i[2] = -rr3 * (dixuk[2] * psc3 + dixukp[2] * dsc3) * (real)0.5
+         + gti[1] * dixr[2] + gti[3] * ((ukxqir[2] + rxqiuk[2]) * psc5
+         + (ukxqirp[2] + rxqiukp[2]) * dsc5) * (real)0.5 - gti[4] * rxqir[2];
+      ttm3i[0] = -rr3 * (dkxui[0] * psc3 + dkxuip[0] * dsc3) * (real)0.5
+         + gti[2] * dkxr[0] - gti[3] * ((uixqkr[0] + rxqkui[0]) * psc5
+         + (uixqkrp[0] + rxqkuip[0]) * dsc5) * (real)0.5 - gti[5] * rxqkr[0];
+      ttm3i[1] = -rr3 * (dkxui[1] * psc3 + dkxuip[1] * dsc3) * (real)0.5
+         + gti[2] * dkxr[1] - gti[3] * ((uixqkr[1] + rxqkui[1]) * psc5
+         + (uixqkrp[1] + rxqkuip[1]) * dsc5) * (real)0.5 - gti[5] * rxqkr[1];
+      ttm3i[2] = -rr3 * (dkxui[2] * psc3 + dkxuip[2] * dsc3) * (real)0.5
+         + gti[2] * dkxr[2] - gti[3] * ((uixqkr[2] + rxqkui[2]) * psc5
+         + (uixqkrp[2] + rxqkuip[2]) * dsc5) * (real)0.5 - gti[5] * rxqkr[2];
+      pgrad.frcx -= f * ftm2i[0];
+      pgrad.frcy -= f * ftm2i[1];
+      pgrad.frcz -= f * ftm2i[2];
+      pgrad.ttqi[0] -= f * ttm2i[0];
+      pgrad.ttqi[1] -= f * ttm2i[1];
+      pgrad.ttqi[2] -= f * ttm2i[2];
+      pgrad.ttqk[0] -= f * ttm3i[0];
+      pgrad.ttqk[1] -= f * ttm3i[1];
+      pgrad.ttqk[2] -= f * ttm3i[2];
+   }
 }
 }
