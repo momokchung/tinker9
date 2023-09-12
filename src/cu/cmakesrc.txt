@@ -41,6 +41,7 @@ minimize.cu
 pme.cu
 rattle.cu
 solv/born.cu
+solv/empole.cu
 solv/esolv.cu
 solv/pcgsolv.cu
 spatial.cu

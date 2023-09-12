@@ -1,5 +1,6 @@
 #include "ff/box.h"
 #include "ff/image.h"
+#include "ff/potent.h"
 #include "ff/spatial.h"
 #include "seq/copysign.h"
 #include "seq/imagefc.h"
@@ -7,6 +8,7 @@
 #include "seq/triangle.h"
 #include "tool/error.h"
 #include "tool/thrustcache.h"
+#include <algorithm>
 // Eventually thrust will drop c++11 support.
 #define THRUST_IGNORE_DEPRECATED_CPP_DIALECT
 #include <thrust/sort.h>
@@ -775,6 +777,20 @@ void spatialDataInit_cu(SpatialUnit u)
       u->nakpk, nakpl_ptr1, u->akpf, u->iakpl, u->iakpl_rev, //
       u->cap_nakpl, u->nstype,                               //
       si1.bit0, si2.bit0, si3.bit0, si4.bit0);
+
+   if (use(Potent::SOLV)) {
+      std::vector<int> skip_pair(u->nakpl);
+      cudaMemcpy(skip_pair.data(), u->iakpl, u->nakpl*sizeof(int), cudaMemcpyDeviceToHost);
+      std::sort(skip_pair.begin(), skip_pair.end());
+      std::vector<int> all_pair;
+      for (int i = 0; i < u->nakp; i++) {
+         all_pair.push_back(i);
+      }
+      std::vector<int> dopair;
+      std::set_difference(all_pair.begin(), all_pair.end(), skip_pair.begin(), skip_pair.end(), std::back_inserter(dopair));
+      u->ndopair = dopair.size();
+      cudaMemcpy(u->dopair, dopair.data(), u->ndopair*sizeof(int), cudaMemcpyHostToDevice);
+   }
 
    if (box_shape == BoxShape::ORTHO) {
       Spatial::RunStep5<PbcOrtho>(u);

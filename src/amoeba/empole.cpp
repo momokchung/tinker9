@@ -78,6 +78,14 @@ static void empoleEwald(int vers)
 }
 
 namespace tinker {
+TINKER_FVOID2(acc0, cu1, empoleN2, int);
+static void empoleN2(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, empoleN2, vers);
+}
+}
+
+namespace tinker {
 void empole(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
@@ -100,10 +108,15 @@ void empole(int vers)
    }
 
    mpoleInit(vers);
-   if (useEwald())
-      empoleEwald(vers);
-   else
-      empoleNonEwald(vers);
+   if (use(Potent::SOLV)) {
+      empoleN2(vers);
+   }
+   else {
+      if (useEwald())
+         empoleEwald(vers);
+      else
+         empoleNonEwald(vers);
+   }
    torque(vers, demx, demy, demz);
    if (do_v) {
       VirialBuffer u2 = vir_trq;

@@ -12,6 +12,9 @@ typedef GenericUnit<Spatial, GenericUnitVersion::DISABLE_ON_DEVICE> SpatialUnit;
 
 void spatialUpdate(SpatialUnit);
 
+TINKER_EXTERN int* st_do_pair;
+TINKER_EXTERN int n_do_pair;
+
 class Spatial
 {
 public:
@@ -83,6 +86,10 @@ public:
    int nakpl; ///< Length of #iakpl. Multiple
    int niak;  ///< Length of iak, not greater than #LSTCAP*#nak.
    int n;     ///< Number of atoms.
+
+   int* dopair; ///< List of block pairs not subject to exclusion rules. Length #ndopair.
+                ///< The pair `(x,y)` was encoded via triangular number and stored as `tri(x)+y`.
+   int ndopair; ///< Length of #dopair.
 
    ~Spatial();
 
