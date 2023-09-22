@@ -16,11 +16,11 @@ GRADIENT:
   - gz
 
 EXTRA_PARAMS: |
-  , const real* restrict epsvdw
-  , const real* restrict radvdw
+  , const real* restrict epsdsp
+  , const real* restrict raddsp
   , real epso, real epsh
   , real rmino, real rminh
-  , real shctd, real dispoff
+  , real shctd, real dspoff
   , real slevy, real awater
 # IMPLICIT_PARAMS:
 
@@ -28,14 +28,14 @@ I_VARIABLES:
   - shared real xi    from:x
   - shared real yi    from:y
   - shared real zi    from:z
-  - shared real epsli from:epsvdw
-  - shared real rmini from:radvdw
+  - shared real epsli from:epsdsp
+  - shared real rmini from:raddsp
 K_VARIABLES:
   - shared   real xk    from:x
   - shared   real yk    from:y
   - shared   real zk    from:z
-  - register real epslk from:epsvdw
-  - register real rmink from:radvdw
+  - register real epslk from:epsdsp
+  - register real rmink from:raddsp
 I_FORCE:
   - register real gxi addto:gx
   - register real gyi addto:gy
@@ -66,8 +66,8 @@ FULL_PAIRWISE_INTERACTION: |
     real rmixh = 2. * (REAL_POW(rminh,3)+REAL_POW(rmin,3)) / (REAL_POW(rminh,2)+REAL_POW(rmin,2));
     real rmixh7 = REAL_POW(rmixh,7);
     real ahi = emixh * rmixh7;
-    real rio = rmixo / 2. + dispoff;
-    real rih = rmixh / 2. + dispoff;
+    real rio = rmixo / 2. + dspoff;
+    real rih = rmixh / 2. + dspoff;
     real si = rmin * shctd;
     real si2 = si * si;
 
@@ -81,8 +81,8 @@ FULL_PAIRWISE_INTERACTION: |
     real rmkxh = 2. * (REAL_POW(rminh,3)+REAL_POW(rmkn,3)) / (REAL_POW(rminh,2)+REAL_POW(rmkn,2));
     real rmkxh7 = REAL_POW(rmkxh,7);
     real ahk = emkxh * rmkxh7;
-    real rko = rmkxo / 2. + dispoff;
-    real rkh = rmkxh / 2. + dispoff;
+    real rko = rmkxo / 2. + dspoff;
+    real rkh = rmkxh / 2. + dspoff;
     real sk = rmkn * shctd;
     real sk2 = sk * sk;
     

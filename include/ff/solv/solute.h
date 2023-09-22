@@ -96,6 +96,6 @@ TINKER_EXTERN real awater;
 TINKER_EXTERN real slevy;
 TINKER_EXTERN real shctd;
 TINKER_EXTERN real cavoff;
-TINKER_EXTERN real dispoff;
-TINKER_EXTERN real* cdisp;
+TINKER_EXTERN real dspoff;
+TINKER_EXTERN real* cdsp;
 }

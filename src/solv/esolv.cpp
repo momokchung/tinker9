@@ -26,7 +26,7 @@ void esolvData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(radvdw, epsvdw, cdisp);
+      darray::deallocate(raddsp, epsdsp, cdsp);
       darray::deallocate(drb, drbp);
       if (rc_a) {
          bufferDeallocate(rc_flag, nes);
@@ -47,7 +47,7 @@ void esolvData(RcOp op)
       desx = gx_elec;
       desy = gy_elec;
       desz = gz_elec;
-      darray::allocate(n, &radvdw, &epsvdw, &cdisp);
+      darray::allocate(n, &raddsp, &epsdsp, &cdsp);
       darray::allocate(n, &drb, &drbp);
       if (rc_a) {
          bufferAllocate(rc_flag, &nes);
@@ -56,9 +56,9 @@ void esolvData(RcOp op)
    }
 
    if (op & RcOp::INIT) {
-      darray::copyin(g::q0, n, radvdw, vdw::radvdw);
-      darray::copyin(g::q0, n, epsvdw, vdw::epsvdw);
-      darray::copyin(g::q0, n, cdisp, nonpol::cdisp);
+      darray::copyin(g::q0, n, raddsp, nonpol::raddsp);
+      darray::copyin(g::q0, n, epsdsp, nonpol::epsdsp);
+      darray::copyin(g::q0, n, cdsp, nonpol::cdsp);
       epso = nonpol::epso;
       epsh = nonpol::epsh;
       rmino = nonpol::rmino;
@@ -67,7 +67,7 @@ void esolvData(RcOp op)
       slevy = nonpol::slevy;
       shctd = nonpol::shctd;
       cavoff = nonpol::cavoff;
-      dispoff = nonpol::dispoff;
+      dspoff = nonpol::dspoff;
    }
 }
 

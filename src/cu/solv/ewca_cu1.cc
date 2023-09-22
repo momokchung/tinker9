@@ -4,8 +4,8 @@ __global__
 void ewca_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, grad_prec* restrict gx, grad_prec* restrict gy,
    grad_prec* restrict gz, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, const real* restrict epsvdw, const real* restrict radvdw, real epso, real epsh, real rmino,
-   real rminh, real shctd, real dispoff, real slevy, real awater)
+   const int* restrict lst, const real* restrict epsdsp, const real* restrict raddsp, real epso, real epsh, real rmino,
+   real rminh, real shctd, real dspoff, real slevy, real awater)
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_g = Ver::g;
@@ -33,8 +33,8 @@ void ewca_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, grad_prec* r
        int k = exclude[ii][1];
 
 
-       xi[klane] = x[i];yi[klane] = y[i];zi[klane] = z[i];epsli[klane] = epsvdw[i];rmini[klane] =
-radvdw[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];zk[threadIdx.x] = z[k];epslk = epsvdw[k];rmink = radvdw[k];
+       xi[klane] = x[i];yi[klane] = y[i];zi[klane] = z[i];epsli[klane] = epsdsp[i];rmini[klane] =
+raddsp[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];zk[threadIdx.x] = z[k];epslk = epsdsp[k];rmink = raddsp[k];
 
        constexpr bool incl = true;
        real xr = xk[threadIdx.x] - xi[klane];
@@ -56,8 +56,8 @@ if (incl) {
  real rmixh = 2. * (REAL_POW(rminh,3)+REAL_POW(rmin,3)) / (REAL_POW(rminh,2)+REAL_POW(rmin,2));
  real rmixh7 = REAL_POW(rmixh,7);
  real ahi = emixh * rmixh7;
- real rio = rmixo / 2. + dispoff;
- real rih = rmixh / 2. + dispoff;
+ real rio = rmixo / 2. + dspoff;
+ real rih = rmixh / 2. + dspoff;
  real si = rmin * shctd;
  real si2 = si * si;
 
@@ -71,8 +71,8 @@ if (incl) {
  real rmkxh = 2. * (REAL_POW(rminh,3)+REAL_POW(rmkn,3)) / (REAL_POW(rminh,2)+REAL_POW(rmkn,2));
  real rmkxh7 = REAL_POW(rmkxh,7);
  real ahk = emkxh * rmkxh7;
- real rko = rmkxo / 2. + dispoff;
- real rkh = rmkxh / 2. + dispoff;
+ real rko = rmkxo / 2. + dspoff;
+ real rkh = rmkxh / 2. + dspoff;
  real sk = rmkn * shctd;
  real sk2 = sk * sk;
 
@@ -147,13 +147,13 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       xi[threadIdx.x] = sorted[atomi].x;
       yi[threadIdx.x] = sorted[atomi].y;
       zi[threadIdx.x] = sorted[atomi].z;
-      epsli[threadIdx.x] = epsvdw[i];
-      rmini[threadIdx.x] = radvdw[i];
+      epsli[threadIdx.x] = epsdsp[i];
+      rmini[threadIdx.x] = raddsp[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
-      epslk = epsvdw[k];
-      rmink = radvdw[k];
+      epslk = epsdsp[k];
+      rmink = raddsp[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -179,8 +179,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real rmixh = 2. * (REAL_POW(rminh, 3) + REAL_POW(rmin, 3)) / (REAL_POW(rminh, 2) + REAL_POW(rmin, 2));
             real rmixh7 = REAL_POW(rmixh, 7);
             real ahi = emixh * rmixh7;
-            real rio = rmixo / 2. + dispoff;
-            real rih = rmixh / 2. + dispoff;
+            real rio = rmixo / 2. + dspoff;
+            real rih = rmixh / 2. + dspoff;
             real si = rmin * shctd;
             real si2 = si * si;
 
@@ -194,8 +194,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real rmkxh = 2. * (REAL_POW(rminh, 3) + REAL_POW(rmkn, 3)) / (REAL_POW(rminh, 2) + REAL_POW(rmkn, 2));
             real rmkxh7 = REAL_POW(rmkxh, 7);
             real ahk = emkxh * rmkxh7;
-            real rko = rmkxo / 2. + dispoff;
-            real rkh = rmkxh / 2. + dispoff;
+            real rko = rmkxo / 2. + dspoff;
+            real rkh = rmkxh / 2. + dspoff;
             real sk = rmkn * shctd;
             real sk2 = sk * sk;
 
@@ -270,13 +270,13 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       xi[threadIdx.x] = sorted[atomi].x;
       yi[threadIdx.x] = sorted[atomi].y;
       zi[threadIdx.x] = sorted[atomi].z;
-      epsli[threadIdx.x] = epsvdw[i];
-      rmini[threadIdx.x] = radvdw[i];
+      epsli[threadIdx.x] = epsdsp[i];
+      rmini[threadIdx.x] = raddsp[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
-      epslk = epsvdw[k];
-      rmink = radvdw[k];
+      epslk = epsdsp[k];
+      rmink = raddsp[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -302,8 +302,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real rmixh = 2. * (REAL_POW(rminh, 3) + REAL_POW(rmin, 3)) / (REAL_POW(rminh, 2) + REAL_POW(rmin, 2));
             real rmixh7 = REAL_POW(rmixh, 7);
             real ahi = emixh * rmixh7;
-            real rio = rmixo / 2. + dispoff;
-            real rih = rmixh / 2. + dispoff;
+            real rio = rmixo / 2. + dspoff;
+            real rih = rmixh / 2. + dspoff;
             real si = rmin * shctd;
             real si2 = si * si;
 
@@ -317,8 +317,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real rmkxh = 2. * (REAL_POW(rminh, 3) + REAL_POW(rmkn, 3)) / (REAL_POW(rminh, 2) + REAL_POW(rmkn, 2));
             real rmkxh7 = REAL_POW(rmkxh, 7);
             real ahk = emkxh * rmkxh7;
-            real rko = rmkxo / 2. + dispoff;
-            real rkh = rmkxh / 2. + dispoff;
+            real rko = rmkxo / 2. + dspoff;
+            real rkh = rmkxh / 2. + dspoff;
             real sk = rmkn * shctd;
             real sk2 = sk * sk;
 

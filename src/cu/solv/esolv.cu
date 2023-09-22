@@ -16,16 +16,16 @@ namespace tinker
 
 template <class Ver>
 __global__
-static void ewcaFinal_cu1(int n, const real* restrict cdisp, CountBuffer restrict nes, EnergyBuffer restrict es)
+static void ewcaFinal_cu1(int n, const real* restrict cdsp, CountBuffer restrict nes, EnergyBuffer restrict es)
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_a = Ver::a;
    for (int i = ITHREAD; i < n; i += STRIDE) {
       if CONSTEXPR (do_e) {
-         real cdispi = cdisp[i];
+         real cdspi = cdsp[i];
          using ebuf_prec = EnergyBufferTraits::type;
          ebuf_prec estl;
-         estl = floatTo<ebuf_prec>(cdispi);
+         estl = floatTo<ebuf_prec>(cdspi);
          atomic_add(estl, es, i);
       }
       if CONSTEXPR (do_a) atomic_add(2, nes, i);
@@ -41,9 +41,9 @@ static void ewca_cu2()
 
    int ngrid = gpuGridSize(BLOCK_DIM);
    ewca_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niak, st.iak, st.lst, epsvdw, radvdw, epso, epsh, rmino, rminh, shctd, dispoff, slevy, awater);
+      st.niak, st.iak, st.lst, epsdsp, raddsp, epso, epsh, rmino, rminh, shctd, dspoff, slevy, awater);
    
-   launch_k1s(g::s0, n, ewcaFinal_cu1<Ver>, n, cdisp, nes, es);
+   launch_k1s(g::s0, n, ewcaFinal_cu1<Ver>, n, cdsp, nes, es);
 }
 
 void ewca_cu(int vers)
