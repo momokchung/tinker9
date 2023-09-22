@@ -85,6 +85,7 @@ void ewca(int vers)
 void enp(int vers)
 {
    // ecav energy
+   // egaussvol(vers);
    // surface(vers);
    // // do stuff
    // if (reff < spoff) {
