@@ -92,6 +92,7 @@ add_library (tinkerObjF OBJECT
 ../source/kurybr.f
 ../source/kvdwpr.f
 ../source/kvdws.f
+../source/kxrepl.f
 ../source/light.f
 ../source/limits.f
 ../source/linmin.f
@@ -173,6 +174,7 @@ add_library (tinkerObjF OBJECT
 ../source/vibs.f
 ../source/virial.f
 ../source/warp.f
+../source/xrepel.f
 ../source/xtals.f
 ../source/zclose.f
 ../source/zcoord.f
@@ -342,6 +344,9 @@ add_library (tinkerObjF OBJECT
 ../source/eurey3.f
 ../source/evcorr.f
 ../source/exfield.f
+../source/exrepel.f
+../source/exrepel1.f
+../source/exrepel3.f
 ../source/extra.f
 ../source/extra1.f
 ../source/extra2.f
@@ -386,6 +391,7 @@ add_library (tinkerObjF OBJECT
 ../source/inertia.f
 ../source/initatom.f
 ../source/initial.f
+../source/initneck.f
 ../source/initprm.f
 ../source/initres.f
 ../source/initrot.f
@@ -425,6 +431,7 @@ add_library (tinkerObjF OBJECT
 ../source/ktortor.f
 ../source/kurey.f
 ../source/kvdw.f
+../source/kxrepel.f
 ../source/lattice.f
 ../source/lbfgs.f
 ../source/lights.f
@@ -443,6 +450,7 @@ add_library (tinkerObjF OBJECT
 ../source/moments.f
 ../source/mutate.f
 ../source/nblist.f
+../source/neck.f
 ../source/nextarg.f
 ../source/nexttext.f
 ../source/nose.f
@@ -467,14 +475,16 @@ add_library (tinkerObjF OBJECT
 ../source/prmkey.f
 ../source/promo.f
 ../source/prtarc.f
-../source/prtdcd.f
 ../source/prtdyn.f
 ../source/prterr.f
+../source/prtfrc.f
 ../source/prtint.f
 ../source/prtmol2.f
 ../source/prtpdb.f
 ../source/prtprm.f
 ../source/prtseq.f
+../source/prtuind.f
+../source/prtvel.f
 ../source/prtxyz.f
 ../source/qrsolve.f
 ../source/quatfit.f
