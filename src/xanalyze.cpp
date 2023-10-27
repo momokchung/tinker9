@@ -89,7 +89,7 @@ static void xAnalyzeE()
    if (use(Potent::VDW))
       print(out, fmt, "Van der Waals", energy_ev, countReduce(nev));
 
-   if (use(Potent::REPULS))
+   if (use(Potent::REPULS) or use(Potent::EXREP))
       print(out, fmt, "Repulsion", energy_er, countReduce(nrep));
 
    if (use(Potent::DISP))

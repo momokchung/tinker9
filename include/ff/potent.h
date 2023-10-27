@@ -22,6 +22,7 @@ enum class Potent
 
    VDW,    ///< Van der Waals potential.
    REPULS, ///< Pauli repulsion term.
+   EXREP,  ///< Exchange repulsion term.
    DISP,   ///< Dispersion potential.
    CHARGE, ///< Charge-charge potential.
    CHGDPL, ///< Charge-dipole potential.

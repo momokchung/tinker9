@@ -26,6 +26,7 @@ hippo/edisp.cu
 hippo/empole.cu
 hippo/epolar.cu
 hippo/erepel.cu
+hippo/exrepel.cu
 hippo/expol.cu
 hippo/field.cu
 hippo/pcg.cu

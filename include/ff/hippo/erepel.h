@@ -11,6 +11,10 @@ void erepelData(RcOp);
 void erepel(int vers);
 /// \ingroup repel
 void repoleInit(int vers);
+/// \ingroup xrepel
+void exrepelData(RcOp);
+/// \ingroup xrepel
+void exrepel(int vers);
 }
 
 //====================================================================//
@@ -25,6 +29,13 @@ TINKER_EXTERN real (*rrepole)[MPL_TOTAL];
 TINKER_EXTERN real* sizpr;
 TINKER_EXTERN real* dmppr;
 TINKER_EXTERN real* elepr;
+
+TINKER_EXTERN real (*xrepole)[MPL_TOTAL];
+TINKER_EXTERN real* zpxr;
+TINKER_EXTERN real* dmppxr;
+TINKER_EXTERN real* crpxr;
+TINKER_EXTERN real (*cpxr)[4];
+TINKER_EXTERN real (*rcpxr)[4];
 
 TINKER_EXTERN int nrepexclude;
 TINKER_EXTERN int (*repexclude)[2];

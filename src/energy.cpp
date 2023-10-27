@@ -36,6 +36,7 @@ const TimeScaleConfig& defaultTSConfig()
       {"echgtrn", 0},
       {"edisp", 0},
       {"erepel", 0},
+      {"exrepel", 0},
       {"ehippo", 0},
    };
    return tsconfig;
@@ -263,10 +264,14 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
    if (use(Potent::DISP))
       if (tscfg("edisp", ecore_vdw))
          edisp(vers);
-   if (use(Potent::REPULS))
+   if (use(Potent::REPULS)) {
       if (tscfg("erepel", ecore_vdw))
          erepel(vers);
-
+   }
+   else if (use(Potent::EXREP)) {
+      if (tscfg("exrepel", ecore_vdw))
+         exrepel(vers);
+   }
    pmeStreamFinishWait(use_pme_stream and not static_cast<bool>(vers & calc::analyz));
 
 #undef tscfg
@@ -462,6 +467,7 @@ void energyData(RcOp op)
    RcMan expol42{expolData, op};
    RcMan echgtrn42{echgtrnData, op};
    RcMan erepel42{erepelData, op};
+   RcMan exrepel42{exrepelData, op};
    RcMan edisp42{edispData, op};
 
    // Must call fftData() after all of the electrostatics routines.
@@ -477,7 +483,7 @@ bool useEnergyVdw()
 
    // HIPPO
    ans = ans or use(Potent::DISP);
-   ans = ans or use(Potent::REPULS);
+   ans = ans or use(Potent::REPULS) or use(Potent::EXREP);
 
    return ans;
 }

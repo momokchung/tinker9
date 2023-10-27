@@ -20,6 +20,11 @@ void chkrepole_cu()
 {
    launch_k1s(g::s0, n, chkpole_cu1, n, repole, zaxis, x, y, z);
 }
+
+void chkxrepole_cu()
+{
+   launch_k1s(g::s0, n, chkpole_cu1, n, xrepole, zaxis, x, y, z);
+}
 }
 
 namespace tinker {

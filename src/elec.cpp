@@ -47,7 +47,7 @@ TINKER_FVOID2(cpp0, cu1, mpoleDataBinding, RcOp);
 static void mpoleData(RcOp op)
 {
    if (not use(Potent::MPOLE) and not use(Potent::POLAR)
-      and not use(Potent::REPULS))
+      and not use(Potent::REPULS) and not use(Potent::EXREP))
       return;
 
    if (op & RcOp::DEALLOC) {

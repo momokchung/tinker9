@@ -205,6 +205,7 @@ const TimeScaleConfig& respaTSConfig()
       {"echgtrn", slow},
       {"edisp", slow},
       {"erepel", slow},
+      {"exrepel", slow},
       {"ehippo", slow},
    };
    return tsconfig;

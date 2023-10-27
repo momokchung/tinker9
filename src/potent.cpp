@@ -91,6 +91,9 @@ bool use(Potent term)
    case Potent::REPULS:
       val = potent::use_repel;
       break;
+   case Potent::EXREP:
+      val = potent::use_xrepel;
+      break;
 
    case Potent::CHGFLX:
       val = potent::use_chgflx;
