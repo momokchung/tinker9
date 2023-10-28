@@ -27,30 +27,19 @@ static void rotcoeff_cu1(int n, const LocalFrame* restrict zaxis,
    }
 }
 
-// __global__
-// static void print1_cu1(int n, real (*restrict cpxr)[4])
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real cpxr0 = cpxr[i][0];
-//       real cpxr1 = cpxr[i][1];
-//       real cpxr2 = cpxr[i][2];
-//       real cpxr3 = cpxr[i][3];
-//       # if __CUDA_ARCH__>=200
-//       printf("rcpxr %d %10.6f %10.6f %10.6f %10.6f \n", i, cpxr0, cpxr1, cpxr2, cpxr3);
-//       #endif  
-//    }
-// }
+#include "exrepel_cu1.cc"
+template <class Ver>
+static void exrepel_cu2()
+{
+   const auto& st = *mspatial_v2_unit;
+   real cut = switchCut(Switch::REPULS);
+   real off = switchOff(Switch::REPULS);
 
-// __global__
-// static void print2_cu1(int n, real *restrict array)
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real arrayi = array[i];
-//       # if __CUDA_ARCH__>=200
-//       printf("array %d %10.6f\n", i, arrayi);
-//       #endif  
-//    }
-// }
+   int ngrid = gpuGridSize(BLOCK_DIM);
+   exrepel_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nrep, er, vir_er, derx, dery, derz, cut,
+      off, st.si2.bit0, nrepexclude, repexclude, repexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+      st.niak, st.iak, st.lst, trqx, trqy, trqz, zpxr, dmppxr, rcpxr, mut, vlam, vcouple);
+}
 
 void solvcoeff_cu()
 {
@@ -64,18 +53,17 @@ void rotcoeff_cu()
 
 void exrepel_cu(int vers)
 {
-
-   // if (vers == calc::v0)
-   //    exrepel_cu2<calc::V0>();
-   // else if (vers == calc::v1)
-   //    exrepel_cu2<calc::V1>();
-   // else if (vers == calc::v3)
-   //    exrepel_cu2<calc::V3>();
-   // else if (vers == calc::v4)
-   //    exrepel_cu2<calc::V4>();
-   // else if (vers == calc::v5)
-   //    exrepel_cu2<calc::V5>();
-   // else if (vers == calc::v6)
-   //    exrepel_cu2<calc::V6>();
+   if (vers == calc::v0)
+      exrepel_cu2<calc::V0>();
+   else if (vers == calc::v1)
+      exrepel_cu2<calc::V1>();
+   else if (vers == calc::v3)
+      exrepel_cu2<calc::V3>();
+   else if (vers == calc::v4)
+      exrepel_cu2<calc::V4>();
+   else if (vers == calc::v5)
+      exrepel_cu2<calc::V5>();
+   else if (vers == calc::v6)
+      exrepel_cu2<calc::V6>();
 }
 }
