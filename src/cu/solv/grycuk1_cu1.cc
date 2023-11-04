@@ -4,8 +4,10 @@ __global__
 void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, VirialBuffer restrict vs, grad_prec* restrict gx, grad_prec* restrict gy,
    grad_prec* restrict gz, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct,
-   const real* restrict rborn, const real* restrict drb, const real* restrict drbp, bool use_gk)
+   const int* restrict lst, real descoff, real pi43, real factor, bool useneck, bool usetanh,
+   const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct, const real* restrict rborn,
+   const real* restrict drb, const real* restrict drbp, const real* restrict aneck, const real* restrict bneck,
+   const real* restrict rneck, const real* restrict sneck, const real* restrict bornint, bool use_gk)
 {
    constexpr bool do_v = Ver::v;
    constexpr bool do_g = Ver::g;
@@ -25,9 +27,9 @@ void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, VirialBuffer restrict vs, grad_prec
       vstlzz = 0;
    }
    __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM],
-      rbi[BLOCK_DIM], drbi[BLOCK_DIM], drbpi[BLOCK_DIM];
+      rbi[BLOCK_DIM], drbi[BLOCK_DIM], drbpi[BLOCK_DIM], snecki[BLOCK_DIM], borni[BLOCK_DIM];
    __shared__ real xk[BLOCK_DIM], yk[BLOCK_DIM], zk[BLOCK_DIM];
-   real rsk, rdk, shctk, rbk, drbk, drbpk;
+   real rsk, rdk, shctk, rbk, drbk, drbpk, sneckk, bornk;
    real gxi, gyi, gzi;
    real gxk, gyk, gzk;
 
@@ -40,8 +42,9 @@ void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, VirialBuffer restrict vs, grad_prec
 
 
        xi[klane] = x[i];yi[klane] = y[i];zi[klane] = z[i];rsi[klane] = rsolv[i];rdi[klane] = rdescr[i];shcti[klane] =
-shct[i];rbi[klane] = rborn[i];drbi[klane] = drb[i];drbpi[klane] = drbp[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] =
-y[k];zk[threadIdx.x] = z[k];rsk = rsolv[k];rdk = rdescr[k];shctk = shct[k];rbk = rborn[k];drbk = drb[k];drbpk = drbp[k];
+shct[i];rbi[klane] = rborn[i];drbi[klane] = drb[i];drbpi[klane] = drbp[i];snecki[klane] = sneck[i];borni[klane] =
+bornint[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];zk[threadIdx.x] = z[k];rsk = rsolv[k];rdk = rdescr[k];shctk =
+shct[k];rbk = rborn[k];drbk = drb[k];drbpk = drbp[k];sneckk = sneck[k];bornk = bornint[k];
 
        constexpr bool incl = true;
        real xr = xk[threadIdx.x] - xi[klane];
@@ -50,21 +53,32 @@ real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
 if (incl) {
  real r = REAL_SQRT(r2);
- real rmi = REAL_MAX(rsi[klane],rdi[klane]);
+ real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
- real termi = -REAL_POW(rbi[klane],4.) / (4. * pi);
- real rmk = REAL_MAX(rsk,rdk);
+ real termi = pi43 / REAL_POW(rbi[klane], 3.);
+ termi = factor / REAL_POW(termi, 4./3.);
+ real mixsn = 0.5 * (snecki[klane] + sneckk);
+ real rk = REAL_MAX(rsk,rdk) + descoff;
  real sk = rdk * shctk;
- real termk = -REAL_POW(rbk,4.) / (4. * pi);
- bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r+sk);
- bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r+si);
+ real termk = pi43 / REAL_POW(rbk, 3.);
+ termk = factor / REAL_POW(termk, 4./3.);
+ if (usetanh) {
+   real tcr;
+   tanhrscchr (borni[klane],rsi[klane],tcr,pi43);
+   termi = termi * tcr;
+   tanhrscchr (bornk,rsk,tcr,pi43);
+   termk = termk * tcr;
+ }
+ bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+ bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
  real dei = 0.;
  real dek = 0.;
  if (computei) {
-   pair_dgrycuk (r,r2,rmi,sk,drbi[klane],drbpi[klane],termi,use_gk,dei);
+   pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi[klane], drbpi[klane], termi, use_gk, useneck, aneck, bneck, rneck,
+dei);
  }
  if (computek) {
-   pair_dgrycuk (r,r2,rmk,si,drbk,drbpk,termk,use_gk,dek);
+   pair_dgrycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck, rneck, dek);
  }
  real de = dei + dek;
  real dedx = de * xr;
@@ -123,6 +137,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       rbi[threadIdx.x] = rborn[i];
       drbi[threadIdx.x] = drb[i];
       drbpi[threadIdx.x] = drbp[i];
+      snecki[threadIdx.x] = sneck[i];
+      borni[threadIdx.x] = bornint[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
@@ -132,6 +148,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       rbk = rborn[k];
       drbk = drb[k];
       drbpk = drbp[k];
+      sneckk = sneck[k];
+      bornk = bornint[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -144,21 +162,33 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real termi = -REAL_POW(rbi[klane], 4.) / (4. * pi);
-            real rmk = REAL_MAX(rsk, rdk);
+            real termi = pi43 / REAL_POW(rbi[klane], 3.);
+            termi = factor / REAL_POW(termi, 4. / 3.);
+            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            real termk = -REAL_POW(rbk, 4.) / (4. * pi);
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
+            real termk = pi43 / REAL_POW(rbk, 3.);
+            termk = factor / REAL_POW(termk, 4. / 3.);
+            if (usetanh) {
+               real tcr;
+               tanhrscchr(borni[klane], rsi[klane], tcr, pi43);
+               termi = termi * tcr;
+               tanhrscchr(bornk, rsk, tcr, pi43);
+               termk = termk * tcr;
+            }
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
             real dei = 0.;
             real dek = 0.;
             if (computei) {
-               pair_dgrycuk(r, r2, rmi, sk, drbi[klane], drbpi[klane], termi, use_gk, dei);
+               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi[klane], drbpi[klane], termi, use_gk, useneck, aneck,
+                  bneck, rneck, dei);
             }
             if (computek) {
-               pair_dgrycuk(r, r2, rmk, si, drbk, drbpk, termk, use_gk, dek);
+               pair_dgrycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck,
+                  rneck, dek);
             }
             real de = dei + dek;
             real dedx = de * xr;
@@ -225,6 +255,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       rbi[threadIdx.x] = rborn[i];
       drbi[threadIdx.x] = drb[i];
       drbpi[threadIdx.x] = drbp[i];
+      snecki[threadIdx.x] = sneck[i];
+      borni[threadIdx.x] = bornint[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
@@ -234,6 +266,8 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       rbk = rborn[k];
       drbk = drb[k];
       drbpk = drbp[k];
+      sneckk = sneck[k];
+      bornk = bornint[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -246,21 +280,33 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real termi = -REAL_POW(rbi[klane], 4.) / (4. * pi);
-            real rmk = REAL_MAX(rsk, rdk);
+            real termi = pi43 / REAL_POW(rbi[klane], 3.);
+            termi = factor / REAL_POW(termi, 4. / 3.);
+            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            real termk = -REAL_POW(rbk, 4.) / (4. * pi);
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
+            real termk = pi43 / REAL_POW(rbk, 3.);
+            termk = factor / REAL_POW(termk, 4. / 3.);
+            if (usetanh) {
+               real tcr;
+               tanhrscchr(borni[klane], rsi[klane], tcr, pi43);
+               termi = termi * tcr;
+               tanhrscchr(bornk, rsk, tcr, pi43);
+               termk = termk * tcr;
+            }
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
             real dei = 0.;
             real dek = 0.;
             if (computei) {
-               pair_dgrycuk(r, r2, rmi, sk, drbi[klane], drbpi[klane], termi, use_gk, dei);
+               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi[klane], drbpi[klane], termi, use_gk, useneck, aneck,
+                  bneck, rneck, dei);
             }
             if (computek) {
-               pair_dgrycuk(r, r2, rmk, si, drbk, drbpk, termk, use_gk, dek);
+               pair_dgrycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck,
+                  rneck, dek);
             }
             real de = dei + dek;
             real dedx = de * xr;

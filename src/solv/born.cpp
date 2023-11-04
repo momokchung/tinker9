@@ -11,7 +11,6 @@
 #include <tinker/detail/solute.hh>
 #include <tinker/routines.h>
 
-
 namespace tinker {
 void bornData(RcOp op)
 {
@@ -21,8 +20,9 @@ void bornData(RcOp op)
    auto rc_a = rc_flag & calc::analyz;
 
    if (op & RcOp::DEALLOC) {
-      darray::deallocate(rsolv, rdescr, shct, drobc, rborn);
-      darray::deallocate(aobc, bobc, gobc);
+      darray::deallocate(rsolv, rdescr, shct, rborn);
+      darray::deallocate(rneck, aneck, bneck, sneck, bornint);
+      darray::deallocate(aobc, bobc, drobc, gobc);
       darray::deallocate(roff);
       
       borntyp = Born::NONE;
@@ -30,9 +30,13 @@ void bornData(RcOp op)
    }
 
    if (op & RcOp::ALLOC) {
-      darray::allocate(n, &rsolv, &rdescr, &shct, &drobc, &rborn);
-      darray::allocate(n, &aobc, &bobc, &gobc);
+      darray::allocate(n, &rsolv, &rdescr, &shct, &rborn);
+      darray::allocate(n, &sneck, &bornint);
+      darray::allocate(n, &aobc, &bobc, &drobc, &gobc);
       darray::allocate(n, &roff);
+      maxneck = solute::maxneck;
+      darray::allocate(maxneck, &rneck);
+      darray::allocate(maxneck*maxneck, &aneck, &bneck);
    }
 
    if (op & RcOp::INIT) {
@@ -58,6 +62,10 @@ void bornData(RcOp op)
       darray::copyin(g::q0, n, shct, solute::shct);
       if (solvtyp == Solv::GK or solvtyp == Solv::GKHPMF) {
          darray::copyin(g::q0, n, rdescr, solute::rdescr);
+         darray::copyin(g::q0, n, sneck, solute::sneck);
+         darray::copyin(g::q0, maxneck, rneck, solute::rneck);
+         darray::copyin(g::q0, maxneck*maxneck, aneck, solute::aneck);
+         darray::copyin(g::q0, maxneck*maxneck, bneck, solute::bneck);
       }
       if (borntyp == Born::OBC) {
          darray::copyin(g::q0, n, aobc, solute::aobc);
@@ -68,6 +76,9 @@ void bornData(RcOp op)
 
       doffset = solute::doffset;
       gkc = gkstuf::gkc;
+      descoff = solute::descoff;
+      useneck = solute::useneck;
+      usetanh = solute::usetanh;
    }
 }
 

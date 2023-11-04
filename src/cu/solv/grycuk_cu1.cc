@@ -2,17 +2,19 @@
 __global__
 void grycuk_cu1(int n, TINKER_IMAGE_PARAMS, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, real* restrict rborn, const real* restrict rsolv, const real* restrict rdescr,
-   const real* restrict shct)
+   const int* restrict lst, real descoff, real pi43, bool useneck, real* restrict rborn, const real* restrict rsolv,
+   const real* restrict rdescr, const real* restrict shct, const real* restrict sneck, const real* restrict aneck,
+   const real* restrict bneck, const real* restrict rneck)
 {
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
    const int nwarp = blockDim.x * gridDim.x / WARP_SIZE;
    const int ilane = threadIdx.x & (WARP_SIZE - 1);
 
-   __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM];
+   __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM],
+      snecki[BLOCK_DIM];
    __shared__ real xk[BLOCK_DIM], yk[BLOCK_DIM], zk[BLOCK_DIM];
-   real rsk, rdk, shctk;
+   real rsk, rdk, shctk, sneckk;
    real rborni;
    real rbornk;
 
@@ -25,8 +27,8 @@ void grycuk_cu1(int n, TINKER_IMAGE_PARAMS, const real* restrict x, const real* 
 
 
        xi[klane] = x[i];yi[klane] = y[i];zi[klane] = z[i];rsi[klane] = rsolv[i];rdi[klane] = rdescr[i];shcti[klane] =
-shct[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];zk[threadIdx.x] = z[k];rsk = rsolv[k];rdk = rdescr[k];shctk =
-shct[k];
+shct[i];snecki[klane] = sneck[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];zk[threadIdx.x] = z[k];rsk = rsolv[k];rdk
+= rdescr[k];shctk = shct[k];sneckk = sneck[k];
 
        constexpr bool incl = true;
        real xr = xk[threadIdx.x] - xi[klane];
@@ -35,19 +37,20 @@ real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
 if (incl) {
  real r = REAL_SQRT(r2);
- real rmi = REAL_MAX(rsi[klane],rdi[klane]);
+ real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
- real rmk = REAL_MAX(rsk,rdk);
+ real mixsn = 0.5 * (snecki[klane] + sneckk);
+ real rk = REAL_MAX(rsk,rdk) + descoff;
  real sk = rdk * shctk;
- bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r+sk);
- bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r+si);
+ bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+ bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
  real pairrborni = 0.;
  real pairrbornk = 0.;
  if (computei) {
-   pair_grycuk(r, r2, rmi, sk, pairrborni);
+   pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
  }
  if (computek) {
-   pair_grycuk(r, r2, rmk, si, pairrbornk);
+   pair_grycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, useneck, aneck, bneck, rneck, pairrbornk);
  }
 
  rborni += pairrborni;
@@ -79,12 +82,14 @@ if (incl) {
       rsi[threadIdx.x] = rsolv[i];
       rdi[threadIdx.x] = rdescr[i];
       shcti[threadIdx.x] = shct[i];
+      snecki[threadIdx.x] = sneck[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
       rsk = rsolv[k];
       rdk = rdescr[k];
       shctk = shct[k];
+      sneckk = sneck[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -97,19 +102,20 @@ if (incl) {
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real rmk = REAL_MAX(rsk, rdk);
+            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_grycuk(r, r2, rmi, sk, pairrborni);
+               pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
             }
             if (computek) {
-               pair_grycuk(r, r2, rmk, si, pairrbornk);
+               pair_grycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, useneck, aneck, bneck, rneck, pairrbornk);
             }
 
             rborni += pairrborni;
@@ -140,12 +146,14 @@ if (incl) {
       rsi[threadIdx.x] = rsolv[i];
       rdi[threadIdx.x] = rdescr[i];
       shcti[threadIdx.x] = shct[i];
+      snecki[threadIdx.x] = sneck[i];
       xk[threadIdx.x] = sorted[atomk].x;
       yk[threadIdx.x] = sorted[atomk].y;
       zk[threadIdx.x] = sorted[atomk].z;
       rsk = rsolv[k];
       rdk = rdescr[k];
       shctk = shct[k];
+      sneckk = sneck[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -158,19 +166,20 @@ if (incl) {
          real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real r = REAL_SQRT(r2);
-            real rmi = REAL_MAX(rsi[klane], rdi[klane]);
+            real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real rmk = REAL_MAX(rsk, rdk);
+            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (rmi < r + sk);
-            bool computek = (rdi[klane] > 0.) and (rsk > 0.) and (rmk < r + si);
+            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
+            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
             real pairrborni = 0.;
             real pairrbornk = 0.;
             if (computei) {
-               pair_grycuk(r, r2, rmi, sk, pairrborni);
+               pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
             }
             if (computek) {
-               pair_grycuk(r, r2, rmk, si, pairrbornk);
+               pair_grycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, useneck, aneck, bneck, rneck, pairrbornk);
             }
 
             rborni += pairrborni;

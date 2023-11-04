@@ -22,14 +22,19 @@ static void bornInit_cu1(int n, real doffset, const real* restrict rsolv, real* 
 }
 
 __global__
-static void grycukFinal_cu1(int n, const real* restrict rsolv, real* restrict rborn)
+static void grycukFinal_cu1(int n, real pi43, bool usetanh, const real* restrict rsolv, real* restrict rborn, real* restrict bornint)
 {
    real third = 0.333333333333333333;
    for (int i = ITHREAD; i < n; i += STRIDE) {
       real ri = rsolv[i];
       if (ri > 0.f) {
          real rborni = rborn[i];
-         rborni = REAL_POW((rborni + 1.f/REAL_POW(ri,3)),third);
+         if (usetanh) {
+            bornint[i] = rborni;
+            tanhrsc(rborni,ri,pi43);
+         }
+         rborni = pi43 / REAL_POW(ri,3) + rborni;
+         rborni = REAL_POW((rborni/pi43),third);
          if (rborni < 0.) rborni = 0.0001;
          rborn[i] = 1.f / rborni;
       }
@@ -72,14 +77,16 @@ static void obcFinal_cu1(int n, const real* restrict roff, const real* restrict 
 //    for (int i = ITHREAD; i < n; i += STRIDE) {
 //       real rborni = rborn[i];
 //       # if __CUDA_ARCH__>=200
-//       printf("implicitsolvent %d %f \n", i, rborni);
+//       printf("implicitsolvent %d %10.6e \n", i, rborni);
 //       #endif  
 //    }
 // }
 
 void bornInit_cu(int vers)
 {
-   launch_k1s(g::s0, n, bornInit_cu1, n, doffset, rsolv, roff, drobc);
+   if (borntyp == Born::HCT or borntyp == Born::OBC) {
+      launch_k1s(g::s0, n, bornInit_cu1, n, doffset, rsolv, roff, drobc);
+   }
 }
 
 void born_cu(int vers)
@@ -89,8 +96,9 @@ void born_cu(int vers)
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (borntyp == Born::GRYCUK) {
+      real pi43 = 4./3. * pi;
       grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-                  rborn, rsolv, rdescr, shct);
+                  descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
    }
    else if (borntyp == Born::HCT) {
       hctobc_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
@@ -105,7 +113,8 @@ void born_cu(int vers)
 void bornFinal_cu(int vers)
 {
    if (borntyp == Born::GRYCUK) {
-      launch_k1s(g::s0, n, grycukFinal_cu1, n, rsolv, rborn);
+      real pi43 = 4./3. * pi;
+      launch_k1s(g::s0, n, grycukFinal_cu1, n, pi43, usetanh, rsolv, rborn, bornint);
    }
    else if (borntyp == Born::HCT) {
       launch_k1s(g::s0, n, hctFinal_cu1, n, roff, rborn);
@@ -127,8 +136,12 @@ static void born1_cu2(bool use_gk)
 
    int ngrid = gpuGridSize(BLOCK_DIM);
 
+   real third = 0.333333333333333333;
+   real pi43 = 4. * third * pi;
+   real factor = -REAL_POW(pi,third) * REAL_POW(6.,2.*third) / 9.;
+
    grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, vir_es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niak, st.iak, st.lst, rsolv, rdescr, shct, rborn, drb, drbp, use_gk);
+      st.niak, st.iak, st.lst, descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
 }
 
 void born1_cu(int vers)

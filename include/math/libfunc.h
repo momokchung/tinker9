@@ -70,6 +70,7 @@ extern "C"
 #   define REAL_ASIN     asin
 #   define REAL_SINH     sinh
 #   define REAL_COSH     cosh
+#   define REAL_TANH     tanh
 #   define REAL_ERF      erf
 #   define REAL_ERFC(x)  (1 - erf(x))
 #   define REAL_MIN      fmin
@@ -93,6 +94,7 @@ extern "C"
 #   define REAL_ASIN     asinf
 #   define REAL_SINH     sinhf
 #   define REAL_COSH     coshf
+#   define REAL_TANH     tanhf
 #   define REAL_ERF      erff
 #   define REAL_ERFC     tinkerErfcfHastings
 #   define REAL_MIN      fminf

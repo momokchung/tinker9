@@ -48,6 +48,7 @@ void esolv(int vers);
 
 namespace tinker {
 /// \ingroup solv
+TINKER_EXTERN int maxneck;
 TINKER_EXTERN real doffset;
 TINKER_EXTERN real onipr;
 TINKER_EXTERN real stillp1;
@@ -55,6 +56,11 @@ TINKER_EXTERN real stillp2;
 TINKER_EXTERN real stillp3;
 TINKER_EXTERN real stillp4;
 TINKER_EXTERN real stillp5;
+TINKER_EXTERN real descoff;
+TINKER_EXTERN real* rneck;
+/// for aneck and bneck pair. Element `[j1][j2]` is accessed by `[maxneck*j1 + j2]`.
+TINKER_EXTERN real* aneck;
+TINKER_EXTERN real* bneck;
 TINKER_EXTERN real* rsolv;
 TINKER_EXTERN real* rdescr;
 TINKER_EXTERN real* asolv;
@@ -68,6 +74,10 @@ TINKER_EXTERN real* aobc;
 TINKER_EXTERN real* bobc;
 TINKER_EXTERN real* gobc;
 TINKER_EXTERN real* vsolv;
+TINKER_EXTERN real* sneck;
+TINKER_EXTERN real* bornint;
+TINKER_EXTERN bool useneck;
+TINKER_EXTERN bool usetanh;
 
 TINKER_EXTERN Born borntyp;
 TINKER_EXTERN Solv solvtyp;
