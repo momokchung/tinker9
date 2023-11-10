@@ -39,7 +39,7 @@ const TimeScaleConfig& defaultTSConfig()
       {"ehippo", 0},
 
       {"esolv", 0},
-      {"born", 0}
+      {"born", 0},
    };
    return tsconfig;
 }
