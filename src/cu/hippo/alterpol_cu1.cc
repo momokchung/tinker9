@@ -1,4 +1,4 @@
-// ck.py Version 3.0.2
+// ck.py Version 3.1.0
 __global__
 void alterpol_cu1(int n, TINKER_IMAGE_PARAMS, real cut, real off, const unsigned* restrict dinfo, int nexclude,
    const int (*restrict exclude)[2], const real (*restrict exclude_scale)[3], const real* restrict x,
