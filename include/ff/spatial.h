@@ -87,9 +87,9 @@ public:
    int niak;  ///< Length of iak, not greater than #LSTCAP*#nak.
    int n;     ///< Number of atoms.
 
-   int* dopair; ///< List of block pairs not subject to exclusion rules. Length #ndopair.
+   int* iakp; ///< List of block pairs not subject to exclusion rules. Length #niakp.
                 ///< The pair `(x,y)` was encoded via triangular number and stored as `tri(x)+y`.
-   int ndopair; ///< Length of #dopair.
+   int niakp; ///< Length of #iakp.
 
    ~Spatial();
 

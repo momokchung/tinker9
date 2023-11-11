@@ -20,7 +20,7 @@ void Spatial::ScaleInfo::set(int nns, int (*jjs)[2])
 
 Spatial::~Spatial()
 {
-   darray::deallocate(iakpl, iak, lst, dopair);
+   darray::deallocate(iakpl, iak, lst, iakp);
 
    darray::deallocate(iakpl_rev, akpf, sorted, bnum);
    darray::deallocate(akc, half);
@@ -129,11 +129,11 @@ void Spatial::dataAlloc(SpatialUnit& u, int n, double cutoff, double buffer, con
    // output
    st.nakpl = 0;
    st.niak = 0;
-   st.ndopair = 0;
+   st.niakp = 0;
    st.iakpl = nullptr;
    st.iak = nullptr;
    st.lst = nullptr;
-   st.dopair = nullptr;
+   st.iakp = nullptr;
 
    // internal
    st.n = n;
@@ -147,7 +147,7 @@ void Spatial::dataAlloc(SpatialUnit& u, int n, double cutoff, double buffer, con
    darray::allocate(st.cap_nakpl, &st.iakpl);
    darray::allocate(st.nak * Spatial::LSTCAP, &st.iak);
    darray::allocate(st.nak * Spatial::LSTCAP * 32, &st.lst);
-   darray::allocate(st.nakp, &st.dopair);
+   darray::allocate(st.nakp, &st.iakp);
 
    darray::allocate(st.nakp, &st.iakpl_rev);
    darray::allocate(st.nakpk, &st.akpf);

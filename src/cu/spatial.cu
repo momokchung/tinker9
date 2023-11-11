@@ -786,10 +786,10 @@ void spatialDataInit_cu(SpatialUnit u)
       for (int i = 0; i < u->nakp; i++) {
          all_pair.push_back(i);
       }
-      std::vector<int> dopair;
-      std::set_difference(all_pair.begin(), all_pair.end(), skip_pair.begin(), skip_pair.end(), std::back_inserter(dopair));
-      u->ndopair = dopair.size();
-      cudaMemcpy(u->dopair, dopair.data(), u->ndopair*sizeof(int), cudaMemcpyHostToDevice);
+      std::vector<int> iakp;
+      std::set_difference(all_pair.begin(), all_pair.end(), skip_pair.begin(), skip_pair.end(), std::back_inserter(iakp));
+      u->niakp = iakp.size();
+      cudaMemcpy(u->iakp, iakp.data(), u->niakp*sizeof(int), cudaMemcpyHostToDevice);
    }
 
    if (box_shape == BoxShape::ORTHO) {

@@ -4,7 +4,7 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
    grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const unsigned* restrict mdpuinfo,
    int nexclude, const int (*restrict exclude)[2],
    const real (*restrict exclude_scale)[4], const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int n_do_pair, const int* restrict st_do_pair,
+   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp, const int* restrict iakp,
    real* restrict trqx, real* restrict trqy, real* restrict trqz,
    const real (*restrict rpole)[10], real f)
 {
@@ -257,7 +257,7 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < n_do_pair; iw += nwarp) {
+   for (int iw = iwarp; iw < niakp; iw += nwarp) {
       if CONSTEXPR (do_g) {
          frcxi = 0;
          frcyi = 0;
@@ -274,7 +274,7 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
       }
 
       int tri, tx, ty;
-      tri = st_do_pair[iw];
+      tri = iakp[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;

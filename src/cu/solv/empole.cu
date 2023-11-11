@@ -17,7 +17,7 @@ static void empole_cu()
    int ngrid = gpuGridSize(BLOCK_DIM);
    empole_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nem, em, vir_em,
       demx, demy, demz, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale,
-      st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.ndopair, st.dopair, trqx, trqy, trqz, rpole, f);
+      st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niakp, st.iakp, trqx, trqy, trqz, rpole, f);
 }
 
 void empoleN2_cu(int vers)
