@@ -16,7 +16,9 @@ inline void pair_grycuk(real r, real r2, real ri, real rdk, real sk, real mixsn,
       if (ri+r < sk) {
          lik = ri;
          uik = sk - r;
-         pairrborni = pi43*(1.f/REAL_POW(uik,3)-1.f/REAL_POW(lik,3));
+         real uik3 = uik*uik*uik;
+         real lik3 = lik*lik*lik;
+         pairrborni = pi43*(1./uik3-1./lik3);
       }
       uik = r + sk;
       if (ri+r < sk) {
@@ -36,11 +38,11 @@ inline void pair_grycuk(real r, real r2, real ri, real rdk, real sk, real mixsn,
       real u4 = u2 * u2;
       real ur = uik * r;
       real u4r = u4 * r;
-      real term = (3.f*(r2-sk2)+6.f*u2-8.f*ur)/u4r - (3.f*(r2-sk2)+6.f*l2-8.f*lr)/l4r;
-      pairrborni -= pi*term/12.f;
+      real term = (3.*(r2-sk2)+6.*u2-8.*ur)/u4r - (3.*(r2-sk2)+6.*l2-8.*lr)/l4r;
+      pairrborni -= pi*term/12.;
    }
    if (useneck) {
-      real neckval;
+      real neckval = 0.;
       neck(r,ri,rdk,mixsn,pi43,neckval,aneck,bneck,rneck);
       pairrborni -= neckval;
    }
@@ -132,15 +134,15 @@ inline void pair_hctobc(real r, real ri, real rk, real sk, real& pairrborni)
    real uik2lik2;
    real rpsk = r + sk;
    real rmsk = REAL_ABS(r - sk);
-   lik = 1.f / REAL_MAX(ri,rmsk);
-   uik = 1.f / (rpsk);
+   lik = 1. / REAL_MAX(ri,rmsk);
+   uik = 1. / (rpsk);
    lik2 = lik * lik;
    uik2 = uik * uik;
-   if (rmsk > ri) uik2lik2 = -4.f * r * sk / (REAL_POW(rmsk*rpsk,2));
+   if (rmsk > ri) uik2lik2 = -4. * r * sk / (REAL_POW(rmsk*rpsk,2));
    else uik2lik2 = uik2-lik2;
    pairrborni = lik - uik + 0.25f*r*(uik2lik2) + (0.5f/r)*std::log(uik/lik) + (0.25f*sk2/r)*(-uik2lik2);
    if (ri < sk-r) {
-      pairrborni = pairrborni + 2.f*(1.f/ri-lik);
+      pairrborni = pairrborni + 2.*(1./ri-lik);
    }
    pairrborni = -0.5f * pairrborni;
 }

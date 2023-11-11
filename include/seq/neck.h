@@ -82,9 +82,9 @@ inline void neck(real r, real intstarti, real desck, real mixsn, real pi43, real
    else {
       neckcon(intstarti,desck,usea,useb,aneck,bneck,rneck);
       real rminb = r - useb;
-      real rminb4 = REAL_POW(rminb,4);
+      real rminb4 = rminb*rminb*rminb*rminb;
       real radminr = intstarti + desck + 2.*rhow - r;
-      real radminr4 = REAL_POW(radminr,4);
+      real radminr4 = radminr*radminr*radminr*radminr;
       neckval = pi43 * mixsn * usea * rminb4 * radminr4;
    }
 }
@@ -102,10 +102,10 @@ inline void neckder(real r, real intstarti, real desck, real mixsn, real pi43, r
    else {
       neckcon(intstarti,desck,usea,useb,aneck,bneck,rneck);
       real rminb = r - useb;
-      real rminb3 = REAL_POW(rminb,3);
+      real rminb3 = rminb*rminb*rminb;
       real rminb4 = rminb3 * rminb;
       real radminr = intstarti + desck + 2.*rhow - r;
-      real radminr3 = REAL_POW(radminr,3);
+      real radminr3 = radminr*radminr*radminr;
       real radminr4 = radminr3 * radminr;
       neckderi = 4. * pi43 * (mixsn*usea*rminb3*radminr4
                             - mixsn*usea*rminb4*radminr3);

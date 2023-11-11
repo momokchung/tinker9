@@ -77,7 +77,7 @@ static void obcFinal_cu1(int n, const real* restrict roff, const real* restrict 
 //    for (int i = ITHREAD; i < n; i += STRIDE) {
 //       real rborni = rborn[i];
 //       # if __CUDA_ARCH__>=200
-//       printf("implicitsolvent %d %10.6e \n", i, rborni);
+//       printf("implicitsolvent %5d %10.6e \n", i, rborni);
 //       #endif  
 //    }
 // }

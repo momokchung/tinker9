@@ -55,12 +55,16 @@ if (incl) {
  real r = REAL_SQRT(r2);
  real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
- real termi = pi43 / REAL_POW(rbi[klane], 3.);
+ real rbir = rbi[klane];
+ real rbi3 = rbir*rbir*rbir;
+ real termi = pi43 / rbi3;
  termi = factor / REAL_POW(termi, 4./3.);
  real mixsn = 0.5 * (snecki[klane] + sneckk);
  real rk = REAL_MAX(rsk,rdk) + descoff;
  real sk = rdk * shctk;
- real termk = pi43 / REAL_POW(rbk, 3.);
+ real rbkr = rbk;
+ real rbk3 = rbkr*rbkr*rbkr;
+ real termk = pi43 / rbk3;
  termk = factor / REAL_POW(termk, 4./3.);
  if (usetanh) {
    real tcr;
@@ -164,12 +168,16 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real termi = pi43 / REAL_POW(rbi[klane], 3.);
+            real rbir = rbi[klane];
+            real rbi3 = rbir * rbir * rbir;
+            real termi = pi43 / rbi3;
             termi = factor / REAL_POW(termi, 4. / 3.);
             real mixsn = 0.5 * (snecki[klane] + sneckk);
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            real termk = pi43 / REAL_POW(rbk, 3.);
+            real rbkr = rbk;
+            real rbk3 = rbkr * rbkr * rbkr;
+            real termk = pi43 / rbk3;
             termk = factor / REAL_POW(termk, 4. / 3.);
             if (usetanh) {
                real tcr;
@@ -282,12 +290,16 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real termi = pi43 / REAL_POW(rbi[klane], 3.);
+            real rbir = rbi[klane];
+            real rbi3 = rbir * rbir * rbir;
+            real termi = pi43 / rbi3;
             termi = factor / REAL_POW(termi, 4. / 3.);
             real mixsn = 0.5 * (snecki[klane] + sneckk);
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            real termk = pi43 / REAL_POW(rbk, 3.);
+            real rbkr = rbk;
+            real rbk3 = rbkr * rbkr * rbkr;
+            real termk = pi43 / rbk3;
             termk = factor / REAL_POW(termk, 4. / 3.);
             if (usetanh) {
                real tcr;

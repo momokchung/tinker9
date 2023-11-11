@@ -75,12 +75,16 @@ FULL_PAIRWISE_INTERACTION: |
     real r = REAL_SQRT(r2);
     real ri = REAL_MAX(@rsi@,@rdi@) + descoff;
     real si = @rdi@ * @shcti@;
-    real termi = pi43 / REAL_POW(@rbi@, 3.);
+    real rbir = @rbi@;
+    real rbi3 = rbir*rbir*rbir;
+    real termi = pi43 / rbi3;
     termi = factor / REAL_POW(termi, 4./3.);
     real mixsn = 0.5 * (@snecki@ + @sneckk@);
     real rk = REAL_MAX(@rsk@,@rdk@) + descoff;
     real sk = @rdk@ * @shctk@;
-    real termk = pi43 / REAL_POW(@rbk@, 3.);
+    real rbkr = @rbk@;
+    real rbk3 = rbkr*rbkr*rbkr;
+    real termk = pi43 / rbk3;
     termk = factor / REAL_POW(termk, 4./3.);
     if (usetanh) {
       real tcr;

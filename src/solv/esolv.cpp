@@ -158,8 +158,9 @@ void esolv(int vers)
          darray::zero(g::q0, bsize, vir_es);
       if (do_g)
          darray::zero(g::q0, n, desx, desy, desz);
-         darray::zero(g::q0, n, drb, drbp);
    }
+
+   darray::zero(g::q0, n, drb, drbp);
 
    esolvInit(vers);
 

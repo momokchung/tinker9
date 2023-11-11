@@ -91,7 +91,7 @@ void born(int vers)
    auto rc_a = rc_flag & calc::analyz;
    auto do_a = vers & calc::analyz;
 
-   darray::zero(g::q0, n, rborn);
+   darray::zero(g::q0, n, rborn, bornint);
 
    TINKER_FCALL2(acc0, cu1, bornInit, vers);
 
