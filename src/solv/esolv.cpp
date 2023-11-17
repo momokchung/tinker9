@@ -176,15 +176,15 @@ void esolv(int vers)
    }
 
    torque(vers, desx, desy, desz);
-   if (do_v) {
-      VirialBuffer u2 = vir_trq;
-      virial_prec v2[9];
-      virialReduce(v2, u2);
-      for (int iv = 0; iv < 9; ++iv) {
-         virial_es[iv] += v2[iv];
-         virial_elec[iv] += v2[iv];
-      }
-   }
+   // if (do_v) {
+   //    VirialBuffer u2 = vir_trq;
+   //    virial_prec v2[9];
+   //    virialReduce(v2, u2);
+   //    for (int iv = 0; iv < 9; ++iv) {
+   //       virial_es[iv] += v2[iv];
+   //       virial_elec[iv] += v2[iv];
+   //    }
+   // }
 
    if (rc_a) {
       if (do_e) {
@@ -193,15 +193,15 @@ void esolv(int vers)
          energy_es += e;
          energy_elec += e;
       }
-      if (do_v) {
-         VirialBuffer u = vir_es;
-         virial_prec v[9];
-         virialReduce(v, u);
-         for (int iv = 0; iv < 9; ++iv) {
-            virial_es[iv] += v[iv];
-            virial_elec[iv] += v[iv];
-         }
-      }
+      // if (do_v) {
+      //    VirialBuffer u = vir_es;
+      //    virial_prec v[9];
+      //    virialReduce(v, u);
+      //    for (int iv = 0; iv < 9; ++iv) {
+      //       virial_es[iv] += v[iv];
+      //       virial_elec[iv] += v[iv];
+      //    }
+      // }
       if (do_g)
          sumGradient(gx_elec, gy_elec, gz_elec, desx, desy, desz);
    }

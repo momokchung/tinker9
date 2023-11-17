@@ -222,16 +222,12 @@ void egka_cu(int vers)
 
    if (vers == calc::v0)
       egka_cu2<calc::V0>(fc, fd, fq);
-   else if (vers == calc::v1)
-      egka_cu2<calc::V1>(fc, fd, fq);
    else if (vers == calc::v3)
       egka_cu2<calc::V3>(fc, fd, fq);
    else if (vers == calc::v4)
       egka_cu2<calc::V4>(fc, fd, fq);
    else if (vers == calc::v5)
       egka_cu2<calc::V5>(fc, fd, fq);
-   else if (vers == calc::v6)
-      egka_cu2<calc::V6>(fc, fd, fq);
 }
 }
 
