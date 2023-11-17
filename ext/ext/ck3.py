@@ -296,6 +296,116 @@ void KERNEL_NAME(int n,         \
 '''
 
 
+rc_kernel22 = '''
+TEMPLATE_PARAMS                 \
+__global__                      \
+void KERNEL_NAME(int n          \
+    COUNT_KERNEL_PARAMS         \
+    ENERGY_KERNEL_PARAMS        \
+    VIRIAL_KERNEL_PARAMS        \
+    GRADIENT_KERNEL_PARAMS      \
+    CUT_KERNEL_PARAMS           \
+    OFF_KERNEL_PARAMS           \
+    EXCLUDE_INFO_KERNEL_PARAMS  \
+    EXCLUDE_SCALE_KERNEL_PARAMS \
+    , const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl
+    , int niakp, const int* restrict iakp
+    EXTRA_KERNEL_PARAMS)
+{
+    USING_DEVICE_VARIABLES    KERNEL_CONSTEXPR_FLAGS \
+    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
+    const int iwarp = ithread / WARP_SIZE;
+    const int nwarp = blockDim.x * gridDim.x / WARP_SIZE;
+    const int ilane = threadIdx.x & (WARP_SIZE - 1);
+
+    DECLARE_ZERO_LOCAL_COUNT    DECLARE_ZERO_LOCAL_ENERGY   DECLARE_ZERO_LOCAL_VIRIAL
+    DECLARE_PARAMS_I_AND_K      DECLARE_FORCE_I_AND_K
+
+    KERNEL_HAS_1X_SCALE
+    for (int ii = ithread; ii < nexclude; ii += blockDim.x * gridDim.x) {
+        KERNEL_SCALED_KLANE    KERNEL_ZERO_LOCAL_FORCE
+
+        int i = exclude[ii][0];
+        int k = exclude[ii][1];
+        KERNEL_LOAD_1X_SCALES
+
+        KERNEL_INIT_EXCLUDE_PARAMS_I_AND_K
+
+        constexpr bool incl = true;
+        KERNEL_SCALED_PAIRWISE_INTERACTION
+
+        KERNEL_SAVE_LOCAL_FORCE
+    }
+    // */
+
+    for (int iw = iwarp; iw < nakpl; iw += nwarp) {
+        KERNEL_ZERO_LOCAL_FORCE
+
+        int tri, tx, ty;
+        tri = iakpl[iw];
+        tri_to_xy(tri, tx, ty);
+
+        int iid = ty * WARP_SIZE + ilane;
+        int atomi = min(iid, n - 1);
+        int i = sorted[atomi].unsorted;
+        int kid = tx * WARP_SIZE + ilane;
+        int atomk = min(kid, n - 1);
+        int k = sorted[atomk].unsorted;
+        KERNEL_INIT_PARAMS_I_AND_K
+        KERNEL_SYNCWARP
+
+        KERNEL_LOAD_INFO_VARIABLES
+        for (int j = 0; j < WARP_SIZE; ++j) {
+            int srclane = (ilane + j) & (WARP_SIZE - 1); \
+            KERNEL_KLANE1                                \
+            bool incl = iid < kid and kid < n;           \
+            KERNEL_EXCLUDE_BIT                           \
+            KERNEL_SCALE_1                               \
+            KERNEL_FULL_PAIRWISE_INTERACTION
+
+            iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
+            KERNEL_SHUFFLE_PARAMS_I    KERNEL_SHUFFLE_LOCAL_FORCE_I
+        }
+
+        KERNEL_SAVE_LOCAL_FORCE   KERNEL_SYNCWARP
+    }
+
+    for (int iw = iwarp; iw < niakp; iw += nwarp) {
+        KERNEL_ZERO_LOCAL_FORCE
+
+        int tri, tx, ty;
+        tri = iakp[iw];
+        tri_to_xy(tri, tx, ty);
+
+        int iid = ty * WARP_SIZE + ilane;
+        int atomi = min(iid, n - 1);
+        int i = sorted[atomi].unsorted;
+        int kid = tx * WARP_SIZE + ilane;
+        int atomk = min(kid, n - 1);
+        int k = sorted[atomk].unsorted;
+        KERNEL_INIT_PARAMS_I_AND_K
+        KERNEL_SYNCWARP
+
+        for (int j = 0; j < WARP_SIZE; ++j) {
+            KERNEL_KLANE2                      \
+            bool incl = iid < kid and kid < n; \
+            KERNEL_SCALE_1                     \
+            KERNEL_FULL_PAIRWISE_INTERACTION
+
+            iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
+            KERNEL_SHUFFLE_PARAMS_I    KERNEL_SHUFFLE_LOCAL_FORCE_I
+        }
+
+        KERNEL_SAVE_LOCAL_FORCE    KERNEL_SYNCWARP
+    }
+
+    KERNEL_SUM_COUNT
+    KERNEL_SUM_ENERGY
+    KERNEL_SUM_VIRIAL
+}
+'''
+
+
 ########################################################################
 #                                                                      #
 # variable                                                             #
@@ -555,6 +665,7 @@ class KernelWriter:
         self.yk_kernel_name = 'KERNEL_NAME'
         self.yk_template_params = 'TEMPLATE_PARAMS'
         self.yk_constexpr_flags = 'CONSTEXPR_FLAGS'
+        self.yk_use_neigh = 'USE_NEIGH'
 
         self.yk_cut_distance = 'CUT_DISTANCE'
         self.yk_off_distance = 'OFF_DISTANCE'
@@ -613,6 +724,12 @@ class KernelWriter:
             t = config[kcfg]
             v2 = v2 + ', real {}'.format(t)
         d[k1], d[k2] = v1, v2
+
+        # use_neigh
+        k = 'USE_NEIGH'
+        kcfg = self.yk_use_neigh
+        if kcfg not in keys:
+            config[kcfg] = True
 
         # extra kernel parameters
         k, v = 'EXTRA_KERNEL_PARAMS', self._kv(self.yk_extra_params)
@@ -842,6 +959,8 @@ class KernelWriter:
         kernel_num = 21  # default
         if self.yk_kernel_version_number in self.config.keys():
             kernel_num = self.config[self.yk_kernel_version_number]
+        if not self.config[self.yk_use_neigh]:
+            kernel_num = 22
         if kernel_num == 11:
             outstr = outstr + self._replace(rc_kernel11, d)
         elif kernel_num == 23:
@@ -849,6 +968,8 @@ class KernelWriter:
                 outstr = outstr + self._replace(rc_kernel23c, d)
             outstr = outstr + self._replace(rc_kernel23b, d)
             outstr = outstr + self._replace(rc_kernel23a, d)
+        elif kernel_num == 22:
+            outstr = outstr + self._replace(rc_kernel22, d)
         else:
             outstr = outstr + self._replace(rc_kernel21, d)
         print(outstr, file=output)

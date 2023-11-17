@@ -1,12 +1,12 @@
+// ck.py Version 3.1.0
 template <class Ver>
 __global__
-void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, VirialBuffer restrict vem,
+void empoleN2_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, VirialBuffer restrict vem,
    grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const unsigned* restrict mdpuinfo,
-   int nexclude, const int (*restrict exclude)[2],
-   const real (*restrict exclude_scale)[4], const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp, const int* restrict iakp,
-   real* restrict trqx, real* restrict trqy, real* restrict trqz,
-   const real (*restrict rpole)[10], real f)
+   int nexclude, const int (*restrict exclude)[2], const real (*restrict exclude_scale)[4], const real* restrict x,
+   const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
+   const int* restrict iakpl, int niakp, const int* restrict iakp, real* restrict trqx, real* restrict trqy,
+   real* restrict trqz, const real (*restrict rpole)[10], real f)
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_a = Ver::a;
@@ -36,7 +36,6 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
       vemtlzy = 0;
       vemtlzz = 0;
    }
-   real aewald = 0;
    __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], ci[BLOCK_DIM], dix[BLOCK_DIM], diy[BLOCK_DIM],
       diz[BLOCK_DIM], qixx[BLOCK_DIM], qixy[BLOCK_DIM], qixz[BLOCK_DIM], qiyy[BLOCK_DIM], qiyz[BLOCK_DIM],
       qizz[BLOCK_DIM];
@@ -99,14 +98,15 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
       real xr = xk[threadIdx.x] - xi[klane];
       real yr = yk[threadIdx.x] - yi[klane];
       real zr = zk[threadIdx.x] - zi[klane];
-      real r2 = xr*xr + yr*yr + zr*zr;
+      real r2 = xr * xr + yr * yr + zr * zr;
       if (incl) {
          real e, vxx, vyx, vzx, vyy, vzy, vzz;
+         real aewald = 0;
          pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, scalea, ci[klane], dix[klane], diy[klane], diz[klane],
             qixx[klane], qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], ck[threadIdx.x],
             dkx[threadIdx.x], dky[threadIdx.x], dkz[threadIdx.x], qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, f, aewald, frcxi,
-            frcyi, frczi, frcxk, frcyk, frczk, trqxi, trqyi, trqzi, trqxk, trqyk, trqzk, e, vxx, vyx, vzx, vyy,
-            vzy, vzz);
+            frcyi, frczi, frcxk, frcyk, frczk, trqxi, trqyi, trqzi, trqxk, trqyk, trqzk, e, vxx, vyx, vzx, vyy, vzy,
+            vzz);
          if CONSTEXPR (do_e) {
             emtl += floatTo<ebuf_prec>(e);
             if CONSTEXPR (do_a) {
@@ -205,9 +205,10 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
          real xr = xk[threadIdx.x] - xi[klane];
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
-         real r2 = xr*xr + yr*yr + zr*zr;
+         real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real e, vxx, vyx, vzx, vyy, vzy, vzz;
+            real aewald = 0;
             pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, 1, ci[klane], dix[klane], diy[klane], diz[klane], qixx[klane],
                qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], ck[threadIdx.x], dkx[threadIdx.x],
                dky[threadIdx.x], dkz[threadIdx.x], qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, f, aewald, frcxi, frcyi, frczi,
@@ -318,9 +319,10 @@ void empole_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Viria
          real xr = xk[threadIdx.x] - xi[klane];
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
-         real r2 = xr*xr + yr*yr + zr*zr;
+         real r2 = xr * xr + yr * yr + zr * zr;
          if (incl) {
             real e, vxx, vyx, vzx, vyy, vzy, vzz;
+            real aewald = 0;
             pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, 1, ci[klane], dix[klane], diy[klane], diz[klane], qixx[klane],
                qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], ck[threadIdx.x], dkx[threadIdx.x],
                dky[threadIdx.x], dkz[threadIdx.x], qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, f, aewald, frcxi, frcyi, frczi,

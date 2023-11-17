@@ -164,7 +164,7 @@ void esolv(int vers)
 
    esolvInit(vers);
 
-   if (solvtyp == Solv::GK or solvtyp == Solv::PB) {
+   if (solvtyp == Solv::GK) {
       enp(vers);
    }
 

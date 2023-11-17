@@ -124,6 +124,26 @@ inline void tanhrscchr (real ii, real rhoi, real& derival, real pi43)
    derival = tanhconst * chainrule * (1.-tanh2);
 }
 
+__global__
+void grycukFinal_cu1(int n, real pi43, bool usetanh, const real* restrict rsolv, real* restrict rborn, real* restrict bornint)
+{
+   real third = 0.333333333333333333;
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      real ri = rsolv[i];
+      if (ri > 0.f) {
+         real rborni = rborn[i];
+         if (usetanh) {
+            bornint[i] = rborni;
+            tanhrsc(rborni,ri,pi43);
+         }
+         rborni = pi43 / REAL_POW(ri,3) + rborni;
+         rborni = REAL_POW((rborni/pi43),third);
+         if (rborni < 0.) rborni = 0.0001;
+         rborn[i] = 1.f / rborni;
+      }
+   }
+}
+
 #pragma acc routine seq
 SEQ_ROUTINE
 inline void pair_hctobc(real r, real ri, real rk, real sk, real& pairrborni)

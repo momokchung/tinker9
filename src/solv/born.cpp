@@ -22,8 +22,6 @@ void bornData(RcOp op)
    if (op & RcOp::DEALLOC) {
       darray::deallocate(rsolv, rdescr, shct, rborn);
       darray::deallocate(rneck, aneck, bneck, sneck, bornint);
-      darray::deallocate(aobc, bobc, drobc, gobc);
-      darray::deallocate(roff);
       
       borntyp = Born::NONE;
       solvtyp = Solv::NONE;
@@ -32,8 +30,6 @@ void bornData(RcOp op)
    if (op & RcOp::ALLOC) {
       darray::allocate(n, &rsolv, &rdescr, &shct, &rborn);
       darray::allocate(n, &sneck, &bornint);
-      darray::allocate(n, &aobc, &bobc, &drobc, &gobc);
-      darray::allocate(n, &roff);
       maxneck = solute::maxneck;
       darray::allocate(maxneck, &rneck);
       darray::allocate(maxneck*maxneck, &aneck, &bneck);
@@ -43,38 +39,26 @@ void bornData(RcOp op)
       FstrView bornview = solpot::borntyp;
       if (bornview == "GRYCUK")
          borntyp = Born::GRYCUK;
-      else if (bornview == "HCT")
-         borntyp = Born::HCT;
-      else if (bornview == "OBC")
-         borntyp = Born::OBC;
       else
          borntyp = Born::NONE;
 
       FstrView solvview = solpot::solvtyp;
       if (solvview == "GK")
          solvtyp = Solv::GK;
-      else if (solvview == "GB")
-         solvtyp = Solv::GB;
       else
          solvtyp = Solv::NONE;
 
       darray::copyin(g::q0, n, rsolv, solute::rsolv);
       darray::copyin(g::q0, n, shct, solute::shct);
-      if (solvtyp == Solv::GK or solvtyp == Solv::GKHPMF) {
+      if (solvtyp == Solv::GK) {
          darray::copyin(g::q0, n, rdescr, solute::rdescr);
          darray::copyin(g::q0, n, sneck, solute::sneck);
          darray::copyin(g::q0, maxneck, rneck, solute::rneck);
          darray::copyin(g::q0, maxneck*maxneck, aneck, solute::aneck);
          darray::copyin(g::q0, maxneck*maxneck, bneck, solute::bneck);
       }
-      if (borntyp == Born::OBC) {
-         darray::copyin(g::q0, n, aobc, solute::aobc);
-         darray::copyin(g::q0, n, bobc, solute::bobc);
-         darray::copyin(g::q0, n, gobc, solute::gobc);
-      }
       waitFor(g::q0);
 
-      doffset = solute::doffset;
       gkc = gkstuf::gkc;
       descoff = solute::descoff;
       useneck = solute::useneck;
@@ -82,9 +66,7 @@ void bornData(RcOp op)
    }
 }
 
-TINKER_FVOID2(acc0, cu1, bornInit, int);
 TINKER_FVOID2(acc0, cu1, born, int);
-TINKER_FVOID2(acc0, cu1, bornFinal, int);
 
 void born(int vers)
 {
@@ -93,10 +75,6 @@ void born(int vers)
 
    darray::zero(g::q0, n, rborn, bornint);
 
-   TINKER_FCALL2(acc0, cu1, bornInit, vers);
-
    TINKER_FCALL2(acc0, cu1, born, vers);
-
-   TINKER_FCALL2(acc0, cu1, bornFinal, vers);
 }
 }
