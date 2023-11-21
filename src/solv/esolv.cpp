@@ -71,74 +71,6 @@ void esolvData(RcOp op)
    }
 }
 
-void esolvInit(int vers)
-{
-   mpoleInit(vers);
-}
-
-TINKER_FVOID2(acc0, cu1, ewca, int);
-void ewca(int vers)
-{
-   TINKER_FCALL2(acc0, cu1, ewca, vers);
-}
-
-void enp(int vers)
-{
-   // ecav energy
-   // egaussvol(vers);
-   // surface(vers);
-   // // do stuff
-   // if (reff < spoff) {
-   //    volume (vers);
-   //    // do stuff
-   // }
-   // if (reff <= spcut) {
-   //    do stuff
-   // } else if (reff <= spoff) {
-   //    do stuff
-   // }
-   // if (reff > stcut) {
-   //    do stuff
-   // } else if (reff > stoff) {
-   //    do stuff
-   // }
-   // // do stuff, watch out for switch call
-
-   // edisp energy
-   ewca(vers);
-}
-
-TINKER_FVOID2(acc0, cu1, egka, int);
-void egka(int vers)
-{
-   TINKER_FCALL2(acc0, cu1, egka, vers);
-}
-
-TINKER_FVOID2(acc0, cu1, born1, int);
-void born1(int vers)
-{
-   TINKER_FCALL2(acc0, cu1, born1, vers);
-}
-
-TINKER_FVOID2(acc0, cu1, ediff, int);
-void ediff(int vers)
-{
-   TINKER_FCALL2(acc0, cu1, ediff, vers);
-}
-
-void egk(int vers)
-{
-   egka(vers);
-
-   born1(vers);
-   
-   if (use(Potent::POLAR)) {
-      ediff(vers);
-   } else if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
-      ediff(vers);
-   }
-}
-
 void esolv(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
@@ -205,5 +137,75 @@ void esolv(int vers)
       if (do_g)
          sumGradient(gx_elec, gy_elec, gz_elec, desx, desy, desz);
    }
+}
+}
+
+namespace tinker {
+void esolvInit(int vers)
+{
+   mpoleInit(vers);
+}
+
+void enp(int vers)
+{
+   // ecav energy
+   // egaussvol(vers);
+   // surface(vers);
+   // // do stuff
+   // if (reff < spoff) {
+   //    volume (vers);
+   //    // do stuff
+   // }
+   // if (reff <= spcut) {
+   //    do stuff
+   // } else if (reff <= spoff) {
+   //    do stuff
+   // }
+   // if (reff > stcut) {
+   //    do stuff
+   // } else if (reff > stoff) {
+   //    do stuff
+   // }
+   // // do stuff, watch out for switch call
+
+   // edisp energy
+   ewca(vers);
+}
+
+void egk(int vers)
+{
+   egka(vers);
+
+   born1(vers);
+   
+   if (use(Potent::POLAR)) {
+      ediff(vers);
+   } else if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
+      ediff(vers);
+   }
+}
+
+TINKER_FVOID2(acc0, cu1, ewca, int);
+void ewca(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, ewca, vers);
+}
+
+TINKER_FVOID2(acc0, cu1, egka, int);
+void egka(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, egka, vers);
+}
+
+TINKER_FVOID2(acc0, cu1, born1, int);
+void born1(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, born1, vers);
+}
+
+TINKER_FVOID2(acc0, cu1, ediff, int);
+void ediff(int vers)
+{
+   TINKER_FCALL2(acc0, cu1, ediff, vers);
 }
 }

@@ -12,7 +12,7 @@
 #include <tinker/routines.h>
 
 namespace tinker {
-void bornData(RcOp op)
+void ebornData(RcOp op)
 {
    if (not use(Potent::BORN))
    return;
@@ -66,15 +66,21 @@ void bornData(RcOp op)
    }
 }
 
-TINKER_FVOID2(acc0, cu1, born, int);
-
-void born(int vers)
+void eborn(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
    auto do_a = vers & calc::analyz;
 
    darray::zero(g::q0, n, rborn, bornint);
 
+   born(vers);
+}
+}
+
+namespace tinker {
+TINKER_FVOID2(acc0, cu1, born, int);
+void born(int vers)
+{
    TINKER_FCALL2(acc0, cu1, born, vers);
 }
 }

@@ -39,7 +39,7 @@ const TimeScaleConfig& defaultTSConfig()
       {"ehippo", 0},
 
       {"esolv", 0},
-      {"born", 0},
+      {"eborn", 0},
    };
    return tsconfig;
 }
@@ -232,8 +232,8 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
 
    // non-bonded terms
    if (use(Potent::BORN))
-      if (tscfg("born", ecore_ele))
-         born(vers);
+      if (tscfg("eborn", ecore_ele))
+         eborn(vers);
 
    if (amoeba_evdw(vers))
       if (tscfg("evdw", ecore_vdw))
@@ -459,7 +459,7 @@ void energyData(RcOp op)
    RcMan pme42{pmeData, op};
 
    // SOLV
-   RcMan born42{bornData, op};
+   RcMan eborn42{ebornData, op};
 
    RcMan echarge42{echargeData, op};
    // Must follow evdw_data() and echarge_data().

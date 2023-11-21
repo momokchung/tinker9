@@ -2,6 +2,7 @@ OUTPUT_DIR: src/cu/solv
 KERNEL_NAME: grycuk_cu1
 # TEMPLATE_PARAMS:
 # CONSTEXPR_FLAGS:
+USE_NEIGH: false
 
 EXTRA_PARAMS: |
   , real descoff

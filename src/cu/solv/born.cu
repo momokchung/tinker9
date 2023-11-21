@@ -19,7 +19,7 @@ static void grycuk_cu2()
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    real pi43 = 4./3. * pi;
-   grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+   grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niakp, st.iakp,
                 descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
 
    launch_k1s(g::s0, n, grycukFinal_cu1, n, pi43, usetanh, rsolv, rborn, bornint);
@@ -68,8 +68,8 @@ static void born1_cu2(bool use_gk)
    real pi43 = 4. * third * pi;
    real factor = -REAL_POW(pi,third) * REAL_POW(6.,2.*third) / 9.;
 
-   grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, vir_es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niak, st.iak, st.lst, descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
+   grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, vir_es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+      st.niakp, st.iakp, descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
 }
 
 void born1_cu(int vers)
@@ -83,7 +83,7 @@ void born1_cu(int vers)
       else if (vers == calc::v5)
          born1_cu2<calc::V5>(use_gk);
    } else {
-      throwExceptionMissingFunction("born_cu", __FILE__, __LINE__);
+      throwExceptionMissingFunction("born1_cu", __FILE__, __LINE__);
    }
 }
 }

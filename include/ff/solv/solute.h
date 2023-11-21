@@ -33,11 +33,19 @@ enum class Solv
 };
 
 /// \ingroup solv
-void bornData(RcOp);
+void ebornData(RcOp);
 void esolvData(RcOp);
 /// \ingroup solv
+void eborn(int vers);
 void born(int vers);
+void born1(int vers);
 void esolv(int vers);
+void esolvInit(int vers);
+void enp(int vers);
+void ewca(int vers);
+void egk(int vers);
+void egka(int vers);
+void ediff(int vers);
 }
 
 //====================================================================//

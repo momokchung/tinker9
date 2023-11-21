@@ -559,9 +559,14 @@ void egauss(int vers)
 }
 
 TINKER_FVOID2(acc1, cu1, ehal, int);
+TINKER_FVOID2(acc0, cu1, ehalN2, int);
 void ehal(int vers)
 {
-   TINKER_FCALL2(acc1, cu1, ehal, vers);
+   if (use(Potent::SOLV)) {
+      TINKER_FCALL2(acc0, cu1, ehalN2, vers);
+   } else {
+      TINKER_FCALL2(acc1, cu1, ehal, vers);
+   }
 }
 
 TINKER_FVOID2(acc1, cu1, ehalReduceXyz);

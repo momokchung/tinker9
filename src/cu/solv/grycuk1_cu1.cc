@@ -1,10 +1,10 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, VirialBuffer restrict vs, grad_prec* restrict gx, grad_prec* restrict gy,
+void grycuk1_cu1(int n, VirialBuffer restrict vs, grad_prec* restrict gx, grad_prec* restrict gy,
    grad_prec* restrict gz, const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, real descoff, real pi43, real factor, bool useneck, bool usetanh,
+   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
+   const int* restrict iakp, real descoff, real pi43, real factor, bool useneck, bool usetanh,
    const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct, const real* restrict rborn,
    const real* restrict drb, const real* restrict drbp, const real* restrict aneck, const real* restrict bneck,
    const real* restrict rneck, const real* restrict sneck, const real* restrict bornint, bool use_gk)
@@ -239,7 +239,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < niak; iw += nwarp) {
+   for (int iw = iwarp; iw < niakp; iw += nwarp) {
       if CONSTEXPR (do_g) {
          gxi = 0;
          gyi = 0;
@@ -249,10 +249,15 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          gzk = 0;
       }
 
-      int ty = iak[iw];
-      int atomi = ty * WARP_SIZE + ilane;
+      int tri, tx, ty;
+      tri = iakp[iw];
+      tri_to_xy(tri, tx, ty);
+
+      int iid = ty * WARP_SIZE + ilane;
+      int atomi = min(iid, n - 1);
       int i = sorted[atomi].unsorted;
-      int atomk = lst[iw * WARP_SIZE + ilane];
+      int kid = tx * WARP_SIZE + ilane;
+      int atomk = min(kid, n - 1);
       int k = sorted[atomk].unsorted;
       xi[threadIdx.x] = sorted[atomi].x;
       yi[threadIdx.x] = sorted[atomi].y;
@@ -281,7 +286,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
       for (int j = 0; j < WARP_SIZE; ++j) {
          int srclane = (ilane + j) & (WARP_SIZE - 1);
          int klane = srclane + threadIdx.x - ilane;
-         bool incl = atomk > 0;
+         bool incl = iid < kid and kid < n;
          real xr = xk[threadIdx.x] - xi[klane];
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
@@ -342,6 +347,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             }
          }
 
+         iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
          if CONSTEXPR (do_g) {
             gxi = __shfl_sync(ALL_LANES, gxi, ilane + 1);
             gyi = __shfl_sync(ALL_LANES, gyi, ilane + 1);

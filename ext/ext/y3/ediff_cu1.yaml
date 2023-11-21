@@ -5,6 +5,7 @@ CONSTEXPR_FLAGS: |
   constexpr bool do_e = Ver::e;
   constexpr bool do_a = Ver::a;
   constexpr bool do_g = Ver::g;
+USE_NEIGH: false
 
 COUNT:
   - nes
