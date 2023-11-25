@@ -308,8 +308,7 @@ void KERNEL_NAME(int n          \
     OFF_KERNEL_PARAMS           \
     EXCLUDE_INFO_KERNEL_PARAMS  \
     EXCLUDE_SCALE_KERNEL_PARAMS \
-    , const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl
-    , int niakp, const int* restrict iakp
+    , int nakp, const int* restrict iakp
     EXTRA_KERNEL_PARAMS)
 {
     USING_DEVICE_VARIABLES    KERNEL_CONSTEXPR_FLAGS \
@@ -321,36 +320,17 @@ void KERNEL_NAME(int n          \
     DECLARE_ZERO_LOCAL_COUNT    DECLARE_ZERO_LOCAL_ENERGY   DECLARE_ZERO_LOCAL_VIRIAL
     DECLARE_PARAMS_I_AND_K      DECLARE_FORCE_I_AND_K
 
-    KERNEL_HAS_1X_SCALE
-    for (int ii = ithread; ii < nexclude; ii += blockDim.x * gridDim.x) {
-        KERNEL_SCALED_KLANE    KERNEL_ZERO_LOCAL_FORCE
-
-        int i = exclude[ii][0];
-        int k = exclude[ii][1];
-        KERNEL_LOAD_1X_SCALES
-
-        KERNEL_INIT_EXCLUDE_PARAMS_I_AND_K
-
-        constexpr bool incl = true;
-        KERNEL_SCALED_PAIRWISE_INTERACTION
-
-        KERNEL_SAVE_LOCAL_FORCE
-    }
-    // */
-
-    for (int iw = iwarp; iw < nakpl; iw += nwarp) {
+    for (int iw = iwarp; iw < nakp; iw += nwarp) {
         KERNEL_ZERO_LOCAL_FORCE
 
         int tri, tx, ty;
-        tri = iakpl[iw];
+        tri = iakp[iw];
         tri_to_xy(tri, tx, ty);
 
         int iid = ty * WARP_SIZE + ilane;
-        int atomi = min(iid, n - 1);
-        int i = sorted[atomi].unsorted;
+        int i = min(iid, n - 1);
         int kid = tx * WARP_SIZE + ilane;
-        int atomk = min(kid, n - 1);
-        int k = sorted[atomk].unsorted;
+        int k = min(kid, n - 1);
         KERNEL_INIT_PARAMS_I_AND_K
         KERNEL_SYNCWARP
 
@@ -370,38 +350,7 @@ void KERNEL_NAME(int n          \
         KERNEL_SAVE_LOCAL_FORCE   KERNEL_SYNCWARP
     }
 
-    for (int iw = iwarp; iw < niakp; iw += nwarp) {
-        KERNEL_ZERO_LOCAL_FORCE
-
-        int tri, tx, ty;
-        tri = iakp[iw];
-        tri_to_xy(tri, tx, ty);
-
-        int iid = ty * WARP_SIZE + ilane;
-        int atomi = min(iid, n - 1);
-        int i = sorted[atomi].unsorted;
-        int kid = tx * WARP_SIZE + ilane;
-        int atomk = min(kid, n - 1);
-        int k = sorted[atomk].unsorted;
-        KERNEL_INIT_PARAMS_I_AND_K
-        KERNEL_SYNCWARP
-
-        for (int j = 0; j < WARP_SIZE; ++j) {
-            KERNEL_KLANE2                      \
-            bool incl = iid < kid and kid < n; \
-            KERNEL_SCALE_1                     \
-            KERNEL_FULL_PAIRWISE_INTERACTION
-
-            iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
-            KERNEL_SHUFFLE_PARAMS_I    KERNEL_SHUFFLE_LOCAL_FORCE_I
-        }
-
-        KERNEL_SAVE_LOCAL_FORCE    KERNEL_SYNCWARP
-    }
-
-    KERNEL_SUM_COUNT
-    KERNEL_SUM_ENERGY
-    KERNEL_SUM_VIRIAL
+    KERNEL_SUM_COUNT    KERNEL_SUM_ENERGY    KERNEL_SUM_VIRIAL
 }
 '''
 
@@ -475,12 +424,18 @@ class Variable:
         else:
             return '{} = {};'.format(self.name, rhs)
 
-    def init_block(self) -> str:
+    def init_block(self, use_neigh) -> str:
         if self.readfrom in ['x', 'y', 'z']:
-            if self.location == 'shared':
-                return '{}[threadIdx.x] = sorted[atom{}].{};'.format(self.name, self.iork, self.readfrom)
+            if (use_neigh):
+                if self.location == 'shared':
+                   return '{}[threadIdx.x] = sorted[atom{}].{};'.format(self.name, self.iork, self.readfrom)
+                else:
+                   return '{} = sorted[atom{}].{};'.format(self.name, self.iork, self.readfrom)
             else:
-                return '{} = sorted[atom{}].{};'.format(self.name, self.iork, self.readfrom)
+                if self.location == 'shared':
+                   return '{}[threadIdx.x] = {}[{}];'.format(self.name, self.readfrom, self.iork)
+                else:
+                   return '{} = {}[{}];'.format(self.name, self.readfrom, self.iork)
         else:
             if self.location == 'shared':
                 return '{}[threadIdx.x] = {};'.format(self.name, self._get_src(self.readfrom, self.iork))
@@ -572,14 +527,14 @@ class VariableDefinitions:
                 s = s + v.init_exclude()
         return s
 
-    def init_block(self) -> str:
+    def init_block(self, use_neigh=True) -> str:
         s = ''
         for t in self.shared.keys():
             for v in self.shared[t]:
-                s = s + v.init_block()
+                s = s + v.init_block(use_neigh)
         for t in self.register.keys():
             for v in self.register[t]:
-                s = s + v.init_block()
+                s = s + v.init_block(use_neigh)
         return s
 
     def shuffle(self) -> str:
@@ -726,9 +681,12 @@ class KernelWriter:
         d[k1], d[k2] = v1, v2
 
         # use_neigh
-        k = 'USE_NEIGH'
-        kcfg = self.yk_use_neigh
-        if kcfg not in keys:
+        k, v = 'USE_NEIGH', 'true'
+        kcfg, vcfg = self.yk_use_neigh, True
+        if kcfg in keys:
+            if config[kcfg] == None:
+                config[kcfg] = True
+        else:
             config[kcfg] = True
 
         # extra kernel parameters
@@ -766,7 +724,8 @@ class KernelWriter:
             k2, v2 = 'KERNEL_INIT_PARAMS_I_AND_K', ''
             k3, v3 = 'KERNEL_SHUFFLE_PARAMS_I', ''
             v1 = v1 + ivars.init_exclude() + kvars.init_exclude()
-            v2 = v2 + ivars.init_block() + kvars.init_block()
+            use_neigh = self.config[self.yk_use_neigh]
+            v2 = v2 + ivars.init_block(use_neigh) + kvars.init_block(use_neigh)
             v3 = v3 + ivars.shuffle()
             d[k1], d[k2], d[k3] = v1, v2, v3
 

@@ -13,6 +13,7 @@ compilers.cu
 cudalib.cu
 cumod.cu
 diagprecond.cu
+dloop.cu
 echarge.cu
 echglj.cu
 egvop.cu

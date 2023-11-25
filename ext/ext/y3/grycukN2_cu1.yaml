@@ -1,8 +1,8 @@
 OUTPUT_DIR: src/cu/solv
-KERNEL_NAME: grycuk_cu1
+KERNEL_NAME: grycukN2_cu1
 # TEMPLATE_PARAMS:
 # CONSTEXPR_FLAGS:
-# USE_NEIGH:
+USE_NEIGH: False
 
 EXTRA_PARAMS: |
   , real descoff

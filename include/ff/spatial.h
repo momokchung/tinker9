@@ -12,9 +12,6 @@ typedef GenericUnit<Spatial, GenericUnitVersion::DISABLE_ON_DEVICE> SpatialUnit;
 
 void spatialUpdate(SpatialUnit);
 
-TINKER_EXTERN int* st_do_pair;
-TINKER_EXTERN int n_do_pair;
-
 class Spatial
 {
 public:

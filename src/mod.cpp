@@ -3,6 +3,7 @@
 #include "ff/modamoeba.h"
 #include "ff/atom.h"
 #include "ff/box.h"
+#include "ff/dloop.h"
 #include "ff/echarge.h"
 #include "ff/echglj.h"
 #include "ff/elec.h"

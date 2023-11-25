@@ -48,60 +48,7 @@ TEST_CASE("ESolv-1-Implicit", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-2-Total", "[ff][amoeba][esolv]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y.key");
-   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
-
-   const char* xn = "1l2y.xyz";
-   const char* kn = "1l2y.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0001, 0.0001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/esolv.2.txt");
-   auto ref_e = r.getEnergy();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::vmask;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v3);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   double eng;
-   int cnt;
-   r.getEnergyCountByName("Van der Waals", eng, cnt);
-   COMPARE_COUNT(nev, cnt);
-   COMPARE_ENERGY(ev, eng, eps_e);
-   r.getEnergyCountByName("Atomic Multipoles", eng, cnt);
-   COMPARE_COUNT(nem, cnt);
-   COMPARE_ENERGY(em, eng, eps_e);
-   r.getEnergyCountByName("Polarization", eng, cnt);
-   COMPARE_COUNT(nep, cnt);
-   COMPARE_ENERGY(ep, eng, eps_e);
-   r.getEnergyCountByName("Implicit Solvation", eng, cnt);
-   COMPARE_COUNT(nes, cnt);
-   COMPARE_ENERGY(es, eng, eps_e);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("ESolv-3-NoNeck", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-2-NoNeck", "[ff][amoeba][esolv]")
 {
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
    TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y-noneck.key");
@@ -154,7 +101,7 @@ TEST_CASE("ESolv-3-NoNeck", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-4-NoTanh", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-3-NoTanh", "[ff][amoeba][esolv]")
 {
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
    TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y-notanh.key");
@@ -207,7 +154,7 @@ TEST_CASE("ESolv-4-NoTanh", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-5-NoNeckNoTanh", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-4-NoNeckNoTanh", "[ff][amoeba][esolv]")
 {
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
    TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y-nonecknotanh.key");
@@ -222,6 +169,112 @@ TEST_CASE("ESolv-5-NoNeckNoTanh", "[ff][amoeba][esolv]")
    const double eps_g = testGetEps(0.0001, 0.0001);
 
    TestReference r(TINKER9_DIRSTR "/test/ref/esolv.5.txt");
+   auto ref_e = r.getEnergy();
+   auto ref_g = r.getGradient();
+
+   rc_flag = calc::xyz | calc::vmask;
+   testBeginWithArgs(argc, argv);
+   initialize();
+
+   energy(calc::v0);
+   COMPARE_REALS(esum, ref_e, eps_e);
+
+   energy(calc::v3);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   double eng;
+   int cnt;
+   r.getEnergyCountByName("Van der Waals", eng, cnt);
+   COMPARE_COUNT(nev, cnt);
+   COMPARE_ENERGY(ev, eng, eps_e);
+   r.getEnergyCountByName("Atomic Multipoles", eng, cnt);
+   COMPARE_COUNT(nem, cnt);
+   COMPARE_ENERGY(em, eng, eps_e);
+   r.getEnergyCountByName("Polarization", eng, cnt);
+   COMPARE_COUNT(nep, cnt);
+   COMPARE_ENERGY(ep, eng, eps_e);
+   r.getEnergyCountByName("Implicit Solvation", eng, cnt);
+   COMPARE_COUNT(nes, cnt);
+   COMPARE_ENERGY(es, eng, eps_e);
+
+   energy(calc::v4);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   energy(calc::v5);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   finish();
+   testEnd();
+}
+
+TEST_CASE("ESolv-5-Total", "[ff][amoeba][esolv]")
+{
+   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y.key");
+   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
+
+   const char* xn = "1l2y.xyz";
+   const char* kn = "1l2y.key";
+   const char* argv[] = {"dummy", xn, "-k", kn};
+   int argc = 4;
+
+   const double eps_e = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.0001, 0.0001);
+
+   TestReference r(TINKER9_DIRSTR "/test/ref/esolv.2.txt");
+   auto ref_e = r.getEnergy();
+   auto ref_g = r.getGradient();
+
+   rc_flag = calc::xyz | calc::vmask;
+   testBeginWithArgs(argc, argv);
+   initialize();
+
+   energy(calc::v0);
+   COMPARE_REALS(esum, ref_e, eps_e);
+
+   energy(calc::v3);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   double eng;
+   int cnt;
+   r.getEnergyCountByName("Van der Waals", eng, cnt);
+   COMPARE_COUNT(nev, cnt);
+   COMPARE_ENERGY(ev, eng, eps_e);
+   r.getEnergyCountByName("Atomic Multipoles", eng, cnt);
+   COMPARE_COUNT(nem, cnt);
+   COMPARE_ENERGY(em, eng, eps_e);
+   r.getEnergyCountByName("Polarization", eng, cnt);
+   COMPARE_COUNT(nep, cnt);
+   COMPARE_ENERGY(ep, eng, eps_e);
+   r.getEnergyCountByName("Implicit Solvation", eng, cnt);
+   COMPARE_COUNT(nes, cnt);
+   COMPARE_ENERGY(es, eng, eps_e);
+
+   energy(calc::v4);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   energy(calc::v5);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   finish();
+   testEnd();
+}
+
+TEST_CASE("ESolv-6-Total-Neigh", "[ff][amoeba][esolv]")
+{
+   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/1l2y-neigh.key");
+   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
+
+   const char* xn = "1l2y.xyz";
+   const char* kn = "1l2y-neigh.key";
+   const char* argv[] = {"dummy", xn, "-k", kn};
+   int argc = 4;
+
+   const double eps_e = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.0001, 0.0001);
+
+   TestReference r(TINKER9_DIRSTR "/test/ref/esolv.2.txt");
    auto ref_e = r.getEnergy();
    auto ref_g = r.getGradient();
 
