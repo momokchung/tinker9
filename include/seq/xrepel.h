@@ -19,26 +19,26 @@ inline void scoeffAtomI(int i, const real (*restrict xrepole)[MPL_TOTAL],
 
    // determine pseudo orbital coefficients
    for (int k = 0; k < 3; ++k) {
-      pcoeff[k] = 0.;
+      pcoeff[k] = 0;
    }
    ppole[0] = xrepole[i][1];
    ppole[1] = xrepole[i][2];
    ppole[2] = xrepole[i][3];
    cr = crpxr[i];
-   l1 = (abs(ppole[0]) < 1e-10);
-   l2 = (abs(ppole[1]) < 1e-10);
-   l3 = (abs(ppole[2]) < 1e-10);
+   l1 = (abs(ppole[0]) < (real)1e-10);
+   l2 = (abs(ppole[1]) < (real)1e-10);
+   l3 = (abs(ppole[2]) < (real)1e-10);
 
    // case for no dipole
    if (l1 and l2 and l3) {
-      cs = 1.;
+      cs = 1;
       ind1 = 0;
       ind2 = 1;
       ind3 = 2;
    }
    // case for p orbital coefficients set to 0
    else if (cr < 1e-10) {
-      cs = 1.;
+      cs = 1;
       ind1 = 0;
       ind2 = 1;
       ind3 = 2;
@@ -46,7 +46,7 @@ inline void scoeffAtomI(int i, const real (*restrict xrepole)[MPL_TOTAL],
    // case for anisotropic repulsion
    else {
       // determine normalized coefficients
-      cs = 1. / REAL_SQRT(1. + cr);
+      cs = 1 / REAL_SQRT(1 + cr);
       // determine index for largest absolute dipole component
       ind1 = 0;
       if (abs(ppole[1]) > abs(ppole[ind1])) ind1 = 1;
@@ -55,8 +55,8 @@ inline void scoeffAtomI(int i, const real (*restrict xrepole)[MPL_TOTAL],
       ind3 = (ind1+2) % 3;
       p2p1 = ppole[ind2] / ppole[ind1];
       p3p1 = ppole[ind3] / ppole[ind1];
-      pcoeff[ind1] = cs * REAL_SQRT(cr / (1. + p2p1*p2p1 + p3p1*p3p1));
-      if (ppole[ind1] < 0.) {
+      pcoeff[ind1] = cs * REAL_SQRT(cr / (1 + p2p1*p2p1 + p3p1*p3p1));
+      if (ppole[ind1] < 0) {
          pcoeff[ind1] = -pcoeff[ind1];
       }
       pcoeff[ind2] = pcoeff[ind1] * p2p1;
@@ -101,7 +101,7 @@ inline void rotcoeffAtomI(int i, const LocalFrame* restrict zaxis,
       // even if it is not needef for z then x)
       if (polaxe == LFRM_Z_ONLY) {
          // pick x
-         int okay = !(REAL_ABS(zz[0]) > 0.866f);
+         int okay = !(REAL_ABS(zz[0]) > (real)0.866);
          xx[0] = (okay ? 1 : 0);
          xx[1] = (okay ? 0 : 1);
          xx[2] = 0;
@@ -191,7 +191,7 @@ inline void computeOverlap(real a, real b, real r, bool grad,
                            real& PxPx, real& dPxPx, real& PyPy, real& dPyPy, real& PzPz, real& dPzPz)
 {
    real diff = abs(a - b);
-   real eps = 0.001;
+   real eps = (real)0.001;
    real rho,rho2,rho3,rho4;
    real exp1;
    real alpha,tau,tau2;
@@ -211,21 +211,21 @@ inline void computeOverlap(real a, real b, real r, bool grad,
       rho3 = rho2 * rho;
       rho4 = rho3 * rho;
       exp1 = REAL_EXP(-rho);
-      SS = (1. + rho + rho2 / 3.) * exp1;
-      SPz = -0.5 * rho * (1. + rho + rho2 / 3.) * exp1;
+      SS = (1 + rho + rho2 / 3) * exp1;
+      SPz = (real)-0.5 * rho * (1 + rho + rho2 / 3) * exp1;
       PzS = -SPz;
-      PxPx = (1. + rho + 2./5. * rho2 + rho3/15.) * exp1;
-      PzPz = -(-1. - rho - rho2 / 5. + 2./15. * rho3 + rho4 / 15.) * exp1;
+      PxPx = (1 + rho + 2/(real)5 * rho2 + rho3/15) * exp1;
+      PzPz = -(-1 - rho - rho2 / 5 + 2/(real)15 * rho3 + rho4 / 15) * exp1;
       if CONSTEXPR (grad) {
-         dSS = -1./3. * a * rho * (1. + rho) * exp1;
-         dSPz = -0.5 * a * (1. + rho - rho3 / 3.) * exp1;
+         dSS = -1/(real)3 * a * rho * (1 + rho) * exp1;
+         dSPz = (real)-0.5 * a * (1 + rho - rho3 / 3) * exp1;
          dPzS = -dSPz;
-         dPxPx = -0.2 * a * rho * (1. + rho + rho2 / 3.) * exp1;
-         dPzPz = -0.6 * a * rho * (1. + rho + 2./9. * rho2 - rho3 / 9.) * exp1;
+         dPxPx = (real)-0.2 * a * rho * (1 + rho + rho2 / 3) * exp1;
+         dPzPz = (real)-0.6 * a * rho * (1 + rho + 2/(real)9 * rho2 - rho3 / 9) * exp1;
       }
    }
    else {
-      alpha = 1. / 2. * (a + b);
+      alpha = (real)0.5 * (a + b);
       tau = (a - b) / (a + b);
       tau2 = tau * tau;
       rho = alpha * r;
@@ -242,8 +242,8 @@ inline void computeOverlap(real a, real b, real r, bool grad,
       rhoB2 = rhoB * rhoB;
       rhoB3 = rhoB2 * rhoB;
       rhoB4 = rhoB3 * rhoB;
-      kappam = 1. - kappa;
-      kappap = 1. + kappa;
+      kappam = 1 - kappa;
+      kappap = 1 + kappa;
       kappam2 = kappam*kappam;
       kappap2 = kappap*kappap;
       taurho = tau * rho;
@@ -251,50 +251,50 @@ inline void computeOverlap(real a, real b, real r, bool grad,
       taurho3 = taurho2 * rho;
       expA = REAL_EXP(-rhoA);
       expB = REAL_EXP(-rhoB);
-      pre1 = REAL_SQRT(1. - tau2);
-      pre2 = REAL_SQRT((1. + tau) / (1. - tau));
-      pre3 = REAL_SQRT((1. - tau) / (1. + tau));
+      pre1 = REAL_SQRT(1 - tau2);
+      pre2 = REAL_SQRT((1 + tau) / (1 - tau));
+      pre3 = REAL_SQRT((1 - tau) / (1 + tau));
       pre = pre1 / taurho;
-      term1 =-kappam * (2. * kappap + rhoA) * expA;
-      term2 = kappap * (2. * kappam + rhoB) * expB;
+      term1 =-kappam * (2 * kappap + rhoA) * expA;
+      term2 = kappap * (2 * kappam + rhoB) * expB;
       SS = pre * (term1 + term2);
       pre = pre2 / taurho2;
-      term1 =-kappam2 * (6. * kappap * (1. + rhoA) + 2. * rhoA2) * expA;
-      term2 = kappap * (6. * kappam2 * (1. + rhoB) + 4. * kappam * rhoB2 + rhoB3) * expB;
+      term1 =-kappam2 * (6 * kappap * (1 + rhoA) + 2 * rhoA2) * expA;
+      term2 = kappap * (6 * kappam2 * (1 + rhoB) + 4 * kappam * rhoB2 + rhoB3) * expB;
       SPz = -pre * (term1 + term2);
       pre = -pre3 / taurho2;
-      term1 =-kappap2 * (6. * kappam * (1. + rhoB) + 2. * rhoB2) * expB;
-      term2 = kappam * (6. * kappap2 * (1. + rhoA) + 4. * kappap * rhoA2 + rhoA3) * expA;
+      term1 =-kappap2 * (6 * kappam * (1 + rhoB) + 2 * rhoB2) * expB;
+      term2 = kappam * (6 * kappap2 * (1 + rhoA) + 4 * kappap * rhoA2 + rhoA3) * expA;
       PzS = pre * (term1 + term2);
-      pre = 1. / (pre1 * taurho3);
-      term1 =-kappam2 * (24. * kappap2 * (1. + rhoA) + 12. * kappap * rhoA2 + 2. * rhoA3) * expA;
-      term2 = kappap2 * (24. * kappam2 * (1. + rhoB) + 12. * kappam * rhoB2 + 2. * rhoB3) * expB;
+      pre = 1 / (pre1 * taurho3);
+      term1 =-kappam2 * (24 * kappap2 * (1 + rhoA) + 12 * kappap * rhoA2 + 2 * rhoA3) * expA;
+      term2 = kappap2 * (24 * kappam2 * (1 + rhoB) + 12 * kappam * rhoB2 + 2 * rhoB3) * expB;
       PxPx = pre * (term1 + term2);
-      term1 =-kappam2 * (48. * kappap2 * (1. + rhoA + 0.5 * rhoA2) + 2. * (5. + 6. * kappa) * rhoA3 + 2. * rhoA4) * expA;
-      term2 = kappap2 * (48. * kappam2 * (1. + rhoB + 0.5 * rhoB2) + 2. * (5. - 6. * kappa) * rhoB3 + 2. * rhoB4) * expB;
+      term1 =-kappam2 * (48 * kappap2 * (1 + rhoA + (real)0.5 * rhoA2) + 2 * (5 + 6 * kappa) * rhoA3 + 2 * rhoA4) * expA;
+      term2 = kappap2 * (48 * kappam2 * (1 + rhoB + (real)0.5 * rhoB2) + 2 * (5 - 6 * kappa) * rhoB3 + 2 * rhoB4) * expB;
       PzPz = -pre * (term1 + term2);
       if CONSTEXPR (grad) {
          rhoA5 = rhoA4 * rhoA;
          rhoB5 = rhoB4 * rhoB;
          pre = pre1 / taurho;
-         term1 = kappam * (2. * kappap * (1. + rhoA) + rhoA2) * expA;
-         term2 =-kappap * (2. * kappam * (1. + rhoB) + rhoB2) * expB;
+         term1 = kappam * (2 * kappap * (1 + rhoA) + rhoA2) * expA;
+         term2 =-kappap * (2 * kappam * (1 + rhoB) + rhoB2) * expB;
          dSS = pre / r * (term1 + term2);
          pre = pre2 / taurho2;
-         term1 = 2. * kappam2 * (6. * kappap * (1. + rhoA + 0.5 * rhoA2) + rhoA3) * expA;
-         term2 = kappap * (-12. * kappam2 * (1. + rhoB + 0.5 * rhoB2) + (1. - 4. * kappam) * rhoB3 - rhoB4) * expB;
+         term1 = 2 * kappam2 * (6 * kappap * (1 + rhoA + (real)0.5 * rhoA2) + rhoA3) * expA;
+         term2 = kappap * (-12 * kappam2 * (1 + rhoB + (real)0.5 * rhoB2) + (1 - 4 * kappam) * rhoB3 - rhoB4) * expB;
          dSPz = -pre / r * (term1 + term2);
          pre = -pre3 / taurho2;
-         term1 = 2. * kappap2 * (6. * kappam * (1. + rhoB + 0.5 * rhoB2) + rhoB3) * expB;
-         term2 = kappam * (-12. * kappap2 * (1. + rhoA + 0.5 * rhoA2) + (1. - 4. * kappap) * rhoA3 - rhoA4) * expA;
+         term1 = 2 * kappap2 * (6 * kappam * (1 + rhoB + (real)0.5 * rhoB2) + rhoB3) * expB;
+         term2 = kappam * (-12 * kappap2 * (1 + rhoA + (real)0.5 * rhoA2) + (1 - 4 * kappap) * rhoA3 - rhoA4) * expA;
          dPzS = pre / r * (term1 + term2);
-         pre = 1. / (pre1 * taurho3);
-         term1 = 2. * kappam2 * (36. * kappap2 * (1. + rhoA) + 6. * kappap * (1. + 2. * kappap) * rhoA2 + 6. * kappap * rhoA3 + rhoA4) * expA;
-         term2 =-2. * kappap2 * (36. * kappam2 * (1. + rhoB) + 6. * kappam * (1. + 2. * kappam) * rhoB2 + 6. * kappam * rhoB3 + rhoB4) * expB;
+         pre = 1 / (pre1 * taurho3);
+         term1 = 2 * kappam2 * (36 * kappap2 * (1 + rhoA) + 6 * kappap * (1 + 2 * kappap) * rhoA2 + 6 * kappap * rhoA3 + rhoA4) * expA;
+         term2 =-2 * kappap2 * (36 * kappam2 * (1 + rhoB) + 6 * kappam * (1 + 2 * kappam) * rhoB2 + 6 * kappam * rhoB3 + rhoB4) * expB;
          dPxPx = pre / r * (term1 + term2);
-         term1 = kappam2 * (72. * kappap2 * (1. + rhoA + 0.5 * rhoA2 + rhoA3 / 6.) + 2. * (2. + 3. * kappa) * rhoA4 + rhoA5) * expA;
-         term2 =-kappap2 * (72. * kappam2 * (1. + rhoB + 0.5 * rhoB2 + rhoB3 / 6.) + 2. * (2. - 3. * kappa) * rhoB4 + rhoB5) * expB;
-         dPzPz = -2. * pre / r * (term1 + term2);
+         term1 = kappam2 * (72 * kappap2 * (1 + rhoA + (real)0.5 * rhoA2 + rhoA3 / 6) + 2 * (2 + 3 * kappa) * rhoA4 + rhoA5) * expA;
+         term2 =-kappap2 * (72 * kappam2 * (1 + rhoB + (real)0.5 * rhoB2 + rhoB3 / 6) + 2 * (2 - 3 * kappa) * rhoB4 + rhoB5) * expB;
+         dPzPz = -2 * pre / r * (term1 + term2);
       }
    }
    PyPy = PxPx;
@@ -327,7 +327,7 @@ void pair_xrepel(real r2, real rscale, real vlambda, real cut, real off, real xr
    int ind3 = (ind1+2) % 3;
    bi[ind1] = -bk[ind2];
    bi[ind2] = bk[ind1];
-   bi[ind3] = 0.;
+   bi[ind3] = 0;
    real normi = REAL_SQRT(bi[0]*bi[0] + bi[1]*bi[1] + bi[2]*bi[2]);
    bi[0] = bi[0] / normi;
    bi[1] = bi[1] / normi;
@@ -408,7 +408,7 @@ void pair_xrepel(real r2, real rscale, real vlambda, real cut, real off, real xr
       dintSy += cis*drckzdy*SPz + rcix*drckxdy*PxPx + rciy*drckydy*PyPy + rciz*drckzdy*PzPz;
       dintSz += cis*drckzdz*SPz + rcix*drckxdz*PxPx + rciy*drckydz*PyPy + rciz*drckzdz*PzPz;
       real term1 = -intS2 / r3;
-      real intSR = 2. * intS / r;
+      real intSR = 2 * intS / r;
       real term2x = intSR * dintSx;
       real term2y = intSR * dintSy;
       real term2z = intSR * dintSz;
@@ -502,7 +502,7 @@ void pair_xrepel(real r2, real rscale, real vlambda, real cut, real off, real xr
 
       // force via soft core lambda scaling
       if CONSTEXPR (SOFTCORE) {
-         real dsoft = e * soft * (1./r2 - 1/termsc);
+         real dsoft = e * soft * (1/r2 - 1/termsc);
          pgrad.frcx = pgrad.frcx * soft - dsoft * xr;
          pgrad.frcy = pgrad.frcy * soft - dsoft * yr;
          pgrad.frcz = pgrad.frcz * soft - dsoft * zr;

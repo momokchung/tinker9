@@ -94,7 +94,7 @@ void exrepel_cu1(int n, TINKER_IMAGE_PARAMS, CountBuffer restrict nr, EnergyBuff
       real yr = yk[threadIdx.x] - yi[klane];
       real zr = zk[threadIdx.x] - zi[klane];
 
-      real e = 0.;
+      real e = 0;
       PairRepelGrad pgrad;
       zero(pgrad);
 
@@ -212,7 +212,7 @@ void exrepel_cu1(int n, TINKER_IMAGE_PARAMS, CountBuffer restrict nr, EnergyBuff
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
 
-         real e = 0.;
+         real e = 0;
          PairRepelGrad pgrad;
          zero(pgrad);
 
@@ -333,7 +333,7 @@ void exrepel_cu1(int n, TINKER_IMAGE_PARAMS, CountBuffer restrict nr, EnergyBuff
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
 
-         real e = 0.;
+         real e = 0;
          PairRepelGrad pgrad;
          zero(pgrad);
 

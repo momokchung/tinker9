@@ -79,7 +79,7 @@ FULL_PAIRWISE_INTERACTION: |
   real yr = @yk@ - @yi@;
   real zr = @zk@ - @zi@;
 
-  real e = 0.;
+  real e = 0;
   PairRepelGrad pgrad;
   zero(pgrad);
 
