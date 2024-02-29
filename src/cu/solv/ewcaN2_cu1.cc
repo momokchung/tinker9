@@ -77,8 +77,8 @@ void ewcaN2_cu1(int n, EnergyBuffer restrict es, grad_prec* restrict gx, grad_pr
             real rmino3 = rmino2 * rmino;
             real rmin2 = rmin * rmin;
             real rmin3 = rmin2 * rmin;
-            real emixo = 4. * epso * epsi / term12;
-            real rmixo = 2. * (rmino3 + rmin3) / (rmino2 + rmin2);
+            real emixo = 4 * epso * epsi / term12;
+            real rmixo = 2 * (rmino3 + rmin3) / (rmino2 + rmin2);
             real rmixo7 = REAL_POW(rmixo, 7);
             real aoi = emixo * rmixo7;
             real epshsqrt = REAL_SQRT(epsh);
@@ -86,12 +86,12 @@ void ewcaN2_cu1(int n, EnergyBuffer restrict es, grad_prec* restrict gx, grad_pr
             real term22 = term2 * term2;
             real rminh2 = rminh * rminh;
             real rminh3 = rminh2 * rminh;
-            real emixh = 4. * epsh * epsi / term22;
-            real rmixh = 2. * (rminh3 + rmin3) / (rminh2 + rmin2);
+            real emixh = 4 * epsh * epsi / term22;
+            real rmixh = 2 * (rminh3 + rmin3) / (rminh2 + rmin2);
             real rmixh7 = REAL_POW(rmixh, 7);
             real ahi = emixh * rmixh7;
-            real rio = rmixo / 2. + dspoff;
-            real rih = rmixh / 2. + dspoff;
+            real rio = rmixo / 2 + dspoff;
+            real rih = rmixh / 2 + dspoff;
             real si = rmin * shctd;
             real si2 = si * si;
 
@@ -100,20 +100,20 @@ void ewcaN2_cu1(int n, EnergyBuffer restrict es, grad_prec* restrict gx, grad_pr
             real epsksqrt = REAL_SQRT(epsk);
             real term3 = epsosqrt + epsksqrt;
             real term32 = term3 * term3;
-            real emkxo = 4. * epso * epsk / term32;
+            real emkxo = 4 * epso * epsk / term32;
             real rmkn2 = rmkn * rmkn;
             real rmkn3 = rmkn2 * rmkn;
-            real rmkxo = 2. * (rmino3 + rmkn3) / (rmino2 + rmkn2);
+            real rmkxo = 2 * (rmino3 + rmkn3) / (rmino2 + rmkn2);
             real rmkxo7 = REAL_POW(rmkxo, 7);
             real aok = emkxo * rmkxo7;
             real term4 = epshsqrt + epsksqrt;
             real term42 = term4 * term4;
-            real emkxh = 4. * epsh * epsk / term42;
-            real rmkxh = 2. * (rminh3 + rmkn3) / (rminh2 + rmkn2);
+            real emkxh = 4 * epsh * epsk / term42;
+            real rmkxh = 2 * (rminh3 + rmkn3) / (rminh2 + rmkn2);
             real rmkxh7 = REAL_POW(rmkxh, 7);
             real ahk = emkxh * rmkxh7;
-            real rko = rmkxo / 2. + dspoff;
-            real rkh = rmkxh / 2. + dspoff;
+            real rko = rmkxo / 2 + dspoff;
+            real rkh = rmkxh / 2 + dspoff;
             real sk = rmkn * shctd;
             real sk2 = sk * sk;
 

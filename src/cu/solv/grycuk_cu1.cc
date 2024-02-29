@@ -39,13 +39,13 @@ if (incl) {
  real r = REAL_SQRT(r2);
  real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
- real mixsn = 0.5 * (snecki[klane] + sneckk);
+ real mixsn = (real)0.5 * (snecki[klane] + sneckk);
  real rk = REAL_MAX(rsk,rdk) + descoff;
  real sk = rdk * shctk;
- bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
- bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
- real pairrborni = 0.;
- real pairrbornk = 0.;
+ bool computei = (rsi[klane] > 0) and (rdk > 0) and (sk > 0);
+ bool computek = (rsk > 0) and (rdi[klane] > 0) and (si > 0);
+ real pairrborni = 0;
+ real pairrbornk = 0;
  if (computei) {
    pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
  }
@@ -104,13 +104,13 @@ if (incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real mixsn = (real)0.5 * (snecki[klane] + sneckk);
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
-            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
-            real pairrborni = 0.;
-            real pairrbornk = 0.;
+            bool computei = (rsi[klane] > 0) and (rdk > 0) and (sk > 0);
+            bool computek = (rsk > 0) and (rdi[klane] > 0) and (si > 0);
+            real pairrborni = 0;
+            real pairrbornk = 0;
             if (computei) {
                pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
             }
@@ -168,13 +168,13 @@ if (incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
-            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            real mixsn = (real)0.5 * (snecki[klane] + sneckk);
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
-            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
-            real pairrborni = 0.;
-            real pairrbornk = 0.;
+            bool computei = (rsi[klane] > 0) and (rdk > 0) and (sk > 0);
+            bool computek = (rsk > 0) and (rdi[klane] > 0) and (si > 0);
+            real pairrborni = 0;
+            real pairrbornk = 0;
             if (computei) {
                pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
             }

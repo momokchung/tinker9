@@ -89,14 +89,14 @@ void grycuk1N2_cu1(int n, VirialBuffer restrict vs, grad_prec* restrict gx, grad
             real rbir = rbi[klane];
             real rbi3 = rbir * rbir * rbir;
             real termi = pi43 / rbi3;
-            termi = factor / REAL_POW(termi, 4. / 3.);
-            real mixsn = 0.5 * (snecki[klane] + sneckk);
+            termi = factor / REAL_POW(termi, (real)4 / 3);
+            real mixsn = (real)0.5 * (snecki[klane] + sneckk);
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
             real rbkr = rbk;
             real rbk3 = rbkr * rbkr * rbkr;
             real termk = pi43 / rbk3;
-            termk = factor / REAL_POW(termk, 4. / 3.);
+            termk = factor / REAL_POW(termk, (real)4 / 3);
             if (usetanh) {
                real tcr;
                tanhrscchr(borni[klane], rsi[klane], tcr, pi43);
@@ -104,10 +104,10 @@ void grycuk1N2_cu1(int n, VirialBuffer restrict vs, grad_prec* restrict gx, grad
                tanhrscchr(bornk, rsk, tcr, pi43);
                termk = termk * tcr;
             }
-            bool computei = (rsi[klane] > 0.) and (rdk > 0.) and (sk > 0.);
-            bool computek = (rsk > 0.) and (rdi[klane] > 0.) and (si > 0.);
-            real dei = 0.;
-            real dek = 0.;
+            bool computei = (rsi[klane] > 0) and (rdk > 0) and (sk > 0);
+            bool computek = (rsk > 0) and (rdi[klane] > 0) and (si > 0);
+            real dei = 0;
+            real dek = 0;
             if (computei) {
                pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi[klane], drbpi[klane], termi, use_gk, useneck, aneck,
                   bneck, rneck, dei);

@@ -60,10 +60,10 @@ static void egka_cu2()
 
    int ngrid = gpuGridSize(BLOCK_DIM);
 
-   real dwater = 78.3;
-   real fc = electric * 1. * (1.-dwater)/(0.+1.*dwater);
-   real fd = electric * 2. * (1.-dwater)/(1.+2.*dwater);
-   real fq = electric * 3. * (1.-dwater)/(2.+3.*dwater);
+   real dwater = (real)78.3;
+   real fc = electric * 1 * (1-dwater)/(0+1*dwater);
+   real fd = electric * 2 * (1-dwater)/(1+2*dwater);
+   real fq = electric * 3 * (1-dwater)/(2+3*dwater);
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;

@@ -18,7 +18,7 @@ static void grycuk_cu2()
 {
    int ngrid = gpuGridSize(BLOCK_DIM);
 
-   real pi43 = 4./3. * pi;
+   real pi43 = (real)4/3 * pi;
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
@@ -63,9 +63,9 @@ static void born1_cu2()
    bool use_gk = false;
    if (solvtyp == Solv::GK) use_gk = true;
 
-   real third = 0.333333333333333333;
-   real pi43 = 4. * third * pi;
-   real factor = -REAL_POW(pi,third) * REAL_POW(6.,2.*third) / 9.;
+   real third = (real)0.333333333333333333;
+   real pi43 = 4 * third * pi;
+   real factor = -REAL_POW(pi,third) * REAL_POW((real)6.,2*third) / 9;
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
