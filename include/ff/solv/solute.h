@@ -46,6 +46,7 @@ void ewca(int vers);
 void egk(int vers);
 void egka(int vers);
 void ediff(int vers);
+void tswitch(double cut, double off, double c0, double c1, double c2, double c3, double c4, double c5);
 }
 
 //====================================================================//
@@ -71,7 +72,6 @@ TINKER_EXTERN real* aneck;
 TINKER_EXTERN real* bneck;
 TINKER_EXTERN real* rsolv;
 TINKER_EXTERN real* rdescr;
-TINKER_EXTERN real* asolv;
 TINKER_EXTERN real* rborn;
 TINKER_EXTERN real* drb;
 TINKER_EXTERN real* drbp;
@@ -106,6 +106,7 @@ TINKER_EXTERN real* roff;
 TINKER_EXTERN real gkc;
 
 // NONPOL
+TINKER_EXTERN double ecav;
 TINKER_EXTERN real epso;
 TINKER_EXTERN real epsh;
 TINKER_EXTERN real rmino;
@@ -115,5 +116,12 @@ TINKER_EXTERN real slevy;
 TINKER_EXTERN real shctd;
 TINKER_EXTERN real cavoff;
 TINKER_EXTERN real dspoff;
+TINKER_EXTERN double solvprs;
+TINKER_EXTERN double surften;
+TINKER_EXTERN double spcut;
+TINKER_EXTERN double spoff;
+TINKER_EXTERN double stcut;
+TINKER_EXTERN double stoff;
 TINKER_EXTERN real* cdsp;
+TINKER_EXTERN double* dcav;
 }

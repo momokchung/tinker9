@@ -11,6 +11,7 @@
 #include "ff/energybuffer.h"
 #include "ff/evalence.h"
 #include "ff/evdw.h"
+#include "ff/solv/alphamol.h"
 #include "ff/solv/solute.h"
 #include "ff/hippo/edisp.h"
 #include "ff/hippo/erepel.h"
