@@ -51,10 +51,14 @@ void delaunay()
    removeinf();
 
    // peel off flat tetrahedra at the boundary of the DT
-   int flag;
-   do {
-      peel(flag);
-   } while (flag!=0);
+   int nt = 0;
+   for (int i = 0; i < tetra.size(); i++) if (tetra[i].info[1]!=0) nt++;
+   if (nt > 1) {
+      int flag;
+      do {
+         peel(flag);
+      } while (flag != 0); 
+   }
 }
 
 inline void insidetetra(int p, int a, int b, int c, int d, int iorient, bool& is_in, bool& redundant, int& ifail);

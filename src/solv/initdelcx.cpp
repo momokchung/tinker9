@@ -185,6 +185,24 @@ void addBogus(int npoints, double* x, double* y, double* z, double* radii, doubl
       w1x = u1y*v1z - u1z*v1y;
       w1y = u1z*v1x - u1x*v1z;
       w1z = u1x*v1y - u1y*v1x;
+      d1 = std::sqrt(w1x*w1x + w1y*w1y + w1z*w1z);
+      if (d1 == 0) {
+         if (u1x != 0) {
+            w1x = u1y;
+            w1y = -u1x;
+            w1z = 0;
+         }
+         else if(u1y != 0) {
+            w1x = u1y;
+            w1y = -u1x;
+            w1z = 0;
+         }
+         else {
+            w1x = u1z;
+            w1y = -u1z;
+            w1z = 0;
+         }
+      }
       d1 = std::sqrt(u1x*u1x + u1y*u1y + u1z*u1z);
       d2 = std::sqrt(v1x*v1x + v1y*v1y + v1z*v1z);
       c32x = c3x-c2x;
