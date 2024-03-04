@@ -1,0 +1,12 @@
+ esolv.cpp -- water18
+
+ Energy Component Breakdown :           Kcal/mole        Interactions
+ Implicit Solvation                       -6.2982               15
+
+ Cartesian Gradient Breakdown over Individual Atoms :
+
+  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm
+
+ Anlyt         1             0.0000      0.0000    -11.2477       11.2477
+ Anlyt         2             0.0000     -1.2705      5.6239        5.7656
+ Anlyt         3             0.0000      1.2705      5.6239        5.7656
