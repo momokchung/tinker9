@@ -7,7 +7,8 @@ namespace tinker
 void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    double& Surf, double& Vol, double& Mean, double& Gauss,
    double* ballwsurf, double* ballwvol, double* ballwmean, double* ballwgauss,
-   double* dsurf_coord, double* dvol_coord, double* dmean_coord, double* dgauss_coord, bool compder)
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz,
+   double* dmeanx, double* dmeany, double* dmeanz, double* dgaussx, double* dgaussy, double* dgaussz, bool compder)
 {
    int ia,ib,ic,id;
    int e1,e2,e3;
@@ -449,13 +450,21 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    if (!compder) return;
 
    // convert derivatives wrt to distance to derivatives wrt to coordinates
-   for (int i = 0; i < 3*nvertices; i++) {
-      dsurf_coord[i] = 0.;
-      dvol_coord[i] = 0.;
-      dmean_coord[i] = 0.;
-      dgauss_coord[i] = 0.;
+   for (int i = 0; i < nvertices; i++) {
+      dsurfx[i] = 0.;
+      dsurfy[i] = 0.;
+      dsurfz[i] = 0.;
+      dvolx[i] = 0.;
+      dvoly[i] = 0.;
+      dvolz[i] = 0.;
+      dmeanx[i] = 0.;
+      dmeany[i] = 0.;
+      dmeanz[i] = 0.;
+      dgaussx[i] = 0.;
+      dgaussy[i] = 0.;
+      dgaussz[i] = 0.;
    }
-                    
+
    for (int iedge = 0; iedge < nedges; iedge++) {
       ia = edges[iedge].vertices[0];
       ib = edges[iedge].vertices[1];
@@ -470,24 +479,46 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       val1M1 = edges[iedge].dmean/rab;
       val1G1 = edges[iedge].dgauss/rab;
 
-      for (int j = 0; j < 3; j++) {
-         dsurf_coord[3*ia+j]  += u[j]*val1S;
-         dsurf_coord[3*ib+j]  -= u[j]*val1S;
-         dvol_coord[3*ia+j]   += u[j]*val1V;
-         dvol_coord[3*ib+j]   -= u[j]*val1V;
-         dmean_coord[3*ia+j]  += u[j]*val1M1;
-         dmean_coord[3*ib+j]  -= u[j]*val1M1;
-         dgauss_coord[3*ia+j] += u[j]*val1G1;
-         dgauss_coord[3*ib+j] -= u[j]*val1G1;
-      }
+      dsurfx[ia]  += u[0]*val1S;
+      dsurfy[ia]  += u[1]*val1S;
+      dsurfz[ia]  += u[2]*val1S;
+      dsurfx[ib]  -= u[0]*val1S;
+      dsurfy[ib]  -= u[1]*val1S;
+      dsurfz[ib]  -= u[2]*val1S;
+      dvolx[ia]   += u[0]*val1V;
+      dvoly[ia]   += u[1]*val1V;
+      dvolz[ia]   += u[2]*val1V;
+      dvolx[ib]   -= u[0]*val1V;
+      dvoly[ib]   -= u[1]*val1V;
+      dvolz[ib]   -= u[2]*val1V;
+      dmeanx[ia]  += u[0]*val1M1;
+      dmeany[ia]  += u[1]*val1M1;
+      dmeanz[ia]  += u[2]*val1M1;
+      dmeanx[ib]  -= u[0]*val1M1;
+      dmeany[ib]  -= u[1]*val1M1;
+      dmeanz[ib]  -= u[2]*val1M1;
+      dgaussx[ia] += u[0]*val1G1;
+      dgaussy[ia] += u[1]*val1G1;
+      dgaussz[ia] += u[2]*val1G1;
+      dgaussx[ib] -= u[0]*val1G1;
+      dgaussy[ib] -= u[1]*val1G1;
+      dgaussz[ib] -= u[2]*val1G1;
    }
 
    // shift as 4 first vertices are pseudo atoms
-   for (int i = 0; i < 3*nballs; i++) {
-      dsurf_coord[i]   = dsurf_coord[i+12];
-      dvol_coord[i]    = dvol_coord[i+12];
-      dmean_coord[i]   = dmean_coord[i+12];
-      dgauss_coord[i]  = dgauss_coord[i+12];
+   for (int i = 0; i < nballs; i++) {
+      dsurfx[i]   = dsurfx[i+4];
+      dsurfy[i]   = dsurfy[i+4];
+      dsurfz[i]   = dsurfz[i+4];
+      dvolx[i]    = dvolx[i+4];
+      dvoly[i]    = dvoly[i+4];
+      dvolz[i]    = dvolz[i+4];
+      dmeanx[i]   = dmeanx[i+4];
+      dmeany[i]   = dmeany[i+4];
+      dmeanz[i]   = dmeanz[i+4];
+      dgaussx[i]  = dgaussx[i+4];
+      dgaussy[i]  = dgaussy[i+4];
+      dgaussz[i]  = dgaussz[i+4];
    }
 }
 }

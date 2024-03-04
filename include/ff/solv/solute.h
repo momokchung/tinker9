@@ -46,7 +46,9 @@ void ewca(int vers);
 void egk(int vers);
 void egka(int vers);
 void ediff(int vers);
-void tswitch(double cut, double off, double c0, double c1, double c2, double c3, double c4, double c5);
+void addToEnrgy();
+void addToGrad();
+void tswitch(double cut, double off, double& c0, double& c1, double& c2, double& c3, double& c4, double& c5);
 }
 
 //====================================================================//
@@ -123,5 +125,10 @@ TINKER_EXTERN double spoff;
 TINKER_EXTERN double stcut;
 TINKER_EXTERN double stoff;
 TINKER_EXTERN real* cdsp;
-TINKER_EXTERN double* dcav;
+TINKER_EXTERN real* decvx;
+TINKER_EXTERN real* decvy;
+TINKER_EXTERN real* decvz;
+TINKER_EXTERN double* dcavx;
+TINKER_EXTERN double* dcavy;
+TINKER_EXTERN double* dcavz;
 }

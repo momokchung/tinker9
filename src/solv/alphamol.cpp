@@ -18,7 +18,7 @@ void alphamol(int vers)
 
    auto do_g = vers & calc::grad;
    alphavol(wsurf, wvol, wmean, wgauss, tsurf, tvol, tmean, tgauss,
-      surf, vol, mean, gauss,
-      dsurf, dvol, dmean, dgauss, do_g);
+      surf, vol, mean, gauss, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz,
+      dmeanx, dmeany, dmeanz, dgaussx, dgaussy, dgaussz, do_g);
 }
 }

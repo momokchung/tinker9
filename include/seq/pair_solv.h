@@ -2020,4 +2020,20 @@ inline void pair_ediff(
       pgrad.ttqk[2] -= f * ttm3i[2];
    }
 }
+
+__global__
+static void addToEnrgy_cu1(EnergyBuffer restrict es, const real ecav)
+{
+   if (ITHREAD == 0) atomic_add(ecav, es, ITHREAD);
+}
+
+__global__
+static void addToGrad_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const real* restrict gxi, const real* restrict gyi, const real* restrict gzi)
+{
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      atomic_add(gxi[i], gx, i);
+      atomic_add(gyi[i], gy, i);
+      atomic_add(gzi[i], gz, i);
+   }
+}
 }

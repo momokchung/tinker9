@@ -31,7 +31,8 @@ void alfcxfaces();
 void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    double& Surf, double& Vol, double& Mean, double& Gauss,
    double* ballwsurf, double* ballwvol, double* ballwmean, double* ballwgauss,
-   double* dsurf_coord, double* dvol_coord, double* dmean_coord, double* dgauss_coord, bool compder);
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz,
+   double* dmeanx, double* dmeany, double* dmeanz, double* dgaussx, double* dgaussy, double* dgaussz, bool compder);
 
 }
 
@@ -120,10 +121,18 @@ TINKER_EXTERN double* surf;
 TINKER_EXTERN double* vol;
 TINKER_EXTERN double* mean;
 TINKER_EXTERN double* gauss;
-TINKER_EXTERN double* dsurf;
-TINKER_EXTERN double* dvol;
-TINKER_EXTERN double* dmean;
-TINKER_EXTERN double* dgauss;
+TINKER_EXTERN double* dsurfx;
+TINKER_EXTERN double* dsurfy;
+TINKER_EXTERN double* dsurfz;
+TINKER_EXTERN double* dvolx;
+TINKER_EXTERN double* dvoly;
+TINKER_EXTERN double* dvolz;
+TINKER_EXTERN double* dmeanx;
+TINKER_EXTERN double* dmeany;
+TINKER_EXTERN double* dmeanz;
+TINKER_EXTERN double* dgaussx;
+TINKER_EXTERN double* dgaussy;
+TINKER_EXTERN double* dgaussz;
 constexpr double deleps = 1e-3;
 constexpr double delepsvol = 1e-13;
 constexpr double alfeps = 1e-10;

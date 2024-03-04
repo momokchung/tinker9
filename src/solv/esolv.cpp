@@ -24,10 +24,14 @@ void esolvData(RcOp op)
    return;
 
    auto rc_a = rc_flag & calc::analyz;
+   auto do_g = rc_flag & calc::grad;
 
    if (op & RcOp::DEALLOC) {
       darray::deallocate(raddsp, epsdsp, cdsp);
       darray::deallocate(drb, drbp);
+      if (do_g) {
+         darray::deallocate(decvx, decvy, decvz);
+      }
       if (rc_a) {
          bufferDeallocate(rc_flag, nes);
          bufferDeallocate(rc_flag, es, vir_es, desx, desy, desz);
@@ -38,6 +42,9 @@ void esolvData(RcOp op)
       desx = nullptr;
       desy = nullptr;
       desz = nullptr;
+      decvx = nullptr;
+      decvy = nullptr;
+      decvz = nullptr;
       delete[] radii;
       delete[] coefS;
       delete[] coefV;
@@ -47,11 +54,21 @@ void esolvData(RcOp op)
       delete[] vol;
       delete[] mean;
       delete[] gauss;
-      delete[] dsurf;
-      delete[] dvol;
-      delete[] dmean;
-      delete[] dgauss;
-      delete[] dcav;
+      delete[] dsurfx;
+      delete[] dsurfy;
+      delete[] dsurfz;
+      delete[] dvolx;
+      delete[] dvoly;
+      delete[] dvolz;
+      delete[] dmeanx;
+      delete[] dmeany;
+      delete[] dmeanz;
+      delete[] dgaussx;
+      delete[] dgaussy;
+      delete[] dgaussz;
+      delete[] dcavx;
+      delete[] dcavy;
+      delete[] dcavz;
    }
 
    if (op & RcOp::ALLOC) {
@@ -63,6 +80,9 @@ void esolvData(RcOp op)
       desz = gz_elec;
       darray::allocate(n, &raddsp, &epsdsp, &cdsp);
       darray::allocate(n, &drb, &drbp);
+      if (do_g) {
+         darray::allocate(n, &decvx, &decvy, &decvz);
+      }
       if (rc_a) {
          bufferAllocate(rc_flag, &nes);
          bufferAllocate(rc_flag, &es, &vir_es, &desx, &desy, &desz);
@@ -77,11 +97,21 @@ void esolvData(RcOp op)
       vol = new double[n+fudge];
       mean = new double[n+fudge];
       gauss = new double[n+fudge];
-      dsurf = new double[3*(n+fudge)];
-      dvol = new double[3*(n+fudge)];
-      dmean = new double[3*(n+fudge)];
-      dgauss = new double[3*(n+fudge)];
-      dcav = new double[3*n];
+      dsurfx = new double[n+fudge];
+      dsurfy = new double[n+fudge];
+      dsurfz = new double[n+fudge];
+      dvolx = new double[n+fudge];
+      dvoly = new double[n+fudge];
+      dvolz = new double[n+fudge];
+      dmeanx = new double[n+fudge];
+      dmeany = new double[n+fudge];
+      dmeanz = new double[n+fudge];
+      dgaussx = new double[n+fudge];
+      dgaussy = new double[n+fudge];
+      dgaussz = new double[n+fudge];
+      dcavx = new double[n];
+      dcavy = new double[n];
+      dcavz = new double[n];
    }
 
    if (op & RcOp::INIT) {
@@ -105,7 +135,6 @@ void esolvData(RcOp op)
       stoff = nonpol::stoff;
       for (int i = 0; i < n; ++i) {
          double exclude = 1.4;
-         if (solvtyp == Solv::GK) exclude = 0;
          radii[i] = nonpol::radcav[i] + exclude;
          coefS[i] = solute::asolv[i];
          coefV[i] = 1.0;
@@ -138,6 +167,9 @@ void esolv(int vers)
 
    darray::zero(g::q0, n, drb, drbp);
 
+   if (do_g)
+      darray::zero(g::q0, n, decvx, decvy, decvz);
+
    esolvInit(vers);
 
    if (solvtyp == Solv::GK) {
@@ -161,6 +193,16 @@ void esolv(int vers)
    //       virial_elec[iv] += v2[iv];
    //    }
    // }
+
+   if (do_e)
+      addToEnrgy();
+
+   if (do_g) {
+      darray::copyin(g::q0, n, decvx, dcavx);
+      darray::copyin(g::q0, n, decvy, dcavy);
+      darray::copyin(g::q0, n, decvz, dcavz);
+      addToGrad();
+   }
 
    if (rc_a) {
       if (do_e) {
@@ -197,8 +239,10 @@ void enp(int vers)
    double evol = 0;
    double esurf = 0;
    if (do_g) {
-      for (int i = 0; i < 3*n; i++) {
-         dcav[i] = 0;
+      for (int i = 0; i < n; i++) {
+         dcavx[i] = 0;
+         dcavy[i] = 0;
+         dcavz[i] = 0;
       }
    }
 
@@ -211,11 +255,6 @@ void enp(int vers)
    double reff4 = reff3 * reff;
    double reff5 = reff4 * reff;
    double dreff = reff / (2.*esurf);
-   if (do_g) {
-      for (int i = 0; i < 3*n; i++) {
-         dsurf[i] *= surften;
-      }
-   }
 
    // TODO compare with Mike's code to see if the conditionals are correct
 
@@ -224,8 +263,11 @@ void enp(int vers)
       evol = wvol;
       evol *= solvprs;
       if (do_g) {
-         for (int i = 0; i < 3*n; i++) {
-            dvol[i] *= solvprs;
+         // TODO can actually get rid of this part by giving solvprs to alphamol
+         for (int i = 0; i < n; i++) {
+            dvolx[i] *= solvprs;
+            dvoly[i] *= solvprs;
+            dvolz[i] *= solvprs;
          }
       }
    }
@@ -233,10 +275,11 @@ void enp(int vers)
    // include a full solvent excluded volume cavity term
    if (reff <= spcut) {
       ecav = evol;
-      printf("ecav1 %10.6e\n", ecav);
       if (do_g) {
-         for (int i = 0; i < 3*n; i++) {
-            dcav[i] += dvol[i];
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += dvolx[i];
+            dcavy[i] += dvoly[i];
+            dcavz[i] += dvolz[i];
          }
       }
    }
@@ -247,12 +290,14 @@ void enp(int vers)
       double c0,c1,c2,c3,c4,c5;
       tswitch(cut, off, c0, c1, c2, c3, c4, c5);
       double taper = c5*reff5 + c4*reff4 + c3*reff3 + c2*reff2 + c1*reff + c0;
-      double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
       ecav = evol * taper;
-      printf("ecav2 %10.6e\n", ecav);
       if (do_g) {
-         for (int i = 0; i < 3*n; i++) {
-            dcav[i] += taper*dvol[i] + evol*dtaper*dsurf[i];
+         double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
+         for (int i = 0; i < n; i++) {
+            double evolxdtaper = evol*dtaper;
+            dcavx[i] += taper*dvolx[i] + evolxdtaper*dsurfx[i];
+            dcavy[i] += taper*dvoly[i] + evolxdtaper*dsurfy[i];
+            dcavz[i] += taper*dvolz[i] + evolxdtaper*dsurfz[i];
          }
       }
    }
@@ -260,10 +305,11 @@ void enp(int vers)
    // include a full solvent accessible surface area term
    if (reff > stcut) {
       ecav += esurf;
-      printf("ecav3 %10.6e\n", ecav);
       if (do_g) {
-         for (int i = 0; i < 3*n; i++) {
-            dcav[i] += dsurf[i];
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += dsurfx[i];
+            dcavy[i] += dsurfy[i];
+            dcavz[i] += dsurfz[i];
          }
       }
    }
@@ -278,15 +324,15 @@ void enp(int vers)
       double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
       dtaper = -dtaper;
       ecav += taper*esurf;
-      printf("ecav4 %10.6e\n", ecav);
       if (do_g) {
-         for (int i = 0; i < 3*n; i++) {
-            dcav[i] += (taper+esurf*dtaper)*dsurf[i];
+         double tesurfdtaper = taper+esurf*dtaper;
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += tesurfdtaper*dsurfx[i];
+            dcavy[i] += tesurfdtaper*dsurfy[i];
+            dcavz[i] += tesurfdtaper*dsurfz[i];
          }
       }
    }
-
-   printf("ecav %10.6e\n", ecav);
 
    // edisp energy
    ewca(vers);
@@ -329,7 +375,19 @@ void ediff(int vers)
    TINKER_FCALL2(acc0, cu1, ediff, vers);
 }
 
-void tswitch(double cut, double off, double c0, double c1, double c2, double c3, double c4, double c5)
+TINKER_FVOID2(acc0, cu1, addToEnrgy);
+void addToEnrgy()
+{
+   TINKER_FCALL2(acc0, cu1, addToEnrgy);
+}
+
+TINKER_FVOID2(acc0, cu1, addToGrad);
+void addToGrad()
+{
+   TINKER_FCALL2(acc0, cu1, addToGrad);
+}
+
+void tswitch(double cut, double off, double& c0, double& c1, double& c2, double& c3, double& c4, double& c5)
 {
    if (cut >= off) return;
 

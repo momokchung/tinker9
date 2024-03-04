@@ -121,3 +121,17 @@ void ediff_cu(int vers)
       ediff_cu2<calc::V5>();
 }
 }
+
+namespace tinker {
+void addToEnrgy_cu()
+{
+   // atomic_add(ecav, es, 0);
+   // atomicAdd(&es[0], ecav);
+   launch_k1s(g::s0, 1, addToEnrgy_cu1, es, ecav);
+}
+
+void addToGrad_cu()
+{
+   launch_k1s(g::s0, n, addToGrad_cu1, n, desx, desy, desz, decvx, decvy, decvz);
+}
+}
