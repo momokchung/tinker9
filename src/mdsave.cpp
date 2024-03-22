@@ -14,6 +14,7 @@
 #include <tinker/detail/deriv.hh>
 #include <tinker/detail/files.hh>
 #include <tinker/detail/moldyn.hh>
+#include <tinker/detail/mpole.hh>
 #include <tinker/detail/output.hh>
 #include <tinker/detail/polar.hh>
 #include <tinker/detail/titles.hh>
@@ -34,13 +35,19 @@ static std::future<void> fut_dup_then_write;
 
 static bool mdsaveUseUind()
 {
-   return static_cast<bool>(output::uindsave) and use(Potent::POLAR);
+   return (static_cast<bool>(output::uindsave) or static_cast<bool>(output::usyssave)) and use(Potent::POLAR);
+}
+
+static bool mdsaveUseUstc()
+{
+   return static_cast<bool>(output::ustcsave) or static_cast<bool>(output::usyssave);
 }
 
 #if TINKER_CUDART
 static cudaEvent_t mdsave_begin_event, mdsave_end_event;
 #endif
 static real (*dup_buf_uind)[3];
+static real (*dup_buf_rpole)[MPL_TOTAL];
 static energy_prec dup_buf_esum;
 static Box dup_buf_box;
 static pos_prec *dup_buf_x, *dup_buf_y, *dup_buf_z;
@@ -76,6 +83,9 @@ static void mdsaveDupThenWrite(int istep, time_prec dt)
 
    if (mdsaveUseUind())
       darray::copy(g::q0, 3 * n, &dup_buf_uind[0][0], &uind[0][0]);
+
+   if (mdsaveUseUstc())
+      darray::copy(g::q0, MPL_TOTAL * n, &dup_buf_rpole[0][0], &rpole[0][0]);
 
       // Record mdsave_begin_event when g::s0 is available.
       // g::s1 will wait until mdsave_begin_event is recorded.
@@ -151,6 +161,20 @@ static void mdsaveDupThenWrite(int istep, time_prec dt)
       waitFor(g::q1);
    }
 
+   if (mdsaveUseUstc()) {
+      std::vector<real> rpolev(n * MPL_TOTAL);
+      darray::copyout(g::q1, n * MPL_TOTAL, rpolev.data(), &dup_buf_rpole[0][0]);
+      waitFor(g::q1);
+      for (int i = 0; i < n; ++i) {
+         int c1 = 13 * i;
+         int c2 = MPL_TOTAL * i;
+         mpole::rpole[c1 + 0] = rpolev[c2 + MPL_PME_0];
+         mpole::rpole[c1 + 1] = rpolev[c2 + MPL_PME_X];
+         mpole::rpole[c1 + 2] = rpolev[c2 + MPL_PME_Y];
+         mpole::rpole[c1 + 3] = rpolev[c2 + MPL_PME_Z];
+      }
+   }
+
    // Record mdsave_end_event when g::s1 is available.
    // g::s0 will wait until mdsave_end_event is recorded, so that the dup_
    // arrays are idle and ready to be written.
@@ -201,6 +225,8 @@ void mdsaveData(RcOp op)
 
       if (mdsaveUseUind()) darray::deallocate(dup_buf_uind);
 
+      if (mdsaveUseUstc()) darray::deallocate(dup_buf_rpole);
+
       darray::deallocate(dup_buf_x, dup_buf_y, dup_buf_z);
       darray::deallocate(dup_buf_vx, dup_buf_vy, dup_buf_vz);
       darray::deallocate(dup_buf_gx, dup_buf_gy, dup_buf_gz);
@@ -218,6 +244,12 @@ void mdsaveData(RcOp op)
          darray::allocate(n, &dup_buf_uind);
       } else {
          dup_buf_uind = nullptr;
+      }
+
+      if (mdsaveUseUstc()) {
+         darray::allocate(n, &dup_buf_rpole);
+      } else {
+         dup_buf_rpole = nullptr;
       }
 
       darray::allocate(n, &dup_buf_x, &dup_buf_y, &dup_buf_z);

@@ -10,7 +10,8 @@ namespace tinker {
 static const char* getSHA1()
 {
    return         //
-      "b043c26b"; // Thu Sep 21 01:22:16 2023 -0500
+      "e8b97d68"; // Thu Mar 21 21:23:40 2024 -0500
+   // "b043c26b"; // Fri Oct 13 12:41:42 2023 -0500
    // "4576f81c"; // Thu Sep 21 01:22:16 2023 -0500
    // "556b58bf"; // Wed Feb 8 15:17:20 2023 -0600
    // "cc62211b"; // Sun Jan 29 15:31:49 2023 -0600

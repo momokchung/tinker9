@@ -1932,6 +1932,8 @@ void moments_(char* mode, tinker_fchar_len_t mode_cap);
 inline void tinker_f_moments(tinker_fchars mode) {
     return moments_(mode.string, mode.capacity);
 }
+void dmoments_();
+#define tinker_f_dmoments dmoments_
 
 // mutate.f
 void mutate_();
@@ -2238,6 +2240,10 @@ void prtuind_(int* iind);
 #define tinker_f_prtuind prtuind_
 void prtdcdu_(int* idcd, int* first);
 #define tinker_f_prtdcdu prtdcdu_
+void prtustc_(int* istc);
+#define tinker_f_prtustc prtustc_
+void prtdcdd_(int* idcd, int* first);
+#define tinker_f_prtdcdd prtdcdd_
 
 // prtvel.f
 void prtvel_(int* ivel);
