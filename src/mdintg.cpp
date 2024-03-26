@@ -11,7 +11,9 @@
 #include <tinker/detail/files.hh>
 #include <tinker/detail/inform.hh>
 #include <tinker/detail/mdstuf.hh>
+#include <tinker/detail/output.hh>
 #include <tinker/detail/units.hh>
+#include <tinker/routines.h>
 
 #include <cassert>
 
@@ -167,6 +169,7 @@ void mdPropagate(int nsteps, time_prec dt_ps)
       mdrest(istep);
    }
    mdsaveSynchronize();
+   if (!output::dynsave) tinker_f_prtdyn();
 }
 
 const TimeScaleConfig& respaTSConfig()
