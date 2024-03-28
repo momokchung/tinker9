@@ -32,9 +32,9 @@ void epolarPairwiseExtfield_acc(const real (*uind)[3]) {
 
    auto bufsize = bufferSize();
 
-   real ex1 = extfld::exfld[0];
-   real ex2 = extfld::exfld[1];
-   real ex3 = extfld::exfld[2];
+   real ex1 = extfld::texfld[0];
+   real ex2 = extfld::texfld[1];
+   real ex3 = extfld::texfld[2];
 
    #pragma acc parallel loop independent async deviceptr(ep,uind)
    for (int i = 0; i < n; ++i) {

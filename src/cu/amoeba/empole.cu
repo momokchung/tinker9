@@ -130,7 +130,7 @@ static void exfieldDipole_cu1(CountBuffer restrict nem, EnergyBuffer restrict em
 void exfieldDipole_cu(int vers)
 {
    real f = electric / dielec;
-   real ef1 = extfld::exfld[0], ef2 = extfld::exfld[1], ef3 = extfld::exfld[2];
+   real ef1 = extfld::texfld[0], ef2 = extfld::texfld[1], ef3 = extfld::texfld[2];
    launch_k1s(g::s0, n, exfieldDipole_cu1, nem, em, vir_em, demx, demy, demz, trqx, trqy, trqz, vers, n, f, ef1, ef2,
       ef3, rpole, x, y, z);
 }
@@ -160,9 +160,9 @@ static void extfieldModifyDField_cu1(real (*restrict field)[3], real (*restrict 
 
 void extfieldModifyDField_cu(real (*field)[3], real (*fieldp)[3])
 {
-   real ex1 = extfld::exfld[0];
-   real ex2 = extfld::exfld[1];
-   real ex3 = extfld::exfld[2];
+   real ex1 = extfld::texfld[0];
+   real ex2 = extfld::texfld[1];
+   real ex3 = extfld::texfld[2];
    launch_k1b(g::s0, n, extfieldModifyDField_cu1, field, fieldp, n, ex1, ex2, ex3);
 }
 }

@@ -8,6 +8,7 @@
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
 #include "tool/tinkersuppl.h"
+#include <tinker/detail/extfld.hh>
 #include <tinker/detail/files.hh>
 #include <tinker/detail/inform.hh>
 #include <tinker/detail/mdstuf.hh>
@@ -155,6 +156,12 @@ void mdrestPrintP1(bool prints, double vtot1, double vtot2, double vtot3, double
 void mdPropagate(int nsteps, time_prec dt_ps)
 {
    for (int istep = 1; istep <= nsteps; ++istep) {
+      if (extfld::use_exfld and extfld::use_exfreq) {
+         double phs = sin(extfld::exfreq * (istep-1) * dt_ps);
+         for (int i = 0; i < 3; i++) {
+            extfld::texfld[i] = phs * extfld::exfld[i];
+         }
+      }
       intg->dynamic(istep, dt_ps);
 
       // mdstat

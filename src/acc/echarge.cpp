@@ -378,7 +378,7 @@ void exfieldCharge_acc(int vers)
 
    auto bufsize = bufferSize();
    real f = electric / dielec;
-   real ef1 = extfld::exfld[0], ef2 = extfld::exfld[1], ef3 = extfld::exfld[2];
+   real ef1 = extfld::texfld[0], ef2 = extfld::texfld[1], ef3 = extfld::texfld[2];
 
    #pragma acc parallel async deviceptr(pchg,nec,ec,vir_ec,x,y,z,decx,decy,decz)
    #pragma acc loop independent

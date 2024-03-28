@@ -43,9 +43,9 @@ static void epolarPairwiseExtfield_cu1(EnergyBuffer restrict ep, const real (*ui
 void epolarPairwiseExtfield_cu(const real (*uind)[3])
 {
    const real f = -0.5 * electric / dielec;
-   real ex1 = extfld::exfld[0];
-   real ex2 = extfld::exfld[1];
-   real ex3 = extfld::exfld[2];
+   real ex1 = extfld::texfld[0];
+   real ex2 = extfld::texfld[1];
+   real ex3 = extfld::texfld[2];
    launch_k1b(g::s0, n, epolarPairwiseExtfield_cu1, ep, uind, n, f, ex1, ex2, ex3);
 }
 }

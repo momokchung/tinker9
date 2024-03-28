@@ -218,7 +218,7 @@ void exfieldDipole_acc(int vers)
 
    auto bufsize = bufferSize();
    real f = electric / dielec;
-   real ef1 = extfld::exfld[0], ef2 = extfld::exfld[1], ef3 = extfld::exfld[2];
+   real ef1 = extfld::texfld[0], ef2 = extfld::texfld[1], ef3 = extfld::texfld[2];
 
    #pragma acc parallel async deviceptr(rpole,nem,em,vir_em,x,y,z,demx,demy,demz,trqx,trqy,trqz)
    #pragma acc loop independent
@@ -264,9 +264,9 @@ void exfieldDipole_acc(int vers)
 
 void extfieldModifyDField_acc(real (*field)[3], real (*fieldp)[3])
 {
-   real ex1 = extfld::exfld[0];
-   real ex2 = extfld::exfld[1];
-   real ex3 = extfld::exfld[2];
+   real ex1 = extfld::texfld[0];
+   real ex2 = extfld::texfld[1];
+   real ex3 = extfld::texfld[2];
 
    if (fieldp) {
       #pragma acc parallel loop independent async deviceptr(field,fieldp)

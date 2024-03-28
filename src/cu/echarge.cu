@@ -265,7 +265,7 @@ static void exfieldCharge_cu1(CountBuffer restrict nec, EnergyBuffer restrict ec
 void exfieldCharge_cu(int vers)
 {
    real f = electric / dielec;
-   real ef1 = extfld::exfld[0], ef2 = extfld::exfld[1], ef3 = extfld::exfld[2];
+   real ef1 = extfld::texfld[0], ef2 = extfld::texfld[1], ef3 = extfld::texfld[2];
    launch_k1s(g::s0, n, exfieldCharge_cu1, nec, ec, vir_ec, decx, decy, decz, vers, n, f, ef1, ef2, ef3, pchg, x, y, z);
 }
 }
