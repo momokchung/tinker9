@@ -1,7 +1,5 @@
 #include "ff/modamoeba.h"
 #include "ff/cumodamoeba.h"
-#include "ff/image.h"
-#include "ff/pme.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"
 #include "seq/epolartorque.h"

@@ -1,5 +1,4 @@
 #include "ff/evdw.h"
-#include "ff/image.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"
 #include "math/switch.h"
