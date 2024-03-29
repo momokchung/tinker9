@@ -3,12 +3,19 @@
 #include "ff/nblist.h"
 #include "ff/pme.h"
 #include "tool/externfunc.h"
+#include <tinker/detail/limits.hh>
 
 namespace tinker {
 TINKER_FVOID2(acc1, cu1, dfieldNonEwald, real (*)[3], real (*)[3]);
 void dfieldNonEwald(real (*field)[3], real (*fieldp)[3])
 {
    TINKER_FCALL2(acc1, cu1, dfieldNonEwald, field, fieldp);
+}
+
+TINKER_FVOID2(acc0, cu1, dfieldNonEwaldN2, real (*)[3], real (*)[3]);
+void dfieldNonEwaldN2(real (*field)[3], real (*fieldp)[3])
+{
+   TINKER_FCALL2(acc0, cu1, dfieldNonEwaldN2, field, fieldp);
 }
 }
 
@@ -67,6 +74,14 @@ void dfield(real (*field)[3], real (*fieldp)[3])
       dfieldEwald(field, fieldp);
    else
       dfieldNonEwald(field, fieldp);
+}
+
+void dfieldsolv(real (*field)[3], real (*fieldp)[3])
+{
+   if (limits::use_mlist)
+      dfieldNonEwald(field, fieldp);
+   else
+      dfieldNonEwaldN2(field, fieldp);
 }
 }
 

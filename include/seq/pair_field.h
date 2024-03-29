@@ -231,8 +231,8 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    real rb2 = rbi * rbk;
    real expterm = REAL_EXP(-r2/(gkc*rb2));
    real expc = expterm / gkc;
-   real dexpc = -2.0 / (gkc*rb2);
-   real gf2 = 1.0 / (r2+rb2*expterm);
+   real dexpc = -2 / (gkc*rb2);
+   real gf2 = 1 / (r2+rb2*expterm);
    real gf = REAL_SQRT(gf2);
    real gf3 = gf2 * gf;
    real gf5 = gf3 * gf2;
@@ -240,10 +240,10 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    
    a[0][0] = gf;
    a[1][0] = -gf3;
-   a[2][0] = 3.0 * gf5;
-   a[3][0] = -15.0 * gf7;
+   a[2][0] = 3 * gf5;
+   a[3][0] = -15 * gf7;
 
-   real expc1 = 1.0 - expc;
+   real expc1 = 1 - expc;
    a[0][1] = expc1 * a[1][0];
    a[1][1] = expc1 * a[2][0];
    a[2][1] = expc1 * a[3][0];
@@ -273,15 +273,15 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    guz[1] = gux[3];
    guz[2] = guy[3];
    guz[3] = a[1][0] + zr2 * a[1][1];
-   gqxx[1] = xr * (2.0 * a[2][0] + xr2 * a[2][1]);
+   gqxx[1] = xr * (2 * a[2][0] + xr2 * a[2][1]);
    gqxx[2] = yr * xr2 * a[2][1];
    gqxx[3] = zr * xr2 * a[2][1];
    gqyy[1] = xr * yr2 * a[2][1];
-   gqyy[2] = yr * (2.0 * a[2][0] + yr2 * a[2][1]);
+   gqyy[2] = yr * (2 * a[2][0] + yr2 * a[2][1]);
    gqyy[3] = zr * yr2 * a[2][1];
    gqzz[1] = xr * zr2 * a[2][1];
    gqzz[2] = yr * zr2 * a[2][1];
-   gqzz[3] = zr * (2.0 * a[2][0] + zr2 * a[2][1]);
+   gqzz[3] = zr * (2 * a[2][0] + zr2 * a[2][1]);
    gqxy[1] = yr * (a[2][0] + xr2 * a[2][1]);
    gqxy[2] = xr * (a[2][0] + yr2 * a[2][1]);
    gqxy[3] = zr * xr * yr * a[2][1];
@@ -292,7 +292,7 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    gqyz[2] = zr * (a[2][0] + yr2 * a[2][1]);
    gqyz[3] = yr * (a[2][0] + zr2 * a[2][1]);
 
-   gux[4] = xr * (3.0 * a[1][1] + xr2 * a[1][2]);
+   gux[4] = xr * (3 * a[1][1] + xr2 * a[1][2]);
    gux[5] = yr * (a[1][1] + xr2 * a[1][2]);
    gux[6] = zr * (a[1][1] + xr2 * a[1][2]);
    gux[7] = xr * (a[1][1] + yr2 * a[1][2]);
@@ -301,7 +301,7 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    guy[4] = yr * (a[1][1] + xr2 * a[1][2]);
    guy[5] = xr * (a[1][1] + yr2 * a[1][2]);
    guy[6] = gux[8];
-   guy[7] = yr * (3.0 * a[1][1] + yr2 * a[1][2]);
+   guy[7] = yr * (3 * a[1][1] + yr2 * a[1][2]);
    guy[8] = zr * (a[1][1] + yr2 * a[1][2]);
    guy[9] = yr * (a[1][1] + zr2 * a[1][2]);
    guz[4] = zr * (a[1][1] + xr2 * a[1][2]);
@@ -309,66 +309,66 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
    guz[6] = xr * (a[1][1] + zr2 * a[1][2]);
    guz[7] = zr * (a[1][1] + yr2 * a[1][2]);
    guz[8] = yr * (a[1][1] + zr2 * a[1][2]);
-   guz[9] = zr * (3.0 * a[1][1] + zr2 * a[1][2]);
+   guz[9] = zr * (3 * a[1][1] + zr2 * a[1][2]);
 
    inci.x = dkx*gux[1] + dky*gux[2] + dkz*gux[3]
-         + 0.5 * (ck*gux[0] + qkxx*gux[4]
+         + 0.5f * (ck*gux[0] + qkxx*gux[4]
          + qkyy*gux[7] + qkzz*gux[9]
-         + 2.0*(qkxy*gux[5]+qkxz*gux[6]
+         + 2*(qkxy*gux[5]+qkxz*gux[6]
          +qkyz*gux[8]))
-         + 0.5 * (ck*gc[1] + qkxx*gqxx[1]
+         + 0.5f * (ck*gc[1] + qkxx*gqxx[1]
          + qkyy*gqyy[1] + qkzz*gqzz[1]
-         + 2.0*(qkxy*gqxy[1]+qkxz*gqxz[1]
+         + 2*(qkxy*gqxy[1]+qkxz*gqxz[1]
          +qkyz*gqyz[1]));
          
    inci.y = dkx*guy[1] + dky*guy[2] + dkz*guy[3]
-         + 0.5 * (ck*guy[0] + qkxx*guy[4]
+         + 0.5f * (ck*guy[0] + qkxx*guy[4]
          + qkyy*guy[7] + qkzz*guy[9]
-         + 2.0*(qkxy*guy[5]+qkxz*guy[6]
+         + 2*(qkxy*guy[5]+qkxz*guy[6]
          +qkyz*guy[8]))
-         + 0.5 * (ck*gc[2] + qkxx*gqxx[2]
+         + 0.5f * (ck*gc[2] + qkxx*gqxx[2]
          + qkyy*gqyy[2] + qkzz*gqzz[2]
-         + 2.0*(qkxy*gqxy[2]+qkxz*gqxz[2]
+         + 2*(qkxy*gqxy[2]+qkxz*gqxz[2]
          +qkyz*gqyz[2]));
          
    inci.z = dkx*guz[1] + dky*guz[2] + dkz*guz[3]
-         + 0.5 * (ck*guz[0] + qkxx*guz[4]
+         + 0.5f * (ck*guz[0] + qkxx*guz[4]
          + qkyy*guz[7] + qkzz*guz[9]
-         + 2.0*(qkxy*guz[5]+qkxz*guz[6]
+         + 2*(qkxy*guz[5]+qkxz*guz[6]
          +qkyz*guz[8]))
-         + 0.5 * (ck*gc[3] + qkxx*gqxx[3]
+         + 0.5f * (ck*gc[3] + qkxx*gqxx[3]
          + qkyy*gqyy[3] + qkzz*gqzz[3]
-         + 2.0*(qkxy*gqxy[3]+qkxz*gqxz[3]
+         + 2*(qkxy*gqxy[3]+qkxz*gqxz[3]
          +qkyz*gqyz[3]));
 
    inck.x = dix*gux[1] + diy*gux[2] + diz*gux[3]
-         - 0.5 * (ci*gux[0] + qixx*gux[4]
+         - 0.5f * (ci*gux[0] + qixx*gux[4]
          + qiyy*gux[7] + qizz*gux[9]
-         + 2.0*(qixy*gux[5]+qixz*gux[6]
+         + 2*(qixy*gux[5]+qixz*gux[6]
          +qiyz*gux[8]))
-         - 0.5 * (ci*gc[1] + qixx*gqxx[1]
+         - 0.5f * (ci*gc[1] + qixx*gqxx[1]
          + qiyy*gqyy[1] + qizz*gqzz[1]
-         + 2.0*(qixy*gqxy[1]+qixz*gqxz[1]
+         + 2*(qixy*gqxy[1]+qixz*gqxz[1]
          +qiyz*gqyz[1]));
          
    inck.y = dix*guy[1] + diy*guy[2] + diz*guy[3]
-         - 0.5 * (ci*guy[0] + qixx*guy[4]
+         - 0.5f * (ci*guy[0] + qixx*guy[4]
          + qiyy*guy[7] + qizz*guy[9]
-         + 2.0*(qixy*guy[5]+qixz*guy[6]
+         + 2*(qixy*guy[5]+qixz*guy[6]
          +qiyz*guy[8]))
-         - 0.5 * (ci*gc[2] + qixx*gqxx[2]
+         - 0.5f * (ci*gc[2] + qixx*gqxx[2]
          + qiyy*gqyy[2] + qizz*gqzz[2]
-         + 2.0*(qixy*gqxy[2]+qixz*gqxz[2]
+         + 2*(qixy*gqxy[2]+qixz*gqxz[2]
          +qiyz*gqyz[2]));
          
    inck.z = dix*guz[1] + diy*guz[2] + diz*guz[3]
-         - 0.5 * (ci*guz[0] + qixx*guz[4]
+         - 0.5f * (ci*guz[0] + qixx*guz[4]
          + qiyy*guz[7] + qizz*guz[9]
-         + 2.0*(qixy*guz[5]+qixz*guz[6]
+         + 2*(qixy*guz[5]+qixz*guz[6]
          +qiyz*guz[8]))
-         - 0.5 * (ci*gc[3] + qixx*gqxx[3]
+         - 0.5f * (ci*gc[3] + qixx*gqxx[3]
          + qiyy*gqyy[3] + qizz*gqzz[3]
-         + 2.0*(qixy*gqxy[3]+qixz*gqxz[3]
+         + 2*(qixy*gqxy[3]+qixz*gqxz[3]
          +qiyz*gqyz[3]));
 
    fidsx += inci.x;
@@ -630,15 +630,15 @@ void pair_ufieldgk2(real r2, real xr, real yr, real zr,
    real rb2 = rbi * rbk;
    real expterm = REAL_EXP(-r2/(gkc*rb2));
    real expc = expterm / gkc;
-   real gf2 = 1.0 / (r2+rb2*expterm);
+   real gf2 = 1 / (r2+rb2*expterm);
    real gf = REAL_SQRT(gf2);
    real gf3 = gf2 * gf;
    real gf5 = gf3 * gf2;
    
    real a10 = -gf3;
-   real a20 = 3.0 * gf5;
+   real a20 = 3 * gf5;
 
-   real expc1 = 1.0 - expc;
+   real expc1 = 1 - expc;
    real a11 = expc1 * a20;
 
    gux[0] = fd * (a10 + xr2 * a11);

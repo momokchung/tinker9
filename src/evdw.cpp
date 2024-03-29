@@ -10,6 +10,7 @@
 #include <tinker/detail/atoms.hh>
 #include <tinker/detail/couple.hh>
 #include <tinker/detail/keys.hh>
+#include <tinker/detail/limits.hh>
 #include <tinker/detail/mutant.hh>
 #include <tinker/detail/params.hh>
 #include <tinker/detail/sizes.hh>
@@ -562,7 +563,7 @@ TINKER_FVOID2(acc1, cu1, ehal, int);
 TINKER_FVOID2(acc0, cu1, ehalN2, int);
 void ehal(int vers)
 {
-   if (use(Potent::SOLV)) {
+   if (use(Potent::SOLV) and !limits::use_mlist) {
       TINKER_FCALL2(acc0, cu1, ehalN2, vers);
    } else {
       TINKER_FCALL2(acc1, cu1, ehal, vers);

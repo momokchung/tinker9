@@ -7,6 +7,7 @@
 #include "ff/potent.h"
 #include "math/zero.h"
 #include "tool/externfunc.h"
+#include <tinker/detail/limits.hh>
 #include <tinker/detail/mplpot.hh>
 
 namespace tinker {
@@ -108,7 +109,7 @@ void empole(int vers)
    }
 
    mpoleInit(vers);
-   if (use(Potent::SOLV)) {
+   if (use(Potent::SOLV) and !limits::use_mlist) {
       empoleN2(vers);
    }
    else {

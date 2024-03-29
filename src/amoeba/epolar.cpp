@@ -14,6 +14,7 @@
 #include "tool/iofortstr.h"
 #include "tool/ioprint.h"
 #include <tinker/detail/couple.hh>
+#include <tinker/detail/limits.hh>
 #include <tinker/detail/mplpot.hh>
 #include <tinker/detail/polar.hh>
 #include <tinker/detail/polgrp.hh>
@@ -529,6 +530,8 @@ void epolarData(RcOp op)
 namespace tinker {
 TINKER_FVOID2(acc1, cu1, epolarNonEwald, int, const real (*)[3],
    const real (*)[3]);
+TINKER_FVOID2(acc0, cu1, epolarNonEwaldN2, int, const real (*)[3],
+   const real (*)[3]);
 static void epolarNonEwald(int vers)
 {
    // v0: E_dot
@@ -546,8 +549,13 @@ static void epolarNonEwald(int vers)
    if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
    else induce(uind, uinp);
    if (edot) epolar0DotProd(uind, udirp);
-   if (vers != calc::v0)
-      TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
+   if (vers != calc::v0) {
+      if (solvtyp == Solv::GK and !limits::use_mlist) {
+         TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
+      } else {
+         TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
+      }
+   }
 }
 
 TINKER_FVOID2(acc1, cu1, epolarEwaldRecipSelf, int, const real (*)[3],

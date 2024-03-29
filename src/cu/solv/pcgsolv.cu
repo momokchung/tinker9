@@ -12,59 +12,6 @@
 #include <tinker/detail/units.hh>
 
 namespace tinker {
-
-// __global__
-// static void pcg_dPrint_cu1(int n, real (*array)[3])
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real arrayi0 = array[i][0];
-//       real arrayi1 = array[i][1];
-//       real arrayi2 = array[i][2];
-//       # if __CUDA_ARCH__>=200
-//       printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-//       #endif  
-//    }
-// }
-
-// __global__
-// static void pcg_dpPrint_cu1(int n, real (*array)[3])
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real arrayi0 = array[i][0];
-//       real arrayi1 = array[i][1];
-//       real arrayi2 = array[i][2];
-//       # if __CUDA_ARCH__>=200
-//       printf("dp %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-//       #endif  
-//    }
-// }
-
-// __global__
-// static void pcg_dsPrint_cu1(int n, real (*array)[3])
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real arrayi0 = array[i][0];
-//       real arrayi1 = array[i][1];
-//       real arrayi2 = array[i][2];
-//       # if __CUDA_ARCH__>=200
-//       printf("ds %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-//       #endif  
-//    }
-// }
-
-// __global__
-// static void pcg_dpsPrint_cu1(int n, real (*array)[3])
-// {
-//    for (int i = ITHREAD; i < n; i += STRIDE) {
-//       real arrayi0 = array[i][0];
-//       real arrayi1 = array[i][1];
-//       real arrayi2 = array[i][2];
-//       # if __CUDA_ARCH__>=200
-//       printf("dps %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-//       #endif  
-//    }
-// }
-
 void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3])
 {
    auto* field = work01_;
@@ -97,7 +44,7 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    }
 
    // get the electrostatic field due to permanent multipoles
-   dfield(field, fieldp);
+   dfieldsolv(field, fieldp);
    real dwater = 78.3;
    real fc = 1.0 * (1.0-dwater) / (1.0*dwater);
    real fd = 2.0 * (1.0-dwater) / (1.0+2.0*dwater);
@@ -286,10 +233,5 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
       printError();
       TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged");
    }
-
-   // launch_k1s(g::s0, n, pcg_dPrint_cu1, n, uind);
-   // launch_k1s(g::s0, n, pcg_dpPrint_cu1, n, uinp);
-   // launch_k1s(g::s0, n, pcg_dsPrint_cu1, n, uinds);
-   // launch_k1s(g::s0, n, pcg_dpsPrint_cu1, n, uinps);
 }
 }
