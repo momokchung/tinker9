@@ -256,14 +256,14 @@ void enp(int vers)
    double reff5 = reff4 * reff;
    double dreff = reff / (2.*esurf);
 
-   // TODO compare with Mike's code to see if the conditionals are correct
+   // TODO_MOSES compare with Mike's code to see if the conditionals are correct
 
    // compute solvent excluded volume needed for small solutes
    if (reff < spoff) {
       evol = wvol;
       evol *= solvprs;
       if (do_g) {
-         // TODO can actually get rid of this part by giving solvprs to alphamol
+         // TODO_MOSES can actually get rid of this part by giving solvprs to alphamol
          for (int i = 0; i < n; i++) {
             dvolx[i] *= solvprs;
             dvoly[i] *= solvprs;

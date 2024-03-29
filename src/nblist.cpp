@@ -61,7 +61,7 @@ Nbl clistVersion()
 {
    Nbl u;
    // First, forget about VDW, only check partial charge models.
-   if (not use(Potent::CHARGE) and not use(Potent::SOLV)) {
+   if (not use(Potent::CHARGE)) {
       u = Nbl::UNDEFINED;
    } else if (!limits::use_clist) {
 #if TINKER_GPULANG_CUDA
@@ -506,6 +506,7 @@ void spatialUpdate(SpatialUnit unt)
 
 void nblistRefresh()
 {
+   if (use(Potent::SOLV) and !limits::use_mlist) return;
    Nbl u = Nbl::UNDEFINED;
 
    // vlist

@@ -1,0 +1,196 @@
+OUTPUT_DIR: src/cu/solv
+KERNEL_NAME: ediffN2_cu1
+TEMPLATE_PARAMS: template<class Ver>
+CONSTEXPR_FLAGS: |
+  constexpr bool do_e = Ver::e;
+  constexpr bool do_a = Ver::a;
+  constexpr bool do_g = Ver::g;
+USE_NEIGH: false
+
+COUNT:
+  - nes
+ENERGY:
+  - es
+# VIRIAL:
+#   - vs
+GRADIENT:
+  - gx
+  - gy
+  - gz
+
+# CUT_DISTANCE:
+OFF_DISTANCE: 'off'
+
+EXCLUDE_INFO: mdpuinfo
+SCALE_1X_TYPE: real4_const_array,1,2,3
+
+EXTRA_PARAMS: |
+  , real *restrict trqx
+  , real *restrict trqy
+  , real *restrict trqz
+  , const real (*restrict rpole)[10]
+  , const real (*restrict uind)[3], const real (*restrict uinds)[3]
+  , const real (*restrict uinp)[3], const real (*restrict uinps)[3]
+  , real f
+IMPLICIT_PARAMS:
+  - d::jpolar
+  - d::njpolar
+  - d::pdamp
+  - d::thlval
+
+I_VARIABLES:
+  - shared real xi    from:x
+  - shared real yi    from:y
+  - shared real zi    from:z
+  - shared real ci    from:rpole,MPL_PME_0
+  - shared real dix   from:rpole,MPL_PME_X
+  - shared real diy   from:rpole,MPL_PME_Y
+  - shared real diz   from:rpole,MPL_PME_Z
+  - shared real qixx  from:rpole,MPL_PME_XX
+  - shared real qixy  from:rpole,MPL_PME_XY
+  - shared real qixz  from:rpole,MPL_PME_XZ
+  - shared real qiyy  from:rpole,MPL_PME_YY
+  - shared real qiyz  from:rpole,MPL_PME_YZ
+  - shared real qizz  from:rpole,MPL_PME_ZZ
+  - shared real uidx  from:uind,0
+  - shared real uidy  from:uind,1
+  - shared real uidz  from:uind,2
+  - shared real uidsx from:uinds,0
+  - shared real uidsy from:uinds,1
+  - shared real uidsz from:uinds,2
+  - shared real uipx  from:uinp,0
+  - shared real uipy  from:uinp,1
+  - shared real uipz  from:uinp,2
+  - shared real uipsx from:uinps,0
+  - shared real uipsy from:uinps,1
+  - shared real uipsz from:uinps,2
+  - shared real pdi   from:pdamp
+  - shared int  jpi   from:jpolar
+K_VARIABLES:
+  - shared   real xk    from:x
+  - shared   real yk    from:y
+  - shared   real zk    from:z
+  - register real ck    from:rpole,MPL_PME_0
+  - shared   real dkx   from:rpole,MPL_PME_X
+  - shared   real dky   from:rpole,MPL_PME_Y
+  - shared   real dkz   from:rpole,MPL_PME_Z
+  - register real qkxx  from:rpole,MPL_PME_XX
+  - register real qkxy  from:rpole,MPL_PME_XY
+  - register real qkxz  from:rpole,MPL_PME_XZ
+  - register real qkyy  from:rpole,MPL_PME_YY
+  - register real qkyz  from:rpole,MPL_PME_YZ
+  - register real qkzz  from:rpole,MPL_PME_ZZ
+  - shared   real ukdx  from:uind,0
+  - shared   real ukdy  from:uind,1
+  - shared   real ukdz  from:uind,2
+  - shared   real ukdsx from:uinds,0
+  - shared   real ukdsy from:uinds,1
+  - shared   real ukdsz from:uinds,2
+  - shared   real ukpx  from:uinp,0
+  - shared   real ukpy  from:uinp,1
+  - shared   real ukpz  from:uinp,2
+  - shared   real ukpsx from:uinps,0
+  - shared   real ukpsy from:uinps,1
+  - shared   real ukpsz from:uinps,2
+  - register real pdk   from:pdamp
+  - register int  jpk   from:jpolar
+I_FORCE:
+  - register real gxi addto:gx
+  - register real gyi addto:gy
+  - register real gzi addto:gz
+  - register real txi addto:trqx
+  - register real tyi addto:trqy
+  - register real tzi addto:trqz
+K_FORCE:
+  - register real gxk addto:gx
+  - register real gyk addto:gy
+  - register real gzk addto:gz
+  - register real txk addto:trqx
+  - register real tyk addto:trqy
+  - register real tzk addto:trqz
+SCALED_PAIRWISE_INTERACTION: |
+  real xr = @xk@ - @xi@;
+  real yr = @yk@ - @yi@;
+  real zr = @zk@ - @zi@;
+  real r2 = xr*xr + yr*yr + zr*zr;
+  if (r2 <= off * off and incl) {
+    real pga = thlval[njpolar * jpi[klane] + jpk];
+    real e;
+    PairSolvGrad pgrad;
+    zero(pgrad);
+    pair_ediff<Ver>(
+      r2, xr, yr, zr, scaleb, scalec, scaled, //
+      @ci@, @dix@, @diy@, @diz@, @qixx@, @qixy@, @qixz@, @qiyy@, @qiyz@, @qizz@,
+      @uidx@, @uidy@, @uidz@, @uidsx@, @uidsy@, @uidsz@,
+      @uipx@, @uipy@, @uipz@, @uipsx@, @uipsy@, @uipsz@,
+      @pdi@, pga, //
+      @ck@, @dkx@, @dky@, @dkz@, @qkxx@, @qkxy@, @qkxz@, @qkyy@, @qkyz@, @qkzz@,
+      @ukdx@, @ukdy@, @ukdz@, @ukdsx@, @ukdsy@, @ukdsz@,
+      @ukpx@, @ukpy@, @ukpz@, @ukpsx@, @ukpsy@, @ukpsz@,
+      @pdk@, pga, //
+      f, e, pgrad);
+    if CONSTEXPR (do_e) {
+      estl += floatTo<ebuf_prec>(e);
+      if CONSTEXPR (do_a) {
+        nestl += 1;
+      }
+    }
+    if CONSTEXPR (do_g) {
+      @gxi@ += pgrad.frcx;
+      @gyi@ += pgrad.frcy;
+      @gzi@ += pgrad.frcz;
+      @gxk@ -= pgrad.frcx;
+      @gyk@ -= pgrad.frcy;
+      @gzk@ -= pgrad.frcz;
+
+      @txi@ += pgrad.ttqi[0];
+      @tyi@ += pgrad.ttqi[1];
+      @tzi@ += pgrad.ttqi[2];
+      @txk@ += pgrad.ttqk[0];
+      @tyk@ += pgrad.ttqk[1];
+      @tzk@ += pgrad.ttqk[2];
+    }
+  } // end if (include)
+FULL_PAIRWISE_INTERACTION: |
+  real xr = @xk@ - @xi@;
+  real yr = @yk@ - @yi@;
+  real zr = @zk@ - @zi@;
+  real r2 = xr*xr + yr*yr + zr*zr;
+  if (r2 <= off * off and incl) {
+    real pga = thlval[njpolar * jpi[klane] + jpk];
+    real e;
+    PairSolvGrad pgrad;
+    zero(pgrad);
+    pair_ediff<Ver>(
+      r2, xr, yr, zr, 1, 1, 1, //
+      @ci@, @dix@, @diy@, @diz@, @qixx@, @qixy@, @qixz@, @qiyy@, @qiyz@, @qizz@,
+      @uidx@, @uidy@, @uidz@, @uidsx@, @uidsy@, @uidsz@,
+      @uipx@, @uipy@, @uipz@, @uipsx@, @uipsy@, @uipsz@,
+      @pdi@, pga, //
+      @ck@, @dkx@, @dky@, @dkz@, @qkxx@, @qkxy@, @qkxz@, @qkyy@, @qkyz@, @qkzz@,
+      @ukdx@, @ukdy@, @ukdz@, @ukdsx@, @ukdsy@, @ukdsz@,
+      @ukpx@, @ukpy@, @ukpz@, @ukpsx@, @ukpsy@, @ukpsz@,
+      @pdk@, pga, //
+      f, e, pgrad);
+    if CONSTEXPR (do_e) {
+      estl += floatTo<ebuf_prec>(e);
+      if CONSTEXPR (do_a) {
+        nestl += 1;
+      }
+    }
+    if CONSTEXPR (do_g) {
+      @gxi@ += pgrad.frcx;
+      @gyi@ += pgrad.frcy;
+      @gzi@ += pgrad.frcz;
+      @gxk@ -= pgrad.frcx;
+      @gyk@ -= pgrad.frcy;
+      @gzk@ -= pgrad.frcz;
+
+      @txi@ += pgrad.ttqi[0];
+      @tyi@ += pgrad.ttqi[1];
+      @tzi@ += pgrad.ttqi[2];
+      @txk@ += pgrad.ttqk[0];
+      @tyk@ += pgrad.ttqk[1];
+      @tzk@ += pgrad.ttqk[2];
+    }
+  } // end if (include)

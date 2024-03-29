@@ -2,7 +2,7 @@
 template <class Ver>
 __global__
 void empoleN2_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, VirialBuffer restrict vem,
-   grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const unsigned* restrict mdpuinfo,
+   grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off, const unsigned* restrict mdpuinfo,
    int nexclude, const int (*restrict exclude)[2], const real (*restrict exclude_scale)[4], const real* restrict x,
    const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
    const int* restrict iakpl, int niakp, const int* restrict iakp, real* restrict trqx, real* restrict trqy,
@@ -99,7 +99,7 @@ void empoleN2_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Vir
       real yr = yk[threadIdx.x] - yi[klane];
       real zr = zk[threadIdx.x] - zi[klane];
       real r2 = xr * xr + yr * yr + zr * zr;
-      if (incl) {
+      if (r2 <= off * off and incl) {
          real e, vxx, vyx, vzx, vyy, vzy, vzz;
          real aewald = 0;
          pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, scalea, ci[klane], dix[klane], diy[klane], diz[klane],
@@ -206,7 +206,7 @@ void empoleN2_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Vir
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real e, vxx, vyx, vzx, vyy, vzy, vzz;
             real aewald = 0;
             pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, 1, ci[klane], dix[klane], diy[klane], diz[klane], qixx[klane],
@@ -320,7 +320,7 @@ void empoleN2_cu1(int n, CountBuffer restrict nem, EnergyBuffer restrict em, Vir
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real e, vxx, vyx, vzx, vyy, vzy, vzz;
             real aewald = 0;
             pair_mpole_v2<Ver, NON_EWALD>(r2, xr, yr, zr, 1, ci[klane], dix[klane], diy[klane], diz[klane], qixx[klane],

@@ -93,20 +93,26 @@ void egka_cu(int vers)
 
 namespace tinker {
 #include "ediff_cu1.cc"
+#include "ediffN2_cu1.cc"
 
 template <class Ver>
 static void ediff_cu2()
 {
    const auto& st = *mspatial_v2_unit;
    const real off = switchOff(Switch::MPOLE);
-
    const real f = electric / dielec;
 
    int ngrid = gpuGridSize(BLOCK_DIM);
-   
-   ediff_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nes, es, desx, desy, desz,
-      off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niakp, st.iakp, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
+
+   if (limits::use_mlist) {
+      ediff_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, desx, desy, desz,
+         off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+         st.niak, st.iak, st.lst, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
+   } else {
+      ediffN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nes, es, desx, desy, desz,
+         off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
+         st.niakp, st.iakp, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
+   }
 }
 
 void ediff_cu(int vers)
@@ -125,8 +131,6 @@ void ediff_cu(int vers)
 namespace tinker {
 void addToEnrgy_cu()
 {
-   // atomic_add(ecav, es, 0);
-   // atomicAdd(&es[0], ecav);
    launch_k1s(g::s0, 1, addToEnrgy_cu1, es, ecav);
 }
 

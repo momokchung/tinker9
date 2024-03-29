@@ -8,6 +8,7 @@
 #include "seq/triangle.h"
 #include "tool/error.h"
 #include "tool/thrustcache.h"
+#include <tinker/detail/limits.hh>
 #include <algorithm>
 // Eventually thrust will drop c++11 support.
 #define THRUST_IGNORE_DEPRECATED_CPP_DIALECT
@@ -699,6 +700,7 @@ void Spatial::RunStep5(SpatialUnit u)
       u->akpf, u->sorted, u->akc, u->half);
    darray::copyout(g::q0, 1, &u->niak, dev_niak);
    waitFor(g::q0);
+   if (use(Potent::SOLV) and !limits::use_mlist) return;
    if (u->niak > u->nak * Spatial::LSTCAP) {
       int cap = Spatial::LSTCAP;
       printError();
