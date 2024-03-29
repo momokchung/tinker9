@@ -506,7 +506,6 @@ void spatialUpdate(SpatialUnit unt)
 
 void nblistRefresh()
 {
-   if (use(Potent::SOLV) and !limits::use_mlist) return;
    Nbl u = Nbl::UNDEFINED;
 
    // vlist
