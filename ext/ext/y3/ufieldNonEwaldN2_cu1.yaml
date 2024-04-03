@@ -1,5 +1,5 @@
-OUTPUT_DIR: src/cu/amoeba
-KERNEL_NAME: ufieldN2_cu1
+OUTPUT_DIR: src/cu/solv
+KERNEL_NAME: ufieldNonEwaldN2_cu1
 # TEMPLATE_PARAMS:
 # CONSTEXPR_FLAGS:
 USE_NEIGH: false

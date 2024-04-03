@@ -46,6 +46,7 @@ solv/ehalN2.cu
 solv/empoleNonEwaldN2.cu
 solv/epolarNonEwaldN2.cu
 solv/esolv.cu
+solv/fieldgk.cu
 solv/pcgsolv.cu
 spatial.cu
 upredict.cu

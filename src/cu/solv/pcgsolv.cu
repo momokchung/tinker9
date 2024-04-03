@@ -8,7 +8,6 @@
 #include "tool/error.h"
 #include "tool/ioprint.h"
 #include <tinker/detail/inform.hh>
-#include <tinker/detail/limits.hh>
 #include <tinker/detail/polpcg.hh>
 #include <tinker/detail/polpot.hh>
 #include <tinker/detail/units.hh>
@@ -113,11 +112,7 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    //    ufield(uind, uinp, field, fieldp);
    //    launch_k1s(g::s0, n, pcgRsd0V2, n, polarity_inv, rsd, rsdp, udir, udirp, uind, uinp, field, fieldp);
    // } else if (dirguess) {
-   //    if (limits::use_mlist) {
-   //       ufield(uind, uinp, rsd, rsdp);
-   //    } else {
-   //       ufieldN2(uind, uinp, rsd, rsdp);
-   //    }
+   //    ufieldsolv(uind, uinp, rsd, rsdp);
    //    ufieldgk(gkc, fd, uinds, uinps, rsds, rsdps);
    // } else {
    //    darray::copy(g::q0, n, rsd, field);
@@ -125,11 +120,7 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    //    darray::copy(g::q0, n, rsd, fields);
    //    darray::copy(g::q0, n, rsdp, fieldps);
    // }
-   if (limits::use_mlist) {
-      ufield(uind, uinp, rsd, rsdp);
-   } else {
-      ufieldN2(uind, uinp, rsd, rsdp);
-   }
+   ufieldsolv(uind, uinp, rsd, rsdp);
    ufieldgk(gkc, fd, uinds, uinps, rsds, rsdps); // Temporary
    launch_k1s(g::s0, n, pcgRsd0gk, n, polarity, rsd, rsdp, rsds, rsdps);
 
@@ -176,11 +167,7 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
       // T p and p
       // vec = (inv_alpha + Tu) conj, field = -Tu conj
       // vec = inv_alpha * conj - field
-      if (limits::use_mlist) {
-         ufield(conj, conjp, field, fieldp);
-      } else {
-         ufieldN2(conj, conjp, field, fieldp);
-      }
+      ufieldsolv(conj, conjp, field, fieldp);
       ufieldgk(gkc, fd, conjs, conjps, fields, fieldps);
       launch_k1s(g::s0, n, pcgP1gk, n, polarity_inv, vec, vecp, conj, conjp, field, fieldp, vecs, vecps, conjs, conjps, fields, fieldps);
 

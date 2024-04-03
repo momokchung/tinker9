@@ -1,4 +1,4 @@
-OUTPUT_DIR: src/cu/amoeba
+OUTPUT_DIR: src/cu/solv
 KERNEL_NAME: dfieldN2_cu1
 TEMPLATE_PARAMS: template<class ETYP>
 # CONSTEXPR_FLAGS:

@@ -1,8 +1,8 @@
 // ck.py Version 3.1.0
 __global__
-void ufieldN2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclude, const int (*restrict exclude)[2],
-   const real* restrict exclude_scale, const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
+void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclude,
+   const int (*restrict exclude)[2], const real* restrict exclude_scale, const real* restrict x, const real* restrict y,
+   const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
    const int* restrict iakp, const real (*restrict uind)[3], const real (*restrict uinp)[3], real (*restrict field)[3],
    real (*restrict fieldp)[3])
 {
