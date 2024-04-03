@@ -8,6 +8,7 @@
 #include "ff/hippo/cflux.h"
 #include "ff/nblist.h"
 #include "ff/potent.h"
+#include "ff/solv/inducegk.h"
 #include "ff/solv/solute.h"
 #include "math/zero.h"
 #include "tool/externfunc.h"

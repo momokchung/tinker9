@@ -6,6 +6,7 @@
 #include "ff/image.h"
 #include "ff/modamoeba.h"
 #include "ff/pme.h"
+#include "ff/solv/inducegk.h"
 #include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"

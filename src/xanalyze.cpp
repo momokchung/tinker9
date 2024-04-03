@@ -12,6 +12,7 @@
 #include "ff/nblist.h"
 #include "ff/potent.h"
 #include "ff/rwcrd.h"
+#include "ff/solv/inducegk.h"
 #include "ff/solv/solute.h"
 #include "md/osrw.h"
 #include "tool/argkey.h"

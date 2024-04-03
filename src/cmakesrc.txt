@@ -82,6 +82,7 @@ solv/delconv.cpp
 solv/deldet.cpp
 solv/delflip.cpp
 solv/esolv.cpp
+solv/inducegk.cpp
 solv/initdelcx.cpp
 spatial.cpp
 switch.cpp

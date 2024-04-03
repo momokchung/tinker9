@@ -1,6 +1,7 @@
 #include "ff/amoeba/induce.h"
 #include "ff/modamoeba.h"
 #include "ff/cuinduce.h"
+#include "ff/solv/inducegk.h"
 #include "ff/solv/solute.h"
 #include "ff/switch.h"
 #include "seq/launch.h"

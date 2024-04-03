@@ -7,6 +7,7 @@
 #include "ff/potent.h"
 #include "ff/precision.h"
 #include "ff/solv/alphamol.h"
+#include "ff/solv/inducegk.h"
 #include "ff/solv/solute.h"
 #include "math/zero.h"
 #include "tool/darray.h"
