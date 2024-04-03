@@ -1,6 +1,6 @@
 OUTPUT_DIR: src/cu/solv
-KERNEL_NAME: dfieldN2_cu1
-TEMPLATE_PARAMS: template<class ETYP>
+KERNEL_NAME: dfieldNonEwaldN2_cu1
+# TEMPLATE_PARAMS:
 # CONSTEXPR_FLAGS:
 USE_NEIGH: false
 
@@ -16,7 +16,7 @@ EXCLUDE_INFO: dpinfo
 SCALE_1X_TYPE: real2_const_array,0,1
 
 EXTRA_PARAMS: |
-  , real (*restrict field)[3], real (*restrict fieldp)[3] , real aewald
+  , real (*restrict field)[3], real (*restrict fieldp)[3]
 IMPLICIT_PARAMS:
   - d::jpolar
   - d::njpolar
@@ -79,7 +79,7 @@ FULL_PAIRWISE_INTERACTION: |
   real r2 = xr*xr + yr*yr + zr*zr;
   if (r2 <= off * off and incl) {
     real pga = thlval[njpolar * jpi[klane] + jpk];
-    pair_dfield_v2<ETYP>(r2, xr, yr, zr, scalea, scaleb, aewald,
+    pair_dfield_v2<NON_EWALD>(r2, xr, yr, zr, scalea, scaleb, 0,
       @ci@, @dix@, @diy@, @diz@,
       @qixx@, @qixy@, @qixz@, @qiyy@, @qiyz@, @qizz@, @pdi@, pga,
       @ck@, @dkx@, @dky@, @dkz@,

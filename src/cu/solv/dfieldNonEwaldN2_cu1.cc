@@ -1,10 +1,10 @@
 // ck.py Version 3.1.0
-template <class ETYP>
 __global__
-void dfieldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude, const int (*restrict exclude)[2],
-   const real (*restrict exclude_scale)[2], const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
-   const int* restrict iakp, real (*restrict field)[3], real (*restrict fieldp)[3], real aewald)
+void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude,
+   const int (*restrict exclude)[2], const real (*restrict exclude_scale)[2], const real* restrict x,
+   const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
+   const int* restrict iakpl, int niakp, const int* restrict iakp, real (*restrict field)[3],
+   real (*restrict fieldp)[3])
 {
    using d::jpolar;
    using d::njpolar;
@@ -84,7 +84,7 @@ void dfieldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude
       real r2 = xr * xr + yr * yr + zr * zr;
       if (r2 <= off * off and incl) {
          real pga = thlval[njpolar * jpi[klane] + jpk];
-         pair_dfield_v2<ETYP>(r2, xr, yr, zr, scalea, scaleb, aewald, ci[klane], dix[klane], diy[klane], diz[klane],
+         pair_dfield_v2<NON_EWALD>(r2, xr, yr, zr, scalea, scaleb, 0, ci[klane], dix[klane], diy[klane], diz[klane],
             qixx[klane], qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], pdi[klane], pga, ck, dkx, dky,
             dkz, qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, pdk, pga, fidx, fidy, fidz, fipx, fipy, fipz, fkdx, fkdy, fkdz,
             fkpx, fkpy, fkpz);
@@ -176,7 +176,7 @@ void dfieldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude
          real r2 = xr * xr + yr * yr + zr * zr;
          if (r2 <= off * off and incl) {
             real pga = thlval[njpolar * jpi[klane] + jpk];
-            pair_dfield_v2<ETYP>(r2, xr, yr, zr, scalea, scaleb, aewald, ci[klane], dix[klane], diy[klane], diz[klane],
+            pair_dfield_v2<NON_EWALD>(r2, xr, yr, zr, scalea, scaleb, 0, ci[klane], dix[klane], diy[klane], diz[klane],
                qixx[klane], qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], pdi[klane], pga, ck, dkx,
                dky, dkz, qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, pdk, pga, fidx, fidy, fidz, fipx, fipy, fipz, fkdx, fkdy,
                fkdz, fkpx, fkpy, fkpz);
@@ -277,7 +277,7 @@ void dfieldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude
          real r2 = xr * xr + yr * yr + zr * zr;
          if (r2 <= off * off and incl) {
             real pga = thlval[njpolar * jpi[klane] + jpk];
-            pair_dfield_v2<ETYP>(r2, xr, yr, zr, scalea, scaleb, aewald, ci[klane], dix[klane], diy[klane], diz[klane],
+            pair_dfield_v2<NON_EWALD>(r2, xr, yr, zr, scalea, scaleb, 0, ci[klane], dix[klane], diy[klane], diz[klane],
                qixx[klane], qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], pdi[klane], pga, ck, dkx,
                dky, dkz, qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, pdk, pga, fidx, fidy, fidz, fipx, fipy, fipz, fkdx, fkdy,
                fkdz, fkpx, fkpy, fkpz);

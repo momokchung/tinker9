@@ -79,7 +79,8 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    launch_k1s(g::s0, n, dfieldgkFinal_cu1, n, field, fieldp, fields, fieldps);
 
    // direct induced dipoles
-   launch_k1s(g::s0, n, pcgUdirV4, n, polarity, udir, udirp, udirs, udirps, field, fieldp, fields, fieldps);
+   launch_k1s(g::s0, n, pcgUdirV2, n, polarity, udir, udirp, field, fieldp);
+   launch_k1s(g::s0, n, pcgUdirV2, n, polarity, udirs, udirps, fields, fieldps);
 
    // // initial induced dipole TODO_Moses
    // if (predict) {
@@ -122,7 +123,8 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    // }
    ufieldsolv(uind, uinp, rsd, rsdp);
    ufieldgk(gkc, fd, uinds, uinps, rsds, rsdps); // Temporary
-   launch_k1s(g::s0, n, pcgRsd0gk, n, polarity, rsd, rsdp, rsds, rsdps);
+   launch_k1s(g::s0, n, pcgRsd0, n, polarity, rsd, rsdp);
+   launch_k1s(g::s0, n, pcgRsd0, n, polarity, rsds, rsdps);
 
    // // initial M r(0) and p(0) TODO_Moses
    // if (sparse_prec) {
@@ -131,7 +133,8 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    // } else {
    //    diagPrecond(rsd, rsdp, zrsd, zrsdp);
    // }
-   diagPrecondgk(rsd, rsdp, rsds, rsdps, zrsd, zrsdp, zrsds, zrsdps); // Temporary
+   diagPrecond(rsd, rsdp, zrsd, zrsdp); // Temporary
+   diagPrecond(rsds, rsdps, zrsds, zrsdps); // Temporary
    darray::copy(g::q0, n, conj, zrsd);
    darray::copy(g::q0, n, conjp, zrsdp);
    darray::copy(g::q0, n, conjs, zrsds);
@@ -169,7 +172,8 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
       // vec = inv_alpha * conj - field
       ufieldsolv(conj, conjp, field, fieldp);
       ufieldgk(gkc, fd, conjs, conjps, fields, fieldps);
-      launch_k1s(g::s0, n, pcgP1gk, n, polarity_inv, vec, vecp, conj, conjp, field, fieldp, vecs, vecps, conjs, conjps, fields, fieldps);
+      launch_k1s(g::s0, n, pcgP1, n, polarity_inv, vec, vecp, conj, conjp, field, fieldp);
+      launch_k1s(g::s0, n, pcgP1, n, polarity_inv, vecs, vecps, conjs, conjps, fields, fieldps);
 
       // a <- p T p
       real* a = &((real*)dptr_buf)[4];
@@ -184,15 +188,16 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
 
       // u <- u + a p
       // r <- r - a T p
-      launch_k1s(g::s0, n, pcgP2gk, n, polarity, a, ap, sum, sump, uind, uinp, conj, conjp, rsd, rsdp, vec, vecp,
-         as, aps, sums, sumps, uinds, uinps, conjs, conjps, rsds, rsdps, vecs, vecps);
+      launch_k1s(g::s0, n, pcgP2, n, polarity, a, ap, sum, sump, uind, uinp, conj, conjp, rsd, rsdp, vec, vecp);
+      launch_k1s(g::s0, n, pcgP2, n, polarity, as, aps, sums, sumps, uinds, uinps, conjs, conjps, rsds, rsdps, vecs, vecps);
 
       // // calculate/update M r TODO_Moses
       // if (sparse_prec)
       //    sparsePrecondApply(rsd, rsdp, zrsd, zrsdp);
       // else
       //    diagPrecond(rsd, rsdp, zrsd, zrsdp);
-      diagPrecondgk(rsd, rsdp, rsds, rsdps, zrsd, zrsdp, zrsds, zrsdps); // Temporary
+      diagPrecond(rsd, rsdp, zrsd, zrsdp); // Temporary
+      diagPrecond(rsds, rsdps, zrsds, zrsdps); // Temporary
 
       // b = sum1 / sum; bp = sump1 / sump
       real* sum1 = &((real*)dptr_buf)[8];
@@ -205,8 +210,8 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
       darray::dot(g::q0, n, sump1s, rsdps, zrsdps);
 
       // calculate/update p
-      launch_k1s(g::s0, n, pcgP3gk, n, sum, sump, sum1, sump1, conj, conjp, zrsd, zrsdp,
-         sums, sumps, sum1s, sump1s, conjs, conjps, zrsds, zrsdps);
+      launch_k1s(g::s0, n, pcgP3, n, sum, sump, sum1, sump1, conj, conjp, zrsd, zrsdp);
+      launch_k1s(g::s0, n, pcgP3, n, sums, sumps, sum1s, sump1s, conjs, conjps, zrsds, zrsdps);
 
       // copy sum1/p to sum/p
       darray::copy(g::q0, 2, sum, sum1);
@@ -246,8 +251,10 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
          done = true;
 
       // apply a "peek" iteration to the mutual induced dipoles
-      if (done)
-         launch_k1s(g::s0, n, pcgPeekgk, n, pcgpeek, polarity, uind, uinp, rsd, rsdp, uinds, uinps, rsds, rsdps);
+      if (done) {
+         launch_k1s(g::s0, n, pcgPeek, n, pcgpeek, polarity, uind, uinp, rsd, rsdp);
+         launch_k1s(g::s0, n, pcgPeek, n, pcgpeek, polarity, uinds, uinps, rsds, rsdps);
+      }
    }
 
    // print the results from the conjugate gradient iteration

@@ -11,7 +11,7 @@
 #include <tinker/detail/limits.hh>
 
 namespace tinker {
-#include "dfieldN2_cu1.cc"
+#include "dfieldNonEwaldN2_cu1.cc"
 
 void dfieldNonEwaldN2_cu(real (*field)[3], real (*fieldp)[3])
 {
@@ -21,8 +21,8 @@ void dfieldNonEwaldN2_cu(real (*field)[3], real (*fieldp)[3])
    darray::zero(g::q0, n, field, fieldp);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
-   dfieldN2_cu1<NON_EWALD><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si3.bit0, ndpexclude, dpexclude, dpexclude_scale, st.x, st.y, st.z, st.sorted,
-      st.nakpl, st.iakpl, st.niakp, st.iakp, field, fieldp, 0);
+   dfieldNonEwaldN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si3.bit0, ndpexclude, dpexclude, dpexclude_scale,
+      st.x, st.y, st.z, st.sorted,st.nakpl, st.iakpl, st.niakp, st.iakp, field, fieldp);
 }
 }
 
