@@ -284,7 +284,7 @@ void ufieldgk_cu(real gkc, real fd, const real (*uinds)[3], const real (*uinps)[
          st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uinds, uinps, rborn, gkc, fd, fields, fieldps);
    } else {
       ufieldgk1N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
-         st.nakpl, st.iakpl, st.niakp, st.iakp,  uinds, uinps, fields, fieldps);
+         st.nakpl, st.iakpl, st.niakp, st.iakp, uinds, uinps, fields, fieldps);
 
       const auto& st2 = *mn2_unit;
       ufieldgk2N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st2.nakp, st2.iakp, uinds, uinps, rborn, gkc, fd, fields, fieldps);

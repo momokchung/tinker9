@@ -780,7 +780,7 @@ void spatialDataInit_cu(SpatialUnit u)
       u->cap_nakpl, u->nstype,                               //
       si1.bit0, si2.bit0, si3.bit0, si4.bit0);
 
-   if (use(Potent::SOLV)) {
+   if (use(Potent::SOLV) and !limits::use_mlist) {
       std::vector<int> skip_pair(u->nakpl);
       cudaMemcpy(skip_pair.data(), u->iakpl, u->nakpl*sizeof(int), cudaMemcpyDeviceToHost);
       std::sort(skip_pair.begin(), skip_pair.end());

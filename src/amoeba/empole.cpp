@@ -7,7 +7,6 @@
 #include "ff/potent.h"
 #include "math/zero.h"
 #include "tool/externfunc.h"
-#include <tinker/detail/limits.hh>
 #include <tinker/detail/mplpot.hh>
 
 namespace tinker {
@@ -79,10 +78,10 @@ static void empoleEwald(int vers)
 }
 
 namespace tinker {
-TINKER_FVOID2(acc0, cu1, empoleN2, int);
-static void empoleN2(int vers)
+TINKER_FVOID2(acc0, cu1, empoleNonEwaldgk, int);
+static void empoleNonEwaldgk(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, empoleN2, vers);
+   TINKER_FCALL2(acc0, cu1, empoleNonEwaldgk, vers);
 }
 }
 
@@ -109,8 +108,8 @@ void empole(int vers)
    }
 
    mpoleInit(vers);
-   if (use(Potent::SOLV) and !limits::use_mlist) {
-      empoleN2(vers);
+   if (use(Potent::SOLV)) {
+      empoleNonEwaldgk(vers);
    }
    else {
       if (useEwald())
