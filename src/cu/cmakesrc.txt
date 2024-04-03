@@ -43,7 +43,7 @@ pme.cu
 rattle.cu
 solv/born.cu
 solv/ehalN2.cu
-solv/empoleNonEwaldgk.cu
+solv/empoleNonEwaldN2.cu
 solv/epolarN2.cu
 solv/esolv.cu
 solv/pcgsolv.cu
