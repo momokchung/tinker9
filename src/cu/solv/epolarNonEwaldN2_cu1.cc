@@ -1,7 +1,7 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void epolarN2_cu1(int n, CountBuffer restrict nep, EnergyBuffer restrict ep, VirialBuffer restrict vep,
+void epolarNonEwaldN2_cu1(int n, CountBuffer restrict nep, EnergyBuffer restrict ep, VirialBuffer restrict vep,
    grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off, const unsigned* restrict mdpuinfo,
    int nexclude, const int (*restrict exclude)[2], const real (*restrict exclude_scale)[4], const real* restrict x,
    const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,

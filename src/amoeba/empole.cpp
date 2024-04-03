@@ -119,12 +119,10 @@ void empole(int vers)
    if (use(Potent::SOLV)) {
       empoleNonEwaldgk(vers);
    }
-   else {
-      if (useEwald())
-         empoleEwald(vers);
-      else
-         empoleNonEwald(vers);
-   }
+   else if (useEwald())
+      empoleEwald(vers);
+   else
+      empoleNonEwald(vers);
    torque(vers, demx, demy, demz);
    if (do_v) {
       VirialBuffer u2 = vir_trq;

@@ -8,10 +8,10 @@
 #include "seq/triangle.h"
 
 namespace tinker {
-#include "epolarN2_cu1.cc"
+#include "epolarNonEwaldN2_cu1.cc"
 
 template <class Ver>
-static void epolarN2_cu(const real (*uind)[3], const real (*uinp)[3])
+static void epolarNonEwaldN2_cu(const real (*uind)[3], const real (*uinp)[3])
 {
    constexpr bool do_g = Ver::g;
 
@@ -23,7 +23,7 @@ static void epolarN2_cu(const real (*uind)[3], const real (*uinp)[3])
    if CONSTEXPR (do_g)
       darray::zero(g::q0, n, ufld, dufld);
    int ngrid = gpuGridSize(BLOCK_DIM);
-   epolarN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nep, ep, vir_ep, depx, depy, depz,
+   epolarNonEwaldN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nep, ep, vir_ep, depx, depy, depz,
       off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
       st.niakp, st.iakp, ufld, dufld, rpole, uind, uinp, f);
 
@@ -37,17 +37,17 @@ static void epolarN2_cu(const real (*uind)[3], const real (*uinp)[3])
 void epolarNonEwaldN2_cu(int vers, const real (*uind)[3], const real (*uinp)[3])
 {
    if (vers == calc::v0) {
-      epolarN2_cu<calc::V0>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V0>(uind, uinp);
    } else if (vers == calc::v1) {
-      epolarN2_cu<calc::V1>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V1>(uind, uinp);
    } else if (vers == calc::v3) {
-      epolarN2_cu<calc::V3>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V3>(uind, uinp);
    } else if (vers == calc::v4) {
-      epolarN2_cu<calc::V4>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V4>(uind, uinp);
    } else if (vers == calc::v5) {
-      epolarN2_cu<calc::V5>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V5>(uind, uinp);
    } else if (vers == calc::v6) {
-      epolarN2_cu<calc::V6>(uind, uinp);
+      epolarNonEwaldN2_cu<calc::V6>(uind, uinp);
    }
 }
 }

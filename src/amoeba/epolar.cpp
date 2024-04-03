@@ -60,7 +60,7 @@ void epolarData(RcOp op)
       darray::deallocate(work01_, work02_, work03_, work04_, work05_);
       if (not polpot::use_tholed) {// AMOEBA
          darray::deallocate(work06_, work07_, work08_, work09_, work10_);
-         if (solvtyp == Solv::GK) darray::deallocate(work11_, work12_, work13_, work14_, work15_, work16_, work17_, work18_, work19_, work20_);
+         if (solvtyp == Solv::GK and rc_a) darray::deallocate(work11_, work12_, work13_, work14_, work15_, work16_, work17_, work18_, work19_, work20_);
       }
       if (polpred == UPred::ASPC) {
          darray::deallocate(udalt_00, udalt_01, udalt_02, udalt_03, udalt_04,
@@ -425,7 +425,7 @@ void epolarData(RcOp op)
       darray::allocate(n, &work01_, &work02_, &work03_, &work04_, &work05_);
       if (not polpot::use_tholed) {// AMOEBA
          darray::allocate(n, &work06_, &work07_, &work08_, &work09_, &work10_);
-         if (solvtyp == Solv::GK) darray::allocate(n, &work11_, &work12_, &work13_, &work14_, &work15_, &work16_, &work17_, &work18_, &work19_, &work20_);
+         if (solvtyp == Solv::GK and rc_a) darray::allocate(n, &work11_, &work12_, &work13_, &work14_, &work15_, &work16_, &work17_, &work18_, &work19_, &work20_);
       }
       if (uprior::use_pred) {
          FstrView predstr = uprior::polpred;
@@ -530,8 +530,6 @@ void epolarData(RcOp op)
 namespace tinker {
 TINKER_FVOID2(acc1, cu1, epolarNonEwald, int, const real (*)[3],
    const real (*)[3]);
-TINKER_FVOID2(acc0, cu1, epolarNonEwaldN2, int, const real (*)[3],
-   const real (*)[3]);
 static void epolarNonEwald(int vers)
 {
    // v0: E_dot
@@ -546,25 +544,38 @@ static void epolarNonEwald(int vers)
    int ver2 = vers;
    if (edot) ver2 &= ~calc::energy; // toggle off the calc::energy flag
 
-   if (solvtyp == Solv::GK) {
-      inducegk(uind, uinp, uinds, uinps, vers);
-      if (edot) epolar0DotProd(uinds, udirp);
-   }
-   else {
-      induce(uind, uinp);
-      if (edot) epolar0DotProd(uind, udirp);
-   }
+   induce(uind, uinp);
+   if (edot) epolar0DotProd(uind, udirp);
+   if (vers != calc::v0)
+      TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
+}
+
+TINKER_FVOID2(acc0, cu1, epolarNonEwaldN2, int, const real (*)[3],
+   const real (*)[3]);
+static void epolarNonEwaldgk(int vers)
+{
+   // v0: E_dot
+   // v1: EGV = E_dot + GV
+   // v3: EA = E_pair + A
+   // v4: EG = E_dot + G
+   // v5: G
+   // v6: GV
+   auto edot = vers & calc::energy; // if not do_e, edot = false
+   if (vers & calc::energy and vers & calc::analyz)
+      edot = 0; // if do_e and do_a, edot = false
+   int ver2 = vers;
+   if (edot) ver2 &= ~calc::energy; // toggle off the calc::energy flag
+
+   inducegk(uind, uinp, uinds, uinps, vers);
+   if (edot) epolar0DotProd(uinds, udirp);
+
    if (vers != calc::v0) {
-      if (solvtyp == Solv::GK) {
-         if (vers == calc::v3) { // if analyze
-            if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
-            else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
-         } else {
-            if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uinds, uinps);
-            else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uinds, uinps);
-         }
+      if (vers == calc::v3) { // if analyze
+         if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
+         else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
       } else {
-         TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
+         if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uinds, uinps);
+         else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uinds, uinps);
       }
    }
 }
@@ -628,7 +639,10 @@ void epolar(int vers)
    mpoleInit(vers);
    if (use_cfgrad) cfluxZeroPot();
 
-   if (useEwald()) {
+   if (solvtyp == Solv::GK) {
+      // if (polpot::use_tholed)
+      epolarNonEwaldgk(vers);
+   } else if (useEwald()) {
       if (polpot::use_tholed)
          epolarAplusEwald(vers, use_cfgrad);
       else
