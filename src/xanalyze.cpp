@@ -227,7 +227,7 @@ static void xAnalyzeMoments()
          if (mplpot::use_chgpen)
             induce2(uind);
          else
-            if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
+            if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps, calc::v3);
             else induce(uind, uinp);
          darray::copyout(g::q0, n * 3, uindv.data(), &uind[0][0]);
       } else {

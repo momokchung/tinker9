@@ -15,9 +15,7 @@ EXCLUDE_INFO: uinfo
 SCALE_1X_TYPE: real_const_array
 
 EXTRA_PARAMS: |
-  , const real (*restrict uind)[3], const real (*restrict uinp)[3]
   , const real (*restrict uinds)[3], const real (*restrict uinps)[3]
-  , real (*restrict field)[3], real (*restrict fieldp)[3]
   , real (*restrict fields)[3], real (*restrict fieldps)[3]
 IMPLICIT_PARAMS:
   - d::jpolar
@@ -29,12 +27,6 @@ I_VARIABLES:
   - register real xi    from:x
   - register real yi    from:y
   - register real zi    from:z
-  - shared   real uidx  from:uind,0
-  - shared   real uidy  from:uind,1
-  - shared   real uidz  from:uind,2
-  - shared   real uipx  from:uinp,0
-  - shared   real uipy  from:uinp,1
-  - shared   real uipz  from:uinp,2
   - shared   real uidsx from:uinds,0
   - shared   real uidsy from:uinds,1
   - shared   real uidsz from:uinds,2
@@ -47,12 +39,6 @@ K_VARIABLES:
   - register real xk    from:x
   - register real yk    from:y
   - register real zk    from:z
-  - register real ukdx  from:uind,0
-  - register real ukdy  from:uind,1
-  - register real ukdz  from:uind,2
-  - register real ukpx  from:uinp,0
-  - register real ukpy  from:uinp,1
-  - register real ukpz  from:uinp,2
   - register real ukdsx from:uinds,0
   - register real ukdsy from:uinds,1
   - register real ukdsz from:uinds,2
@@ -62,12 +48,6 @@ K_VARIABLES:
   - register real pdk   from:pdamp
   - register int  jpk   from:jpolar
 I_FORCE:
-  - register real fidx  addto:field,0
-  - register real fidy  addto:field,1
-  - register real fidz  addto:field,2
-  - register real fipx  addto:fieldp,0
-  - register real fipy  addto:fieldp,1
-  - register real fipz  addto:fieldp,2
   - register real fidsx addto:fields,0
   - register real fidsy addto:fields,1
   - register real fidsz addto:fields,2
@@ -75,12 +55,6 @@ I_FORCE:
   - register real fipsy addto:fieldps,1
   - register real fipsz addto:fieldps,2
 K_FORCE:
-  - register real fkdx  addto:field,0
-  - register real fkdy  addto:field,1
-  - register real fkdz  addto:field,2
-  - register real fkpx  addto:fieldp,0
-  - register real fkpy  addto:fieldp,1
-  - register real fkpz  addto:fieldp,2
   - register real fkdsx addto:fields,0
   - register real fkdsy addto:fields,1
   - register real fkdsz addto:fields,2
@@ -97,12 +71,8 @@ FULL_PAIRWISE_INTERACTION: |
   if (r2 <= off * off and incl) {
     real pga = thlval[njpolar * jpi[klane] + jpk];
     pair_ufieldgk1(r2, xr, yr, zr, scalea,
-      @uidx@, @uidy@, @uidz@, @uipx@, @uipy@, @uipz@,
       @uidsx@, @uidsy@, @uidsz@, @uipsx@, @uipsy@, @uipsz@, @pdi@, pga,
-      @ukdx@, @ukdy@, @ukdz@, @ukpx@, @ukpy@, @ukpz@,
       @ukdsx@, @ukdsy@, @ukdsz@, @ukpsx@, @ukpsy@, @ukpsz@, @pdk@, pga,
-      @fidx@, @fidy@, @fidz@, @fipx@, @fipy@, @fipz@,
       @fidsx@, @fidsy@, @fidsz@, @fipsx@, @fipsy@, @fipsz@,
-      @fkdx@, @fkdy@, @fkdz@, @fkpx@, @fkpy@, @fkpz@,
       @fkdsx@, @fkdsy@, @fkdsz@, @fkpsx@, @fkpsy@, @fkpsz@);
   } // end if (include)

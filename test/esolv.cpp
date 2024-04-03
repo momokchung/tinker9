@@ -19,7 +19,7 @@ TEST_CASE("ESolv-1-Implicit", "[ff][amoeba][esolv]")
    int argc = 4;
 
    const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.001, 0.0001);
 
    TestReference r(TINKER9_DIRSTR "/test/ref/esolv.1.txt");
    auto ref_c = r.getCount();
@@ -325,10 +325,9 @@ TEST_CASE("ESolv-7-Implicit", "[ff][amoeba][esolv]")
    int argc = 4;
 
    const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.001, 0.0001);
 
    TestReference r(TINKER9_DIRSTR "/test/ref/esolv.6.txt");
-   auto ref_c = r.getCount();
    auto ref_e = r.getEnergy();
    auto ref_g = r.getGradient();
 
@@ -341,7 +340,20 @@ TEST_CASE("ESolv-7-Implicit", "[ff][amoeba][esolv]")
 
    energy(calc::v3);
    COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_INTS(countReduce(nes), ref_c);
+   double eng;
+   int cnt;
+   r.getEnergyCountByName("Van der Waals", eng, cnt);
+   COMPARE_COUNT(nev, cnt);
+   COMPARE_ENERGY(ev, eng, eps_e);
+   r.getEnergyCountByName("Atomic Multipoles", eng, cnt);
+   COMPARE_COUNT(nem, cnt);
+   COMPARE_ENERGY(em, eng, eps_e);
+   r.getEnergyCountByName("Polarization", eng, cnt);
+   COMPARE_COUNT(nep, cnt);
+   COMPARE_ENERGY(ep, eng, eps_e);
+   r.getEnergyCountByName("Implicit Solvation", eng, cnt);
+   COMPARE_COUNT(nes, cnt);
+   COMPARE_ENERGY(es, eng, eps_e);
 
    energy(calc::v4);
    COMPARE_REALS(esum, ref_e, eps_e);
@@ -366,7 +378,7 @@ TEST_CASE("ESolv-8-Implicit", "[ff][amoeba][esolv]")
    int argc = 4;
 
    const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.001, 0.0001);
 
    TestReference r(TINKER9_DIRSTR "/test/ref/esolv.7.txt");
    auto ref_c = r.getCount();

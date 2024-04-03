@@ -117,24 +117,10 @@ static void dfieldgkSelf_cu1(int n, real fd, const real* restrict rborn, real (*
    }
 }
 
-__global__
-static void dfieldgkFinal_cu1(int n, const real (*restrict field)[3], const real (*restrict fieldp)[3], real (*restrict fields)[3], real (*restrict fieldps)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      fields[i][0] += field[i][0];
-      fields[i][1] += field[i][1];
-      fields[i][2] += field[i][2];
-      fieldps[i][0] += fieldp[i][0];
-      fieldps[i][1] += fieldp[i][1];
-      fieldps[i][2] += fieldp[i][2];
-   }
-}
-
-void dfieldgk_cu(real gkc, real fc, real fd, real fq, real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3])
+void dfieldgk_cu(real gkc, real fc, real fd, real fq, real (*fields)[3], real (*fieldps)[3])
 {
    const real off = switchOff(Switch::MPOLE);
 
-   darray::zero(g::q0, n, fields, fieldps);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (limits::use_mlist) {
@@ -147,7 +133,6 @@ void dfieldgk_cu(real gkc, real fc, real fd, real fq, real (*field)[3], real (*f
    }
 
    launch_k1s(g::s0, n, dfieldgkSelf_cu1, n, fd, rborn, fields, fieldps);
-   launch_k1s(g::s0, n, dfieldgkFinal_cu1, n, field, fieldp, fields, fieldps);
 }
 }
 
@@ -238,10 +223,23 @@ void ufieldNonEwald_cu(const real (*uind)[3], const real (*uinp)[3], real (*fiel
 
 namespace tinker {
 
+#include "ufieldN2_cu1.cc"
 #include "ufieldgk1_cu1.cc"
 #include "ufieldgk2_cu1.cc"
 #include "ufieldgk1N2_cu1.cc"
 #include "ufieldgk2N2_cu1.cc"
+
+void ufieldN2_cu(const real (*uind)[3], const real (*uinp)[3], real (*field)[3], real (*fieldp)[3])
+{
+   const auto& st = *mspatial_v2_unit;
+   const real off = switchOff(Switch::MPOLE);
+
+   darray::zero(g::q0, n, field, fieldp);
+   int ngrid = gpuGridSize(BLOCK_DIM);
+
+   ufieldN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
+      st.nakpl, st.iakpl, st.niakp, st.iakp, uind, uinp, field, fieldp);
+}
 
 __global__
 static void ufieldgkSelf_cu1(int n, real gkc, real fd, const real (*restrict uinds)[3], const real (*restrict uinps)[3], const real* restrict rborn, real (*restrict fields)[3], real (*restrict fieldps)[3])
@@ -270,23 +268,23 @@ static void ufieldgkSelf_cu1(int n, real gkc, real fd, const real (*restrict uin
    }
 }
 
-void ufieldgk_cu(real gkc, real fd, const real (*uind)[3], const real (*uinp)[3], const real (*uinds)[3], const real (*uinps)[3], real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3])
+void ufieldgk_cu(real gkc, real fd, const real (*uinds)[3], const real (*uinps)[3], real (*fields)[3], real (*fieldps)[3])
 {
    const auto& st = *mspatial_v2_unit;
    const real off = switchOff(Switch::MPOLE);
 
-   darray::zero(g::q0, n, field, fieldp, fields, fieldps);
+   darray::zero(g::q0, n, fields, fieldps);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (limits::use_mlist) {
       ufieldgk1_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
-         st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uind, uinp, uinds, uinps, field, fieldp, fields, fieldps);
+         st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uinds, uinps, fields, fieldps);
 
       ufieldgk2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.x, st.y, st.z, st.sorted,
          st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uinds, uinps, rborn, gkc, fd, fields, fieldps);
    } else {
       ufieldgk1N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
-         st.nakpl, st.iakpl, st.niakp, st.iakp,  uind, uinp, uinds, uinps, field, fieldp, fields, fieldps);
+         st.nakpl, st.iakpl, st.niakp, st.iakp,  uinds, uinps, fields, fieldps);
 
       const auto& st2 = *mn2_unit;
       ufieldgk2N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st2.nakp, st2.iakp, uinds, uinps, rborn, gkc, fd, fields, fieldps);

@@ -546,12 +546,23 @@ static void epolarNonEwald(int vers)
    int ver2 = vers;
    if (edot) ver2 &= ~calc::energy; // toggle off the calc::energy flag
 
-   if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
-   else induce(uind, uinp);
-   if (edot) epolar0DotProd(uind, udirp);
+   if (solvtyp == Solv::GK) {
+      inducegk(uind, uinp, uinds, uinps, vers);
+      if (edot) epolar0DotProd(uinds, udirp);
+   }
+   else {
+      induce(uind, uinp);
+      if (edot) epolar0DotProd(uind, udirp);
+   }
    if (vers != calc::v0) {
-      if (solvtyp == Solv::GK and !limits::use_mlist) {
-         TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
+      if (solvtyp == Solv::GK) {
+         if (vers == calc::v3) { // if analyze
+            if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
+            else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
+         } else {
+            if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uinds, uinps);
+            else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uinds, uinps);
+         }
       } else {
          TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
       }

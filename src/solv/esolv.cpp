@@ -178,7 +178,7 @@ void esolv(int vers)
 
    if (solvtyp == Solv::GK) {
       if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
-         inducegk(uind, uinp, uinds, uinps);
+         inducegk(uind, uinp, uinds, uinps, vers);
       }
       egk(vers);
    }
@@ -343,11 +343,13 @@ void egk(int vers)
    egka(vers);
 
    born1(vers);
-   
-   if (use(Potent::POLAR)) {
-      ediff(vers);
-   } else if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
-      ediff(vers);
+
+   bool comp_ediff = (not use(Potent::MPOLE)) and (not use(Potent::POLAR));
+
+   if ((vers == calc::v3) or comp_ediff) {
+      if (use(Potent::POLAR) or comp_ediff) {
+         ediff(vers);
+      }
    }
 }
 

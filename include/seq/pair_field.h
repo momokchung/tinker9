@@ -512,20 +512,14 @@ void pair_ufield_v2(real r2, real xr, real yr, real zr, real uscale,
 #pragma acc routine seq
 SEQ_CUDA
 void pair_ufieldgk1(real r2, real xr, real yr, real zr, real uscale,
-   real uindi0, real uindi1, real uindi2, real uinpi0, real uinpi1, real uinpi2,
    real uindsi0, real uindsi1, real uindsi2, real uinpsi0, real uinpsi1, real uinpsi2,
    real pdi,
    real pti, //
-   real uindk0, real uindk1, real uindk2, real uinpk0, real uinpk1, real uinpk2,
    real uindsk0, real uindsk1, real uindsk2, real uinpsk0, real uinpsk1, real uinpsk2,
    real pdk,
    real ptk, //
-   real& restrict fidx, real& restrict fidy, real& restrict fidz,
-   real& restrict fipx, real& restrict fipy, real& restrict fipz,
    real& restrict fidsx, real& restrict fidsy, real& restrict fidsz,
    real& restrict fipsx, real& restrict fipsy, real& restrict fipsz,
-   real& restrict fkdx, real& restrict fkdy, real& restrict fkdz,
-   real& restrict fkpx, real& restrict fkpy, real& restrict fkpz,
    real& restrict fkdsx, real& restrict fkdsy, real& restrict fkdsz,
    real& restrict fkpsx, real& restrict fkpsy, real& restrict fkpsz)
 {
@@ -546,39 +540,10 @@ void pair_ufieldgk1(real r2, real xr, real yr, real zr, real uscale,
 
    real coef;
    real3 dr = make_real3(xr, yr, zr);
-   real3 uid = make_real3(uindi0, uindi1, uindi2);
-   real3 uip = make_real3(uinpi0, uinpi1, uinpi2);
-   real3 ukd = make_real3(uindk0, uindk1, uindk2);
-   real3 ukp = make_real3(uinpk0, uinpk1, uinpk2);
-   
    real3 uids = make_real3(uindsi0, uindsi1, uindsi2);
    real3 uips = make_real3(uinpsi0, uinpsi1, uinpsi2);
    real3 ukds = make_real3(uindsk0, uindsk1, uindsk2);
    real3 ukps = make_real3(uinpsk0, uinpsk1, uinpsk2);
-
-   coef = bn[2] * dot3(dr, ukd);
-   real3 fid = coef * dr - bn[1] * ukd;
-   fidx += fid.x;
-   fidy += fid.y;
-   fidz += fid.z;
-
-   coef = bn[2] * dot3(dr, ukp);
-   real3 fip = coef * dr - bn[1] * ukp;
-   fipx += fip.x;
-   fipy += fip.y;
-   fipz += fip.z;
-
-   coef = bn[2] * dot3(dr, uid);
-   real3 fkd = coef * dr - bn[1] * uid;
-   fkdx += fkd.x;
-   fkdy += fkd.y;
-   fkdz += fkd.z;
-
-   coef = bn[2] * dot3(dr, uip);
-   real3 fkp = coef * dr - bn[1] * uip;
-   fkpx += fkp.x;
-   fkpy += fkp.y;
-   fkpz += fkp.z;
 
    coef = bn[2] * dot3(dr, ukds);
    real3 fids = coef * dr - bn[1] * ukds;

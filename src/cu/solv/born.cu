@@ -30,7 +30,8 @@ static void grycuk_cu2()
          descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
    }
 
-   launch_k1s(g::s0, n, grycukFinal_cu1, n, pi43, usetanh, rsolv, rborn, bornint);
+   real maxbrad = 30;
+   launch_k1s(g::s0, n, grycukFinal_cu1, n, pi43, maxbrad, usetanh, rsolv, rborn, bornint);
 }
 
 void born_cu(int vers)

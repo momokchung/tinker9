@@ -7,7 +7,7 @@ namespace tinker {
 // electrostatic field due to permanent multipoles
 void dfield(real (*field)[3], real (*fieldp)[3]);
 void dfieldsolv(real (*field)[3], real (*fieldp)[3]);
-void dfieldgk(real gkc, real fc, real fd, real fq, real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3]);
+void dfieldgk(real gkc, real fc, real fd, real fq, real (*fields)[3], real (*fieldps)[3]);
 void dfieldNonEwald(real (*field)[3], real (*fieldp)[3]);
 void dfieldEwald(real (*field)[3], real (*fieldp)[3]);
 void dfieldEwaldRecipSelfP1(real (*field)[3]);
@@ -15,7 +15,8 @@ void dfieldEwaldRecipSelfP1(real (*field)[3]);
 // mutual electrostatic field due to induced dipole moments
 // -Tu operator
 void ufield(const real (*uind)[3], const real (*uinp)[3], real (*field)[3], real (*fieldp)[3]);
-void ufieldgk(real gkc, real fd, const real (*uind)[3], const real (*uinp)[3], const real (*uinds)[3], const real (*uinps)[3], real (*field)[3], real (*fieldp)[3], real (*fields)[3], real (*fieldps)[3]);
+void ufieldN2(const real (*uind)[3], const real (*uinp)[3], real (*field)[3], real (*fieldp)[3]);
+void ufieldgk(real gkc, real fd, const real (*uinds)[3], const real (*uinps)[3], real (*fields)[3], real (*fieldps)[3]);
 void ufieldNonEwald(const real (*uind)[3], const real (*uinp)[3], //
    real (*field)[3], real (*fieldp)[3]);
 void ufieldEwald(const real (*uind)[3], const real (*uinp)[3], real (*field)[3], real (*fieldp)[3]);
@@ -32,7 +33,7 @@ void ulspredSum(real (*uind)[3], real (*uinp)[3]);
 
 void inducePrint(const real (*ud)[3]);
 void induce(real (*uind)[3], real (*uinp)[3]);
-void inducegk(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3]);
+void inducegk(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3], int vers);
 /// \}
 }
 

@@ -563,16 +563,22 @@ static void emplarEwald_cu()
 }
 
 template <class Ver>
-static void emplarNonEwald_cu()
+static void emplarNonEwald_cu(int vers)
 {
    // induce
-   if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps);
-   else induce(uind, uinp);
-
-   // empole and epolar
-   emplar_cu<Ver, NON_EWALD>(uind, uinp);
-   if CONSTEXPR (Ver::e)
-      epolar0DotProd(uind, udirp);
+   if (solvtyp == Solv::GK) {
+      inducegk(uind, uinp, uinds, uinps, vers);
+      // empole and epolar
+      emplar_cu<Ver, NON_EWALD>(uinds, uinps);
+      if CONSTEXPR (Ver::e)
+         epolar0DotProd(uinds, udirp);
+   } else {
+      induce(uind, uinp);
+      // empole and epolar
+      emplar_cu<Ver, NON_EWALD>(uind, uinp);
+      if CONSTEXPR (Ver::e)
+         epolar0DotProd(uind, udirp);
+   }
 }
 
 void emplar_cu(int vers)
@@ -592,17 +598,17 @@ void emplar_cu(int vers)
          emplarEwald_cu<calc::V6>();
    } else {
       if (vers == calc::v0)
-         emplarNonEwald_cu<calc::V0>();
+         emplarNonEwald_cu<calc::V0>(vers);
       else if (vers == calc::v1)
-         emplarNonEwald_cu<calc::V1>();
+         emplarNonEwald_cu<calc::V1>(vers);
       // else if (vers == calc::v3)
-      //    emplarNonEwald_cu<calc::V3>();
+      //    emplarNonEwald_cu<calc::V3>(vers);
       else if (vers == calc::v4)
-         emplarNonEwald_cu<calc::V4>();
+         emplarNonEwald_cu<calc::V4>(vers);
       else if (vers == calc::v5)
-         emplarNonEwald_cu<calc::V5>();
+         emplarNonEwald_cu<calc::V5>(vers);
       else if (vers == calc::v6)
-         emplarNonEwald_cu<calc::V6>();
+         emplarNonEwald_cu<calc::V6>(vers);
    }
 }
 }

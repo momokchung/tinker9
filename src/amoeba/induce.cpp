@@ -91,6 +91,12 @@ static void induceMutualPcg3(real (*uind)[3], real (*uinp)[3], real (*uinds)[3],
    TINKER_FCALL2(acc0, cu1, induceMutualPcg3, uind, uinp, uinds, uinps);
 }
 
+TINKER_FVOID2(acc0, cu1, induceMutualPcg5, real (*)[3], real (*)[3]);
+static void induceMutualPcg5(real (*uinds)[3], real (*uinps)[3])
+{
+   TINKER_FCALL2(acc0, cu1, induceMutualPcg5, uinds, uinps);
+}
+
 void inducePrint(const real (*ud)[3])
 {
    if (inform::debug and use(Potent::POLAR)) {
@@ -127,9 +133,15 @@ void induce(real (*ud)[3], real (*up)[3])
    inducePrint(ud);
 }
 
-void inducegk(real (*ud)[3], real (*up)[3], real (*uds)[3], real (*ups)[3])
+void inducegk(real (*ud)[3], real (*up)[3], real (*uds)[3], real (*ups)[3], int vers)
 {
-   induceMutualPcg3(ud, up, uds, ups);
+   if (vers == calc::v3) {
+      induceMutualPcg3(ud, up, uds, ups);
+   } else if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
+      induceMutualPcg3(ud, up, uds, ups);
+   } else {
+      induceMutualPcg5(uds, ups);
+   }
    // ulspredSave(ud, up); TODO_Moses
    // inducePrint(ud); TODO_Moses
 }
