@@ -7,10 +7,10 @@ namespace tinker {
 SEQ_ROUTINE
 inline void getbounds(real rho, int& below, int& above)
 {
-   constexpr real minrad = 0.8;
-   constexpr real space = 0.05;
+   constexpr real minrad = 0.8f;
+   constexpr real space = 0.05f;
    constexpr int numpoints = 45;
-   real calcindex = 0.;
+   real calcindex = 0;
    calcindex = (rho-minrad) / space;
    below = static_cast<int>(REAL_FLOOR(calcindex));
    above = below + 1;
@@ -42,8 +42,8 @@ inline void neckcon(real rhdsd, real rhdsg, real& aloc, real& bloc, const real* 
    int lowj = 0;
    int highi = 1;
    int highj = 1;
-   aloc = 0.;
-   bloc = 0.;
+   aloc = 0;
+   bloc = 0;
    getbounds(rhdsd,lowi,highi);
    getbounds(rhdsg,lowj,highj);
    real rli = rneck[lowi];
@@ -64,8 +64,8 @@ inline void neckcon(real rhdsd, real rhdsg, real& aloc, real& bloc, const real* 
    real hhb = bneck[hihj];
    interp2d(rli,rhi,rlj,rhj,rhdsd,rhdsg,lla,hla,lha,hha,aloc);
    interp2d(rli,rhi,rlj,rhj,rhdsd,rhdsg,llb,hlb,lhb,hhb,bloc);
-   if (aloc < 0.) {
-      aloc = 0.;
+   if (aloc < 0) {
+      aloc = 0;
    }
 }
 
@@ -73,17 +73,17 @@ inline void neckcon(real rhdsd, real rhdsg, real& aloc, real& bloc, const real* 
 SEQ_ROUTINE
 inline void neck(real r, real intstarti, real desck, real mixsn, real pi43, real& neckval, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck)
 {
-   constexpr real rhow = 1.4;
-   real usea = 0.;
-   real useb = 0.;
-   if (r > intstarti+desck+2.*rhow) {
-      neckval = 0.;
+   constexpr real rhow = 1.4f;
+   real usea = 0;
+   real useb = 0;
+   if (r > intstarti+desck+2*rhow) {
+      neckval = 0;
    }
    else {
       neckcon(intstarti,desck,usea,useb,aneck,bneck,rneck);
       real rminb = r - useb;
       real rminb4 = rminb*rminb*rminb*rminb;
-      real radminr = intstarti + desck + 2.*rhow - r;
+      real radminr = intstarti + desck + 2*rhow - r;
       real radminr4 = radminr*radminr*radminr*radminr;
       neckval = pi43 * mixsn * usea * rminb4 * radminr4;
    }
@@ -93,21 +93,21 @@ inline void neck(real r, real intstarti, real desck, real mixsn, real pi43, real
 SEQ_ROUTINE
 inline void neckder(real r, real intstarti, real desck, real mixsn, real pi43, real& neckderi, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck)
 {
-   constexpr real rhow = 1.4;
-   real usea = 0.;
-   real useb = 0.;
-   if (r > intstarti+desck+2.*rhow) {
-      neckderi = 0.;
+   constexpr real rhow = 1.4f;
+   real usea = 0;
+   real useb = 0;
+   if (r > intstarti+desck+2*rhow) {
+      neckderi = 0;
    }
    else {
       neckcon(intstarti,desck,usea,useb,aneck,bneck,rneck);
       real rminb = r - useb;
       real rminb3 = rminb*rminb*rminb;
       real rminb4 = rminb3 * rminb;
-      real radminr = intstarti + desck + 2.*rhow - r;
+      real radminr = intstarti + desck + 2*rhow - r;
       real radminr3 = radminr*radminr*radminr;
       real radminr4 = radminr3 * radminr;
-      neckderi = 4. * pi43 * (mixsn*usea*rminb3*radminr4
+      neckderi = 4 * pi43 * (mixsn*usea*rminb3*radminr4
                             - mixsn*usea*rminb4*radminr3);
    }
 }

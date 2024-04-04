@@ -21,8 +21,7 @@
 namespace tinker {
 void esolvData(RcOp op)
 {
-   if (not use(Potent::SOLV))
-   return;
+   if (not use(Potent::SOLV)) return;
 
    auto rc_a = rc_flag & calc::analyz;
    auto do_g = rc_flag & calc::grad;
