@@ -131,7 +131,7 @@ void ediff_cu(int vers)
 namespace tinker {
 void addToEnrgy_cu()
 {
-   addToEnrgy_cu1<<<1, 1, 0, g::s0>>>(es, ecav);
+   addToEnrgy_cu1<<<1, 1, 0, g::s0>>>(es, cave);
 }
 
 void addToGrad_cu()

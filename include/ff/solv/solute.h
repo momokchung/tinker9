@@ -42,6 +42,7 @@ void born1(int vers);
 void esolv(int vers);
 void esolvInit(int vers);
 void enp(int vers);
+void ecav(int vers);
 void ewca(int vers);
 void egk(int vers);
 void egka(int vers);
@@ -106,7 +107,7 @@ TINKER_EXTERN real* roff;
 TINKER_EXTERN real gkc;
 
 // NONPOL
-TINKER_EXTERN double ecav;
+TINKER_EXTERN double cave;
 TINKER_EXTERN real epso;
 TINKER_EXTERN real epsh;
 TINKER_EXTERN real rmino;

@@ -2022,9 +2022,9 @@ inline void pair_ediff(
 }
 
 __global__
-static void addToEnrgy_cu1(EnergyBuffer restrict es, const real ecav)
+static void addToEnrgy_cu1(EnergyBuffer restrict es, const real cave)
 {
-   if (ITHREAD == 0) atomic_add(ecav, es, ITHREAD);
+   atomic_add(cave, es, ITHREAD);
 }
 
 __global__

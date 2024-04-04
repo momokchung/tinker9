@@ -214,105 +214,8 @@ void esolvInit(int vers)
 
 void enp(int vers)
 {
-   auto do_g = vers & calc::grad;
-   ecav = 0;
-   double evol = 0;
-   double esurf = 0;
-   if (do_g) {
-      for (int i = 0; i < n; i++) {
-         dcavx[i] = 0;
-         dcavy[i] = 0;
-         dcavz[i] = 0;
-      }
-   }
-
-   // ecav energy
-   alphamol(vers);
-   esurf = wsurf;
-   double reff = 0.5 * std::sqrt(esurf/(pi*surften));
-   double reff2 = reff * reff;
-   double reff3 = reff2 * reff;
-   double reff4 = reff3 * reff;
-   double reff5 = reff4 * reff;
-   double dreff = reff / (2.*esurf);
-
-   // TODO_MOSES compare with Mike's code to see if the conditionals are correct
-
-   // compute solvent excluded volume needed for small solutes
-   if (reff < spoff) {
-      evol = wvol;
-      evol *= solvprs;
-      if (do_g) {
-         // TODO_MOSES can actually get rid of this part by giving solvprs to alphamol
-         for (int i = 0; i < n; i++) {
-            dvolx[i] *= solvprs;
-            dvoly[i] *= solvprs;
-            dvolz[i] *= solvprs;
-         }
-      }
-   }
-
-   // include a full solvent excluded volume cavity term
-   if (reff <= spcut) {
-      ecav = evol;
-      if (do_g) {
-         for (int i = 0; i < n; i++) {
-            dcavx[i] += dvolx[i];
-            dcavy[i] += dvoly[i];
-            dcavz[i] += dvolz[i];
-         }
-      }
-   }
-   // include a tapered solvent excluded volume cavity term
-   else if (reff <= spoff) {
-      double cut = nonpol::spcut;
-      double off = nonpol::spoff;
-      double c0,c1,c2,c3,c4,c5;
-      tswitch(cut, off, c0, c1, c2, c3, c4, c5);
-      double taper = c5*reff5 + c4*reff4 + c3*reff3 + c2*reff2 + c1*reff + c0;
-      ecav = evol * taper;
-      if (do_g) {
-         double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
-         for (int i = 0; i < n; i++) {
-            double evolxdtaper = evol*dtaper;
-            dcavx[i] += taper*dvolx[i] + evolxdtaper*dsurfx[i];
-            dcavy[i] += taper*dvoly[i] + evolxdtaper*dsurfy[i];
-            dcavz[i] += taper*dvolz[i] + evolxdtaper*dsurfz[i];
-         }
-      }
-   }
-
-   // include a full solvent accessible surface area term
-   if (reff > stcut) {
-      ecav += esurf;
-      if (do_g) {
-         for (int i = 0; i < n; i++) {
-            dcavx[i] += dsurfx[i];
-            dcavy[i] += dsurfy[i];
-            dcavz[i] += dsurfz[i];
-         }
-      }
-   }
-   // include a tapered solvent accessible surface area term
-   else if (reff > stoff) {
-      double cut = nonpol::stoff;
-      double off = nonpol::stcut;
-      double c0,c1,c2,c3,c4,c5;
-      tswitch(cut, off, c0, c1, c2, c3, c4, c5);
-      double taper = c5*reff5 + c4*reff4 + c3*reff3 + c2*reff2 + c1*reff + c0;
-      taper = 1 - taper;
-      double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
-      dtaper = -dtaper;
-      ecav += taper*esurf;
-      if (do_g) {
-         double tesurfdtaper = taper+esurf*dtaper;
-         for (int i = 0; i < n; i++) {
-            dcavx[i] += tesurfdtaper*dsurfx[i];
-            dcavy[i] += tesurfdtaper*dsurfy[i];
-            dcavz[i] += tesurfdtaper*dsurfz[i];
-         }
-      }
-   }
+   // cavitation energy
+   ecav(vers);
 
    // edisp energy
    ewca(vers);
@@ -391,5 +294,108 @@ void tswitch(double cut, double off, double& c0, double& c1, double& c2, double&
    c3 = -10 * (off2+4*off*cut+cut2) / denom;
    c4 = 15 * (off+cut) / denom;
    c5 = -6 / denom;
+}
+
+void ecav(int vers)
+{
+   auto do_g = vers & calc::grad;
+   cave = 0;
+   double evol = 0;
+   double esurf = 0;
+   if (do_g) {
+      for (int i = 0; i < n; i++) {
+         dcavx[i] = 0;
+         dcavy[i] = 0;
+         dcavz[i] = 0;
+      }
+   }
+
+   // cavitation energy
+   alphamol(vers);
+   esurf = wsurf;
+   double reff = 0.5 * std::sqrt(esurf/(pi*surften));
+   double reff2 = reff * reff;
+   double reff3 = reff2 * reff;
+   double reff4 = reff3 * reff;
+   double reff5 = reff4 * reff;
+   double dreff = reff / (2.*esurf);
+
+   // TODO_MOSES compare with Mike's code to see if the conditionals are correct
+
+   // compute solvent excluded volume needed for small solutes
+   if (reff < spoff) {
+      evol = wvol;
+      evol *= solvprs;
+      if (do_g) {
+         // TODO_MOSES can actually get rid of this part by giving solvprs to alphamol
+         for (int i = 0; i < n; i++) {
+            dvolx[i] *= solvprs;
+            dvoly[i] *= solvprs;
+            dvolz[i] *= solvprs;
+         }
+      }
+   }
+
+   // include a full solvent excluded volume cavity term
+   if (reff <= spcut) {
+      cave = evol;
+      if (do_g) {
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += dvolx[i];
+            dcavy[i] += dvoly[i];
+            dcavz[i] += dvolz[i];
+         }
+      }
+   }
+   // include a tapered solvent excluded volume cavity term
+   else if (reff <= spoff) {
+      double cut = nonpol::spcut;
+      double off = nonpol::spoff;
+      double c0,c1,c2,c3,c4,c5;
+      tswitch(cut, off, c0, c1, c2, c3, c4, c5);
+      double taper = c5*reff5 + c4*reff4 + c3*reff3 + c2*reff2 + c1*reff + c0;
+      cave = evol * taper;
+      if (do_g) {
+         double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
+         for (int i = 0; i < n; i++) {
+            double evolxdtaper = evol*dtaper;
+            dcavx[i] += taper*dvolx[i] + evolxdtaper*dsurfx[i];
+            dcavy[i] += taper*dvoly[i] + evolxdtaper*dsurfy[i];
+            dcavz[i] += taper*dvolz[i] + evolxdtaper*dsurfz[i];
+         }
+      }
+   }
+
+   // include a full solvent accessible surface area term
+   if (reff > stcut) {
+      cave += esurf;
+      if (do_g) {
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += dsurfx[i];
+            dcavy[i] += dsurfy[i];
+            dcavz[i] += dsurfz[i];
+         }
+      }
+   }
+   // include a tapered solvent accessible surface area term
+   else if (reff > stoff) {
+      double cut = nonpol::stoff;
+      double off = nonpol::stcut;
+      double c0,c1,c2,c3,c4,c5;
+      tswitch(cut, off, c0, c1, c2, c3, c4, c5);
+      double taper = c5*reff5 + c4*reff4 + c3*reff3 + c2*reff2 + c1*reff + c0;
+      taper = 1 - taper;
+      double dtaper = (5*c5*reff4+4*c4*reff3+3*c3*reff2+2*c2*reff+c1) * dreff;
+      dtaper = -dtaper;
+      cave += taper*esurf;
+      if (do_g) {
+         double tesurfdtaper = taper+esurf*dtaper;
+         for (int i = 0; i < n; i++) {
+            dcavx[i] += tesurfdtaper*dsurfx[i];
+            dcavy[i] += tesurfdtaper*dsurfy[i];
+            dcavz[i] += tesurfdtaper*dsurfz[i];
+         }
+      }
+   }
 }
 }
