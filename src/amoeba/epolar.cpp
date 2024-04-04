@@ -31,6 +31,7 @@ void epolarData(RcOp op)
       return;
 
    auto rc_a = rc_flag & calc::analyz;
+   bool moreworkers = rc_a or (not use(Potent::MPOLE)) and (not use(Potent::POLAR));
 
    if (op & RcOp::DEALLOC) {
       njpolar = 0;
@@ -61,7 +62,7 @@ void epolarData(RcOp op)
       darray::deallocate(work01_, work02_, work03_, work04_, work05_);
       if (not polpot::use_tholed) {// AMOEBA
          darray::deallocate(work06_, work07_, work08_, work09_, work10_);
-         if (solvtyp == Solv::GK and rc_a) darray::deallocate(work11_, work12_, work13_, work14_, work15_, work16_, work17_, work18_, work19_, work20_);
+         if (solvtyp == Solv::GK and moreworkers) darray::deallocate(work11_, work12_, work13_, work14_, work15_, work16_, work17_, work18_, work19_, work20_);
       }
       if (polpred == UPred::ASPC) {
          darray::deallocate(udalt_00, udalt_01, udalt_02, udalt_03, udalt_04,
@@ -426,7 +427,7 @@ void epolarData(RcOp op)
       darray::allocate(n, &work01_, &work02_, &work03_, &work04_, &work05_);
       if (not polpot::use_tholed) {// AMOEBA
          darray::allocate(n, &work06_, &work07_, &work08_, &work09_, &work10_);
-         if (solvtyp == Solv::GK and rc_a) darray::allocate(n, &work11_, &work12_, &work13_, &work14_, &work15_, &work16_, &work17_, &work18_, &work19_, &work20_);
+         if (solvtyp == Solv::GK and moreworkers) darray::allocate(n, &work11_, &work12_, &work13_, &work14_, &work15_, &work16_, &work17_, &work18_, &work19_, &work20_);
       }
       if (uprior::use_pred) {
          FstrView predstr = uprior::polpred;
