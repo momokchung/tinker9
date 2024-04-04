@@ -26,16 +26,12 @@ void empoleNonEwaldN2_cu(int vers)
 {
    if (vers == calc::v0) {
       empoleNonEwaldN2_cu2<calc::V0>();
-   } else if (vers == calc::v1) {
-      empoleNonEwaldN2_cu2<calc::V1>();
    } else if (vers == calc::v3) {
       empoleNonEwaldN2_cu2<calc::V3>();
    } else if (vers == calc::v4) {
       empoleNonEwaldN2_cu2<calc::V4>();
    } else if (vers == calc::v5) {
       empoleNonEwaldN2_cu2<calc::V5>();
-   } else if (vers == calc::v6) {
-      empoleNonEwaldN2_cu2<calc::V6>();
    }
 }
 }

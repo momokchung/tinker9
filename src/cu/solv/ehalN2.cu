@@ -48,15 +48,11 @@ void ehalN2_cu(int vers)
 {
    if (vers == calc::v0)
       ehalN2_cu1<calc::V0>();
-   else if (vers == calc::v1)
-      ehalN2_cu1<calc::V1>();
    else if (vers == calc::v3)
       ehalN2_cu1<calc::V3>();
    else if (vers == calc::v4)
       ehalN2_cu1<calc::V4>();
    else if (vers == calc::v5)
       ehalN2_cu1<calc::V5>();
-   else if (vers == calc::v6)
-      ehalN2_cu1<calc::V6>();
 }
 }

@@ -70,6 +70,9 @@ void eborn(int vers)
 {
    auto rc_a = rc_flag & calc::analyz;
    auto do_a = vers & calc::analyz;
+   auto do_v = vers & calc::virial;
+
+   if (do_v) throwExceptionMissingFunction("born virial", __FILE__, __LINE__);
 
    darray::zero(g::q0, n, rborn, bornint);
 

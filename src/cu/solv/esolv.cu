@@ -67,11 +67,11 @@ static void egka_cu2()
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
-      egka_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, vir_es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+      egka_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
    } else {
       const auto& st = *mn2_unit;
-      egkaN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, nes, es, vir_es, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
+      egkaN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, nes, es, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
          trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
    }
 

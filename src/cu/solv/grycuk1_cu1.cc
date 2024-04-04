@@ -1,31 +1,20 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, VirialBuffer restrict vs, grad_prec* restrict gx, grad_prec* restrict gy,
-   grad_prec* restrict gz, const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, real descoff, real pi43, real factor, bool useneck, bool usetanh,
-   const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct, const real* restrict rborn,
-   const real* restrict drb, const real* restrict drbp, const real* restrict aneck, const real* restrict bneck,
-   const real* restrict rneck, const real* restrict sneck, const real* restrict bornint, bool use_gk)
+void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz,
+   const real* restrict x, const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted,
+   int nakpl, const int* restrict iakpl, int niak, const int* restrict iak, const int* restrict lst, real descoff,
+   real pi43, real factor, bool useneck, bool usetanh, const real* restrict rsolv, const real* restrict rdescr,
+   const real* restrict shct, const real* restrict rborn, const real* restrict drb, const real* restrict drbp,
+   const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, const real* restrict sneck,
+   const real* restrict bornint, bool use_gk)
 {
-   constexpr bool do_v = Ver::v;
    constexpr bool do_g = Ver::g;
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
    const int nwarp = blockDim.x * gridDim.x / WARP_SIZE;
    const int ilane = threadIdx.x & (WARP_SIZE - 1);
 
-   using vbuf_prec = VirialBufferTraits::type;
-   vbuf_prec vstlxx, vstlyx, vstlzx, vstlyy, vstlzy, vstlzz;
-   if CONSTEXPR (do_v) {
-      vstlxx = 0;
-      vstlyx = 0;
-      vstlzx = 0;
-      vstlyy = 0;
-      vstlzy = 0;
-      vstlzz = 0;
-   }
    __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM],
       rbi[BLOCK_DIM], drbi[BLOCK_DIM], drbpi[BLOCK_DIM], snecki[BLOCK_DIM], borni[BLOCK_DIM];
    __shared__ real xk[BLOCK_DIM], yk[BLOCK_DIM], zk[BLOCK_DIM];
@@ -95,14 +84,6 @@ dei);
    gxk -= dedx;
    gyk -= dedy;
    gzk -= dedz;
- }
- if CONSTEXPR (do_v) {
-   vstlxx += floatTo<vbuf_prec>(xr * dedx);
-   vstlyx += floatTo<vbuf_prec>(yr * dedx);
-   vstlzx += floatTo<vbuf_prec>(zr * dedx);
-   vstlyy += floatTo<vbuf_prec>(yr * dedy);
-   vstlzy += floatTo<vbuf_prec>(zr * dedy);
-   vstlzz += floatTo<vbuf_prec>(zr * dedz);
  }
 }
 
@@ -209,14 +190,6 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
                gxk -= dedx;
                gyk -= dedy;
                gzk -= dedz;
-            }
-            if CONSTEXPR (do_v) {
-               vstlxx += floatTo<vbuf_prec>(xr * dedx);
-               vstlyx += floatTo<vbuf_prec>(yr * dedx);
-               vstlzx += floatTo<vbuf_prec>(zr * dedx);
-               vstlyy += floatTo<vbuf_prec>(yr * dedy);
-               vstlzy += floatTo<vbuf_prec>(zr * dedy);
-               vstlzz += floatTo<vbuf_prec>(zr * dedz);
             }
          }
 
@@ -332,14 +305,6 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
                gyk -= dedy;
                gzk -= dedz;
             }
-            if CONSTEXPR (do_v) {
-               vstlxx += floatTo<vbuf_prec>(xr * dedx);
-               vstlyx += floatTo<vbuf_prec>(yr * dedx);
-               vstlzx += floatTo<vbuf_prec>(zr * dedx);
-               vstlyy += floatTo<vbuf_prec>(yr * dedy);
-               vstlzy += floatTo<vbuf_prec>(zr * dedy);
-               vstlzz += floatTo<vbuf_prec>(zr * dedz);
-            }
          }
 
          if CONSTEXPR (do_g) {
@@ -358,9 +323,5 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          atomic_add(gzk, gz, k);
       }
       __syncwarp();
-   }
-
-   if CONSTEXPR (do_v) {
-      atomic_add(vstlxx, vstlyx, vstlzx, vstlyy, vstlzy, vstlzz, vs, ithread);
    }
 }

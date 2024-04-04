@@ -34,11 +34,10 @@ void esolvData(RcOp op)
       }
       if (rc_a) {
          bufferDeallocate(rc_flag, nes);
-         bufferDeallocate(rc_flag, es, vir_es, desx, desy, desz);
+         bufferDeallocate(rc_flag, es, desx, desy, desz);
       }
       nes = nullptr;
       es = nullptr;
-      vir_es = nullptr;
       desx = nullptr;
       desy = nullptr;
       desz = nullptr;
@@ -74,7 +73,6 @@ void esolvData(RcOp op)
    if (op & RcOp::ALLOC) {
       nes = nullptr;
       es = eng_buf_elec;
-      vir_es = vir_buf_elec;
       desx = gx_elec;
       desy = gy_elec;
       desz = gz_elec;
@@ -85,7 +83,7 @@ void esolvData(RcOp op)
       }
       if (rc_a) {
          bufferAllocate(rc_flag, &nes);
-         bufferAllocate(rc_flag, &es, &vir_es, &desx, &desy, &desz);
+         bufferAllocate(rc_flag, &es, &desx, &desy, &desz);
       }
       radii = new double[n];
       coefS = new double[n];
@@ -152,15 +150,15 @@ void esolv(int vers)
    auto do_v = vers & calc::virial;
    auto do_g = vers & calc::grad;
 
-   zeroOnHost(energy_es, virial_es);
+   if (do_v) throwExceptionMissingFunction("esolv virial", __FILE__, __LINE__);
+
+   zeroOnHost(energy_es);
    size_t bsize = bufferSize();
    if (rc_a) {
       if (do_a)
          darray::zero(g::q0, bsize, nes);
       if (do_e)
          darray::zero(g::q0, bsize, es);
-      if (do_v)
-         darray::zero(g::q0, bsize, vir_es);
       if (do_g)
          darray::zero(g::q0, n, desx, desy, desz);
    }
@@ -184,15 +182,6 @@ void esolv(int vers)
    }
 
    torque(vers, desx, desy, desz);
-   // if (do_v) {
-   //    VirialBuffer u2 = vir_trq;
-   //    virial_prec v2[9];
-   //    virialReduce(v2, u2);
-   //    for (int iv = 0; iv < 9; ++iv) {
-   //       virial_es[iv] += v2[iv];
-   //       virial_elec[iv] += v2[iv];
-   //    }
-   // }
 
    if (do_e)
       addToEnrgy();
@@ -211,15 +200,6 @@ void esolv(int vers)
          energy_es += e;
          energy_elec += e;
       }
-      // if (do_v) {
-      //    VirialBuffer u = vir_es;
-      //    virial_prec v[9];
-      //    virialReduce(v, u);
-      //    for (int iv = 0; iv < 9; ++iv) {
-      //       virial_es[iv] += v[iv];
-      //       virial_elec[iv] += v[iv];
-      //    }
-      // }
       if (do_g)
          sumGradient(gx_elec, gy_elec, gz_elec, desx, desy, desz);
    }

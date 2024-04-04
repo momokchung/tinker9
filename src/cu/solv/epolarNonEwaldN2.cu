@@ -38,16 +38,12 @@ void epolarNonEwaldN2_cu(int vers, const real (*uind)[3], const real (*uinp)[3])
 {
    if (vers == calc::v0) {
       epolarNonEwaldN2_cu<calc::V0>(uind, uinp);
-   } else if (vers == calc::v1) {
-      epolarNonEwaldN2_cu<calc::V1>(uind, uinp);
    } else if (vers == calc::v3) {
       epolarNonEwaldN2_cu<calc::V3>(uind, uinp);
    } else if (vers == calc::v4) {
       epolarNonEwaldN2_cu<calc::V4>(uind, uinp);
    } else if (vers == calc::v5) {
       epolarNonEwaldN2_cu<calc::V5>(uind, uinp);
-   } else if (vers == calc::v6) {
-      epolarNonEwaldN2_cu<calc::V6>(uind, uinp);
    }
 }
 }

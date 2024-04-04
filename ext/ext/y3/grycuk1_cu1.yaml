@@ -2,14 +2,11 @@ OUTPUT_DIR: src/cu/solv
 KERNEL_NAME: grycuk1_cu1
 TEMPLATE_PARAMS: template<class Ver>
 CONSTEXPR_FLAGS: |
-  constexpr bool do_v = Ver::v;
   constexpr bool do_g = Ver::g;
 # USE_NEIGH:
 
 # COUNT:
 #   - nes
-VIRIAL:
-  - vs
 GRADIENT:
   - gx
   - gy
@@ -115,13 +112,5 @@ FULL_PAIRWISE_INTERACTION: |
       @gxk@ -= dedx;
       @gyk@ -= dedy;
       @gzk@ -= dedz;
-    }
-    if CONSTEXPR (do_v) {
-      vstlxx += floatTo<vbuf_prec>(xr * dedx);
-      vstlyx += floatTo<vbuf_prec>(yr * dedx);
-      vstlzx += floatTo<vbuf_prec>(zr * dedx);
-      vstlyy += floatTo<vbuf_prec>(yr * dedy);
-      vstlzy += floatTo<vbuf_prec>(zr * dedy);
-      vstlzz += floatTo<vbuf_prec>(zr * dedz);
     }
   }

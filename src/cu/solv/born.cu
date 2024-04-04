@@ -70,11 +70,11 @@ static void born1_cu2()
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
-      grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, vir_es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+      grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
    } else {
       const auto& st = *mn2_unit;
-      grycuk1N2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, vir_es, desx, desy, desz, x, y, z, st.nakp, st.iakp,
+      grycuk1N2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, desx, desy, desz, x, y, z, st.nakp, st.iakp,
          descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
    }
 }
