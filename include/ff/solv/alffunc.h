@@ -398,7 +398,7 @@ inline double dist2(int n1, int n2)
 // intersection of two spheres
 inline void twosph(double ra, double ra2, double rb, double rb2,
    double rab, double rab2, double& surfa, double& surfb,
-   double& vola, double& volb, double& r, double& phi, double& l)
+   double& vola, double& volb, double& r, double& phi)
 {
    double cosine,vala,valb,lambda,ha,hb;
    double Aab,sa,ca,sb,cb;
@@ -439,15 +439,13 @@ inline void twosph(double ra, double ra2, double rb, double rb2,
    // get angle between normals of the sphere at a point on this circle
    cosine = (ra2+rb2-rab2)/(2.0*ra*rb);
    phi = std::acos(cosine);
-
-   l = vala/ra + valb/rb;
 }
 
 // "twosphder" calculates the surface area and volume derivatives
 // of the intersection of two spheres
 inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, double rab2,
-   double& surfa, double& surfb, double& vola, double& volb, double& r, double& phi, double& l,
-   double& dsurfa, double& dsurfb, double& dvola, double& dvolb, double& dr, double& dphi, double& dl, bool compder)
+   double& surfa, double& surfb, double& vola, double& volb, double& r, double& phi,
+   double& dsurfa, double& dsurfb, double& dvola, double& dvolb, double& dr, double& dphi, bool compder)
 {
    double cosine,vala,valb,lambda,ha,hb;
    double Aab,sa,ca,sb,cb;
@@ -489,7 +487,6 @@ inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, 
    // get angle between normals of the sphere at a point on this circle
    cosine = (ra2+rb2-rab2)/(2.0*ra*rb);
    phi = std::acos(cosine);
-   l = vala/ra + valb/rb;
 
    if (!compder) return;
 
@@ -504,14 +501,13 @@ inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, 
 
    dr   = -vala*lambda/(r);
    dphi = rab/(ra*rb*std::sqrt(1-cosine*cosine));
-   dl   = lambda/ra + (1.0-lambda)/rb;
 }
 
 // "threesphder" calculates the surface area and volume derivatives
 // of the intersection of three spheres
 inline void threesphder(double ra, double rb,double rc, double ra2,
    double rb2, double rc2, double rab, double rac, double rbc,
-   double rab2, double rac2, double rbc2, double *angle, double deriv[6][3],
+   double rab2, double rac2, double rbc2, double *angle,
    double& surfa, double& surfb, double& surfc, double& vola, double& volb, double& volc,
    double* dsurfa, double* dsurfb, double* dsurfc, double* dvola, double* dvolb, double* dvolc, bool compder)
 {
@@ -529,7 +525,7 @@ inline void threesphder(double ra, double rb,double rc, double ra2,
    double val_abc,val_acb,val_bca;
    double val2_abc,val2_acb,val2_bca;
    double der_val1b,der_val1,der_val2b,der_val2,der_val3b,der_val3;
-   double cosine[6],sine[6];
+   double cosine[6],sine[6],deriv[6][3];
    constexpr double twopi = 2 * pi;
 
    l1 = plane_dist(ra2, rb2, rab2);
@@ -766,117 +762,5 @@ inline double sign(double a, double b, double c)
    }
 
    return s;
-}
-
-// "threesphgss" computes the relative contribution of the
-// 3 vertices of a triangle in the alpha complex to the
-// Gaussian curvature
-inline void threesphgss(double ra, double rb, double rc, 
-    double ra2, double rb2, double rc2, double rab, double rac, double rbc,
-    double rab2, double rac2, double rbc2, double& areaA, double& areaB, 
-    double& areaC, double darea[3][3], bool compder)
-{
-   double cos_ab, cos_ac, cos_bc;
-   double da_ab, db_bc, dc_ac;
-   double a, b, c;
-   double r;
-   double sign_a, sign_b, sign_c;
-   double S, Sa, Sb, Sc;
-   double der_r[3], der_S[3], der_Sa[3], der_Sb[3], der_Sc[3];
-   double dSa[3], dSb[3], dSc[3];
-   double dSa_dab, dSa_dac, dSa_dbc;
-   double dSb_dab, dSb_dac, dSb_dbc;
-   double dSc_dab, dSc_dac, dSc_dbc;
-
-   cos_ab = (ra2+rb2-rab2)/(2.0*ra*rb);
-   a = 0.5*(cos_ab+1);
-
-   cos_bc = (rb2+rc2-rbc2)/(2.0*rb*rc);
-   b = 0.5*(cos_bc+1);
-
-   cos_ac = (ra2+rc2-rac2)/(2.0*ra*rc);
-   c = 0.5*(cos_ac+1);
-
-   sign_a = sign(a, c, b);
-   sign_b = sign(a, b, c);
-   sign_c = sign(c, b, a);
-
-   der_r[0] = 0; der_r[1] = 0; der_r[2] = 0;
-   r = trig_dradius(a, b, c, der_r, compder);
-
-   der_S[0] = 0; der_S[1] = 0; der_S[2] = 0;
-   der_Sa[0] = 0; der_Sa[1] = 0; der_Sa[2] = 0;
-   der_Sb[0] = 0; der_Sb[1] = 0; der_Sb[2] = 0;
-   der_Sc[0] = 0; der_Sc[1] = 0; der_Sc[2] = 0;
-
-   S  = trig_darea(a, b, c, der_S, compder);
-   Sa = trig_darea(a, r, r, der_Sa, compder);
-   Sb = trig_darea(r, b, r, der_Sb, compder);
-   Sc = trig_darea(r, r, c, der_Sc, compder);
-
-   dSa[0] = der_Sa[0] + (der_Sa[1]+der_Sa[2])*der_r[0];
-   dSa[1] = (der_Sa[1]+der_Sa[2])*der_r[1];
-   dSa[2] = (der_Sa[1]+der_Sa[2])*der_r[2];
-
-   dSb[0] = (der_Sb[0]+der_Sb[2])*der_r[0];
-   dSb[1] = der_Sb[1] + (der_Sb[0]+der_Sb[2])*der_r[1];
-   dSb[2] = (der_Sb[0]+der_Sb[2])*der_r[2];
-
-   dSc[0] = (der_Sc[0]+der_Sc[1])*der_r[0];
-   dSc[1] = (der_Sc[0]+der_Sc[1])*der_r[1];
-   dSc[2] = der_Sc[2] + (der_Sc[0]+der_Sc[1])*der_r[2];
-
-   if (Sa==0) {
-      Sa = S - sign_a*Sb - sign_b*Sc;
-      dSa[0] = der_S[0] - sign_a*dSb[0] - sign_b*dSc[0];
-      dSa[1] = der_S[1] - sign_a*dSb[1] - sign_b*dSc[1];
-      dSa[2] = der_S[2] - sign_a*dSb[2] - sign_b*dSc[2];
-   }
-   if (Sb==0) {
-      Sb = S - sign_c*Sa - sign_b*Sc;
-      dSb[0] = der_S[0] - sign_c*dSa[0] - sign_b*dSc[0];
-      dSb[1] = der_S[1] - sign_c*dSa[1] - sign_b*dSc[1];
-      dSb[2] = der_S[2] - sign_c*dSa[2] - sign_b*dSc[2];
-   }
-   if (Sc==0) {
-      Sc = S - sign_c*Sa - sign_a*Sb;
-      dSc[0] = der_S[0] - sign_c*dSa[0] - sign_a*dSb[0];
-      dSc[1] = der_S[1] - sign_c*dSa[1] - sign_a*dSb[1];
-      dSc[2] = der_S[2] - sign_c*dSa[2] - sign_a*dSb[2];
-   }
-
-   areaA = 0.5*(sign_c*Sa + sign_b*Sc);
-   areaB = 0.5*(sign_a*Sb + sign_c*Sa);
-   areaC = 0.5*(sign_b*Sc + sign_a*Sb);
-
-   if (!compder) return;
-
-   da_ab = -0.5*rab/(ra*rb);
-   db_bc = -0.5*rbc/(rb*rc);
-   dc_ac = -0.5*rac/(ra*rc);
-
-   dSa_dab = dSa[0]*da_ab;
-   dSa_dbc = dSa[1]*db_bc;
-   dSa_dac = dSa[2]*dc_ac;
-
-   dSb_dab = dSb[0]*da_ab;
-   dSb_dbc = dSb[1]*db_bc;
-   dSb_dac = dSb[2]*dc_ac;
-
-   dSc_dab = dSc[0]*da_ab;
-   dSc_dbc = dSc[1]*db_bc;
-   dSc_dac = dSc[2]*dc_ac;
-
-   darea[0][0] = 0.5*(sign_c*dSa_dab + sign_b*dSc_dab);
-   darea[0][1] = 0.5*(sign_c*dSa_dac + sign_b*dSc_dac);
-   darea[0][2] = 0.5*(sign_c*dSa_dbc + sign_b*dSc_dbc);
-
-   darea[1][0] = 0.5*(sign_a*dSb_dab + sign_c*dSa_dab);
-   darea[1][1] = 0.5*(sign_a*dSb_dac + sign_c*dSa_dac);
-   darea[1][2] = 0.5*(sign_a*dSb_dbc + sign_c*dSa_dbc);
-
-   darea[2][0] = 0.5*(sign_b*dSc_dab + sign_a*dSb_dab);
-   darea[2][1] = 0.5*(sign_b*dSc_dac + sign_a*dSb_dac);
-   darea[2][2] = 0.5*(sign_b*dSc_dbc + sign_a*dSb_dbc);
 }
 }

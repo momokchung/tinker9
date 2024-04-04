@@ -4,11 +4,8 @@
 
 namespace tinker
 {
-void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
-   double& Surf, double& Vol, double& Mean, double& Gauss,
-   double* ballwsurf, double* ballwvol, double* ballwmean, double* ballwgauss,
-   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz,
-   double* dmeanx, double* dmeany, double* dmeanz, double* dgaussx, double* dgaussy, double* dgaussz, bool compder)
+void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ballwsurf, double* ballwvol,
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder)
 {
    int ia,ib,ic,id;
    int e1,e2,e3;
@@ -17,30 +14,23 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    double rab,rac,rad,rbc,rbd,rcd;
    double rab2,rac2,rad2,rbc2,rbd2,rcd2;
    double val,val1S,val2S,val3S,val4S;
-   double val1M1,val2M1,val3M1,val4M1;
-   double val1G1;
    double d1,d2,d3,d4;
    double val1V,val2V,val3V,val4V;
-   double coefval,coefvalS;
+   double coefval;
    double surfa,surfb,surfc;
-   double gaussa,gaussb,gaussc;
    double vola,volb,volc,vold;
-   double r,phi,l,dr,dphi,dl;
+   double r,phi,dr,dphi;
    double coefaS,coefbS,coefcS,coefdS;
    double coefaV,coefbV,coefcV,coefdV;
-   double coefaM,coefbM,coefcM,coefdM;
-   double coefaG,coefbG,coefcG,coefdG;
    double dsurfa2,dsurfb2;
    double dvola2,dvolb2;
    double u[3];
    double angle[6],cosine[6],sine[6];
-   double deriv[6][6],deriv2[6][3],dg[3][3];
+   double deriv[6][6];
    double dsurfa3[3],dsurfb3[3],dsurfc3[3];
    double dvola3[3],dvolb3[3],dvolc3[3];
    double dvola[6],dvolb[6],dvolc[6],dvold[6];
    constexpr double twopi = 2 * pi;
-   constexpr double coefe = 1.;
-   constexpr double coeff = 2.;
 
    int nedges = edges.size();
    int nvertices = vertices.size();
@@ -52,21 +42,14 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    Surf  = 0;
    WVol  = 0;
    Vol   = 0;
-   WMean = 0;
-   Mean  = 0;
-   WGauss= 0;
-   Gauss = 0;
    for (int i = 0; i < nvertices; i++) {
       ballwsurf[i] = 0.;
       ballwvol[i] = 0.;
-      ballwmean[i] = 0.;
-      ballwgauss[i] = 0.;
    }
 
    // initialize edge and vertex info
    for (int i = 0; i < nedges; i++) {
       edges[i].gamma = 1.;
-      edges[i].sigma = 1.;
 
       ia = edges[i].vertices[0];
       ib = edges[i].vertices[1];
@@ -78,25 +61,17 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
 
       coefaS = vertices[ia].coefs; coefbS = vertices[ib].coefs;
       coefaV = vertices[ia].coefv; coefbV = vertices[ib].coefv;
-      coefaM = vertices[ia].coefm; coefbM = vertices[ib].coefm;
-      coefaG = vertices[ia].coefg; coefbG = vertices[ib].coefg;
 
       rab2 = dist2(ia, ib);
       rab = std::sqrt(rab2);
 
-      twosph(ra, ra2, rb, rb2, rab, rab2, surfa, surfb, vola, volb, r, phi, l);
+      twosph(ra, ra2, rb, rb2, rab, rab2, surfa, surfb, vola, volb, r, phi);
 
       edges[i].len = rab;
       edges[i].surf   = (coefaS*surfa + coefbS*surfb)/twopi;
       edges[i].vol    = (coefaV*vola + coefbV*volb)/twopi;
-      edges[i].coefm1 = (coefaM*surfa/ra + coefbM*surfb/rb)/twopi;
-      edges[i].coefm2 = coefe*(coefaM+coefbM)*r*phi/2;
-      edges[i].coefg1 = (coefaG*surfa/ra2 + coefbG*surfb/rb2)/twopi;
-      edges[i].coefg2 = coefe*(coefaG+coefbG)*l/2;
       edges[i].dsurf  = 0;
       edges[i].dvol   = 0;
-      edges[i].dmean  = 0;
-      edges[i].dgauss = 0;
 
    }
 
@@ -126,13 +101,9 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       rd = vertices[id].r; rd2 = rd*rd;
 
       coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv; 
-      coefaM = vertices[ia].coefm; coefaG = vertices[ia].coefg;
       coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv; 
-      coefbM = vertices[ib].coefm; coefbG = vertices[ib].coefg;
       coefcS = vertices[ic].coefs; coefcV = vertices[ic].coefv; 
-      coefcM = vertices[ic].coefm; coefcG = vertices[ic].coefg;
       coefdS = vertices[id].coefs; coefdV = vertices[id].coefv; 
-      coefdM = vertices[id].coefm; coefdG = vertices[id].coefg;
 
       for (int iedge = 0; iedge < 6; iedge++) {
          // iedge is the edge number in the tetrahedron idx, with:
@@ -188,7 +159,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
          int i1 = edge_list[iedge];
          if (edges[i1].gamma != 0) {
             edges[i1].gamma -= angle[iedge];
-            edges[i1].sigma -= angle[iedge];
          }
       }
 
@@ -199,14 +169,10 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
             int i1 = edge_list[iedge];
             val1S = edges[i1].surf;
             val1V = edges[i1].vol;
-            val1M1 = edges[i1].coefm1 + edges[i1].coefm2;
-            val1G1 = edges[i1].coefg1 + edges[i1].coefg2;
             for (int ie = 0; ie < 6; ie++) {
                int je = edge_list[ie];
                edges[je].dsurf  += val1S*deriv[iedge][ie];
                edges[je].dvol   += val1V*deriv[iedge][ie];
-               edges[je].dmean  += val1M1*deriv[iedge][ie];
-               edges[je].dgauss += val1G1*deriv[iedge][ie];
             }
          }
 
@@ -218,9 +184,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
 
          val1V = ra2*ra*coefaV/3; val2V = rb2*rb*coefbV/3;
          val3V = rc2*rc*coefcV/3; val4V = rd2*rd*coefdV/3;
-
-         val1M1 = ra*coefaM; val2M1 = rb*coefbM;
-         val3M1 = rc*coefcM; val4M1 = rd*coefdM;
 
          for (int ie = 0; ie < 6; ie++) {
             int je = edge_list[ie];
@@ -234,12 +197,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
 
             val = val1V*d1 + val2V*d2 + val3V*d3 + val4V*d4;
             edges[je].dvol -= val;
-
-            val = val1M1*d1 + val2M1*d2 + val3M1*d3 + val4M1*d4;
-            edges[je].dmean -= val;
-
-            val = coefaG*d1 + coefbG*d2 + coefcG*d3 + coefdG*d4;
-            edges[je].dgauss -= val;
          }
       }
    }
@@ -258,12 +215,9 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       || vertices[ic].status==0 ) continue;
 
 
-      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv; 
-      coefaM = vertices[ia].coefm; coefaG = vertices[ia].coefg;
-      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv; 
-      coefbM = vertices[ib].coefm; coefbG = vertices[ib].coefg;
-      coefcS = vertices[ic].coefs; coefcV = vertices[ic].coefv; 
-      coefcM = vertices[ic].coefm; coefcG = vertices[ic].coefg;
+      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv;
+      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv;
+      coefcS = vertices[ic].coefs; coefcV = vertices[ic].coefv;
 
       e1 = faces[idx].edges[0];
       e2 = faces[idx].edges[1];
@@ -278,11 +232,8 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       rbc = edges[e3].len; rbc2=rbc*rbc;
 
       threesphder(ra, rb, rc, ra2, rb2, rc2, rab, rac, rbc, rab2, rac2, rbc2,
-      angle, deriv2, surfa, surfb, surfc, vola, volb, volc, 
+      angle, surfa, surfb, surfc, vola, volb, volc, 
       dsurfa3, dsurfb3, dsurfc3, dvola3, dvolb3, dvolc3, compder);
-
-      threesphgss(ra, rb, rc, ra2, rb2, rc2, rab, rac, rbc,
-      rab2, rac2, rbc2, gaussa, gaussb, gaussc, dg, compder);
 
       ballwsurf[ia] += coefval*surfa;
       ballwsurf[ib] += coefval*surfb;
@@ -292,14 +243,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       ballwvol[ib] += coefval*volb;
       ballwvol[ic] += coefval*volc;
 
-      ballwgauss[ia] += coeff*coefval*gaussa;
-      ballwgauss[ib] += coeff*coefval*gaussb;
-      ballwgauss[ic] += coeff*coefval*gaussc;
-
-      edges[e1].sigma -= 2*coefval*angle[0];
-      edges[e2].sigma -= 2*coefval*angle[1];
-      edges[e3].sigma -= 2*coefval*angle[3];
-
       if (compder) {
          edges[e1].dsurf += coefval*(coefaS*dsurfa3[0]+coefbS*dsurfb3[0]+coefcS*dsurfc3[0]);
          edges[e2].dsurf += coefval*(coefaS*dsurfa3[1]+coefbS*dsurfb3[1]+coefcS*dsurfc3[1]);
@@ -308,38 +251,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
          edges[e1].dvol += coefval*(coefaV*dvola3[0]+coefbV*dvolb3[0]+coefcV*dvolc3[0]);
          edges[e2].dvol += coefval*(coefaV*dvola3[1]+coefbV*dvolb3[1]+coefcV*dvolc3[1]);
          edges[e3].dvol += coefval*(coefaV*dvola3[2]+coefbV*dvolb3[2]+coefcV*dvolc3[2]);
-
-         edges[e1].dmean += coefval*(coefaM*dsurfa3[0]/ra+coefbM*dsurfb3[0]/rb+
-            coefcM*dsurfc3[0]/rc);
-         edges[e2].dmean += coefval*(coefaM*dsurfa3[1]/ra+coefbM*dsurfb3[1]/rb+
-            coefcM*dsurfc3[1]/rc);
-         edges[e3].dmean += coefval*(coefaM*dsurfa3[2]/ra+coefbM*dsurfb3[2]/rb+
-            coefcM*dsurfc3[2]/rc);
-
-         edges[e1].dmean += 2*coefval*(edges[e1].coefm2*deriv2[0][0]+
-            edges[e2].coefm2*deriv2[1][0]+edges[e3].coefm2*deriv2[3][0]);
-         edges[e2].dmean += 2*coefval*(edges[e1].coefm2*deriv2[0][1]+
-            edges[e2].coefm2*deriv2[1][1]+edges[e3].coefm2*deriv2[3][1]);
-         edges[e3].dmean += 2*coefval*(edges[e1].coefm2*deriv2[0][2]+
-            edges[e2].coefm2*deriv2[1][2]+edges[e3].coefm2*deriv2[3][2]);
-
-         edges[e1].dgauss += coefval*(coefaG*dsurfa3[0]/ra2+coefbG*dsurfb3[0]/rb2+
-            coefcG*dsurfc3[0]/rc2);
-         edges[e2].dgauss += coefval*(coefaG*dsurfa3[1]/ra2+coefbG*dsurfb3[1]/rb2+
-            coefcG*dsurfc3[1]/rc2);
-         edges[e3].dgauss += coefval*(coefaG*dsurfa3[2]/ra2+coefbG*dsurfb3[2]/rb2+
-            coefcG*dsurfc3[2]/rc2);
-
-         edges[e1].dgauss += 2*coefval*(edges[e1].coefg2*deriv2[0][0]+
-            edges[e2].coefg2*deriv2[1][0]+edges[e3].coefg2*deriv2[3][0]);
-         edges[e2].dgauss += 2*coefval*(edges[e1].coefg2*deriv2[0][1]+
-            edges[e2].coefg2*deriv2[1][1]+edges[e3].coefg2*deriv2[3][1]);
-         edges[e3].dgauss += 2*coefval*(edges[e1].coefg2*deriv2[0][2]+
-            edges[e2].coefg2*deriv2[1][2]+edges[e3].coefg2*deriv2[3][2]);
-
-         edges[e1].dgauss += coeff*coefval*(coefaG*dg[0][0]+coefbG*dg[1][0]+coefcG*dg[2][0]);
-         edges[e2].dgauss += coeff*coefval*(coefaG*dg[0][1]+coefbG*dg[1][1]+coefcG*dg[2][1]);
-         edges[e3].dgauss += coeff*coefval*(coefaG*dg[0][2]+coefbG*dg[1][2]+coefcG*dg[2][2]);
       }
    }
 
@@ -347,7 +258,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    double eps = 1.e-10;
    for (int iedge = 0; iedge < nedges; iedge++) {
       coefval = edges[iedge].gamma;
-      coefvalS = edges[iedge].sigma;
 
       if (std::fabs(coefval) < eps) continue;
 
@@ -356,10 +266,8 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
 
       if (vertices[ia].status==0 || vertices[ib].status==0) continue;
 
-      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv; 
-      coefaM = vertices[ia].coefm; coefaG = vertices[ia].coefg;
-      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv; 
-      coefbM = vertices[ib].coefm; coefbG = vertices[ib].coefg;
+      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv;
+      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv;
 
       ra = vertices[ia].r; ra2 = ra*ra;
       rb = vertices[ib].r; rb2 = rb*rb;
@@ -367,29 +275,17 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       rab = edges[iedge].len; rab2 = rab*rab;
 
       twosphder(ra, ra2, rb, rb2, rab, rab2, surfa, surfb,
-      vola, volb, r, phi, l, dsurfa2, dsurfb2, dvola2, dvolb2, 
-      dr, dphi, dl, compder);
+      vola, volb, r, phi, dsurfa2, dsurfb2, dvola2, dvolb2, 
+      dr, dphi, compder);
 
       ballwsurf[ia] -= coefval*surfa; 
       ballwsurf[ib] -= coefval*surfb; 
       ballwvol[ia]  -= coefval*vola; 
       ballwvol[ib]  -= coefval*volb; 
 
-      val = coefe*pi*coefvalS*r*phi;
-      ballwmean[ia] -= val;
-      ballwmean[ib] -= val;
-
-      val = coefe*pi*coefvalS*l;
-      ballwgauss[ia] -= val;
-      ballwgauss[ib] -= val;
-
       if (compder) {
          edges[iedge].dsurf  -= coefval* (coefaS*dsurfa2 + coefbS*dsurfb2);
          edges[iedge].dvol   -= coefval* (coefaV*dvola2 + coefbV*dvolb2);
-         edges[iedge].dmean  -= coefval* (coefaM*dsurfa2/ra + coefbM*dsurfb2/rb);
-         edges[iedge].dmean  -= coefe*coefvalS*pi*(r*dphi+phi*dr)*(coefaM+coefbM);
-         edges[iedge].dgauss -= coefval* (coefaG*dsurfa2/ra2 + coefbG*dsurfb2/rb2);
-         edges[iedge].dgauss -= coefe*coefvalS*pi*dl*(coefaG+coefbG);
       }
    }
 
@@ -406,10 +302,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       vola  = surfa*ra/3;
       ballwsurf[i]  += coefval*surfa;
       ballwvol[i]   += coefval*vola;
-      if (ra2 > 0) {
-         ballwmean[i]  += ballwsurf[i]/ra;
-         ballwgauss[i] += ballwsurf[i]/ra2;
-      }
    }
 
    // compute total surface, volume (weighted, and unweighted)
@@ -418,7 +310,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       if (vertices[i].status==0) continue;
 
       coefaS = vertices[i].coefs; coefaV = vertices[i].coefv;
-      coefaM = vertices[i].coefm; coefaG = vertices[i].coefg;
 
       Surf           += ballwsurf[i];
       ballwsurf[i]    = ballwsurf[i]*coefaS;
@@ -427,14 +318,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       Vol           += ballwvol[i];
       ballwvol[i]    = ballwvol[i]*coefaV;
       WVol          += ballwvol[i];
-
-      Mean          += ballwmean[i];
-      ballwmean[i]   = ballwmean[i]*coefaM;
-      WMean         += ballwmean[i];
-
-      Gauss         += ballwgauss[i];
-      ballwgauss[i]  = ballwgauss[i]*coefaG;
-      WGauss        += ballwgauss[i];
    }
 
    // shift as 4 first vertices are pseudo atoms
@@ -443,8 +326,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
    for (int i = 0; i < nballs; i++) {
       ballwsurf[i]   = ballwsurf[i+4];
       ballwvol[i]    = ballwvol[i+4];
-      ballwmean[i]   = ballwmean[i+4];
-      ballwgauss[i]  = ballwgauss[i+4];
    }
 
    if (!compder) return;
@@ -457,12 +338,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       dvolx[i] = 0.;
       dvoly[i] = 0.;
       dvolz[i] = 0.;
-      dmeanx[i] = 0.;
-      dmeany[i] = 0.;
-      dmeanz[i] = 0.;
-      dgaussx[i] = 0.;
-      dgaussy[i] = 0.;
-      dgaussz[i] = 0.;
    }
 
    for (int iedge = 0; iedge < nedges; iedge++) {
@@ -476,8 +351,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       rab  = edges[iedge].len;
       val1S  = edges[iedge].dsurf/rab;
       val1V  = edges[iedge].dvol/rab;
-      val1M1 = edges[iedge].dmean/rab;
-      val1G1 = edges[iedge].dgauss/rab;
 
       dsurfx[ia]  += u[0]*val1S;
       dsurfy[ia]  += u[1]*val1S;
@@ -491,18 +364,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       dvolx[ib]   -= u[0]*val1V;
       dvoly[ib]   -= u[1]*val1V;
       dvolz[ib]   -= u[2]*val1V;
-      dmeanx[ia]  += u[0]*val1M1;
-      dmeany[ia]  += u[1]*val1M1;
-      dmeanz[ia]  += u[2]*val1M1;
-      dmeanx[ib]  -= u[0]*val1M1;
-      dmeany[ib]  -= u[1]*val1M1;
-      dmeanz[ib]  -= u[2]*val1M1;
-      dgaussx[ia] += u[0]*val1G1;
-      dgaussy[ia] += u[1]*val1G1;
-      dgaussz[ia] += u[2]*val1G1;
-      dgaussx[ib] -= u[0]*val1G1;
-      dgaussy[ib] -= u[1]*val1G1;
-      dgaussz[ib] -= u[2]*val1G1;
    }
 
    // shift as 4 first vertices are pseudo atoms
@@ -513,12 +374,6 @@ void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
       dvolx[i]    = dvolx[i+4];
       dvoly[i]    = dvoly[i+4];
       dvolz[i]    = dvolz[i+4];
-      dmeanx[i]   = dmeanx[i+4];
-      dmeany[i]   = dmeany[i+4];
-      dmeanz[i]   = dmeanz[i+4];
-      dgaussx[i]  = dgaussx[i+4];
-      dgaussy[i]  = dgaussy[i+4];
-      dgaussz[i]  = dgaussz[i+4];
    }
 }
 }

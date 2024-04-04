@@ -28,11 +28,8 @@ void alfedge(double* a, double* b, double ra, double rb,
    double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
 void alfcxedges();
 void alfcxfaces();
-void alphavol(double& WSurf, double& WVol, double& WMean, double& WGauss,
-   double& Surf, double& Vol, double& Mean, double& Gauss,
-   double* ballwsurf, double* ballwvol, double* ballwmean, double* ballwgauss,
-   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz,
-   double* dmeanx, double* dmeany, double* dmeanz, double* dgaussx, double* dgaussy, double* dgaussz, bool compder);
+void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ballwsurf, double* ballwvol,
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
 
 }
 
@@ -48,7 +45,7 @@ class Vertex {
       double r;
       double coord[3];
       double w;
-      double coefs,coefv,coefm,coefg;
+      double coefs,coefv;
       double gamma;
 
       std::bitset<8> info;
@@ -56,7 +53,7 @@ class Vertex {
 
       Vertex() {}
 
-      Vertex(double x, double y, double z, double r, double coefs, double coefv, double coefm, double coefg);
+      Vertex(double x, double y, double z, double r, double coefs, double coefv);
 
       ~Vertex();
 };
@@ -79,10 +76,8 @@ class Edge {
 public:
    int vertices[2];
    double gamma;
-   double sigma;
    double len,surf,vol; 
-   double coefm1,coefm2,coefg1,coefg2;
-   double dsurf,dvol,dmean,dgauss;
+   double dsurf,dvol;
 
    Edge() {}
 
@@ -106,33 +101,19 @@ public:
 
 TINKER_EXTERN double tsurf;
 TINKER_EXTERN double tvol;
-TINKER_EXTERN double tmean;
-TINKER_EXTERN double tgauss;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
-TINKER_EXTERN double wmean;
-TINKER_EXTERN double wgauss;
 TINKER_EXTERN double* radii;
 TINKER_EXTERN double* coefS;
 TINKER_EXTERN double* coefV;
-TINKER_EXTERN double* coefM;
-TINKER_EXTERN double* coefG;
 TINKER_EXTERN double* surf;
 TINKER_EXTERN double* vol;
-TINKER_EXTERN double* mean;
-TINKER_EXTERN double* gauss;
 TINKER_EXTERN double* dsurfx;
 TINKER_EXTERN double* dsurfy;
 TINKER_EXTERN double* dsurfz;
 TINKER_EXTERN double* dvolx;
 TINKER_EXTERN double* dvoly;
 TINKER_EXTERN double* dvolz;
-TINKER_EXTERN double* dmeanx;
-TINKER_EXTERN double* dmeany;
-TINKER_EXTERN double* dmeanz;
-TINKER_EXTERN double* dgaussx;
-TINKER_EXTERN double* dgaussy;
-TINKER_EXTERN double* dgaussz;
 constexpr double deleps = 1e-3;
 constexpr double delepsvol = 1e-13;
 constexpr double alfeps = 1e-10;

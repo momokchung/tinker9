@@ -27,14 +27,14 @@ void initdelcx()
    // set four "infinite" points
    double zero = 0.;
    for (int i = 0; i < 4; i++) {
-      Vertex vert(zero, zero, zero, zero, zero, zero, zero, zero);
+      Vertex vert(zero, zero, zero, zero, zero, zero);
       vert.info[0] = 1;
       vert.status = 0;
       vertices.push_back(vert);
    }
 
    // copy atoms into vertex list
-   double xi, yi, zi, ri, cs, cv, cm, cg;
+   double xi, yi, zi, ri, cs, cv;
    for (int i = 0; i < atoms::n; i++) {
       xi = atoms::x[i];
       yi = atoms::y[i];
@@ -42,9 +42,7 @@ void initdelcx()
       ri = radii[i];
       cs = coefS[i];
       cv = coefV[i];
-      cm = coefM[i];
-      cg = coefG[i];
-      Vertex vert(xi, yi, zi, ri, cs, cv, cm, cg);
+      Vertex vert(xi, yi, zi, ri, cs, cv);
       vert.info[0] = 1;
       vert.status = 1;
       vertices.push_back(vert);
@@ -63,9 +61,7 @@ void initdelcx()
          ri = brad[i];
          cs = 1.;
          cv = 1;
-         cm = 1;
-         cg = 1;
-         Vertex vert(xi, yi, zi, ri, cs, cv, cm, cg);
+         Vertex vert(xi, yi, zi, ri, cs, cv);
          vert.info[0] = 1;
          vert.status = 0;
          vertices.push_back(vert);

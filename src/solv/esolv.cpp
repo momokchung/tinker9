@@ -47,24 +47,14 @@ void esolvData(RcOp op)
       delete[] radii;
       delete[] coefS;
       delete[] coefV;
-      delete[] coefM;
-      delete[] coefG;
       delete[] surf;
       delete[] vol;
-      delete[] mean;
-      delete[] gauss;
       delete[] dsurfx;
       delete[] dsurfy;
       delete[] dsurfz;
       delete[] dvolx;
       delete[] dvoly;
       delete[] dvolz;
-      delete[] dmeanx;
-      delete[] dmeany;
-      delete[] dmeanz;
-      delete[] dgaussx;
-      delete[] dgaussy;
-      delete[] dgaussz;
       delete[] dcavx;
       delete[] dcavy;
       delete[] dcavz;
@@ -88,25 +78,15 @@ void esolvData(RcOp op)
       radii = new double[n];
       coefS = new double[n];
       coefV = new double[n];
-      coefM = new double[n];
-      coefG = new double[n];
       int fudge = 8;
       surf = new double[n+fudge];
       vol = new double[n+fudge];
-      mean = new double[n+fudge];
-      gauss = new double[n+fudge];
       dsurfx = new double[n+fudge];
       dsurfy = new double[n+fudge];
       dsurfz = new double[n+fudge];
       dvolx = new double[n+fudge];
       dvoly = new double[n+fudge];
       dvolz = new double[n+fudge];
-      dmeanx = new double[n+fudge];
-      dmeany = new double[n+fudge];
-      dmeanz = new double[n+fudge];
-      dgaussx = new double[n+fudge];
-      dgaussy = new double[n+fudge];
-      dgaussz = new double[n+fudge];
       dcavx = new double[n];
       dcavy = new double[n];
       dcavz = new double[n];
@@ -136,8 +116,6 @@ void esolvData(RcOp op)
          radii[i] = nonpol::radcav[i] + exclude;
          coefS[i] = solute::asolv[i];
          coefV[i] = 1.0;
-         coefM[i] = 1.0;
-         coefG[i] = 1.0;
       }
    }
 }

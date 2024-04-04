@@ -1,7 +1,7 @@
 #include "ff/solv/alphamol.h"
 
 namespace tinker {
-Vertex::Vertex(double x, double y, double z, double r, double coefs, double coefv, double coefm, double coefg)
+Vertex::Vertex(double x, double y, double z, double r, double coefs, double coefv)
 {
    this->coord[0] = x;
    this->coord[1] = y;
@@ -9,8 +9,6 @@ Vertex::Vertex(double x, double y, double z, double r, double coefs, double coef
    this->r = r;
    this->coefs = coefs;
    this->coefv = coefv;
-   this->coefm = coefm;
-   this->coefg = coefg;
 
    std::bitset<8> b(std::string("00000000"));
    this->info = b;
@@ -46,7 +44,6 @@ Edge::Edge(int i, int j) {
    vertices[0] = i;
    vertices[1] = j;
    gamma = 0.0;
-   sigma = 0.0;
 }
 Edge::~Edge() {}
 
