@@ -368,6 +368,42 @@ TEST_CASE("ESolv-7-Implicit", "[ff][amoeba][esolv]")
 
 TEST_CASE("ESolv-8-Implicit", "[ff][amoeba][esolv]")
 {
+   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/3cln.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/3cln.key");
+   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
+
+   const char* xn = "3cln.xyz";
+   const char* kn = "3cln.key";
+   const char* argv[] = {"dummy", xn, "-k", kn};
+   int argc = 4;
+
+   const double eps_e = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.001, 0.0001);
+
+   TestReference r(TINKER9_DIRSTR "/test/ref/esolv.6.txt");
+   auto ref_e = r.getEnergy();
+   auto ref_g = r.getGradient();
+
+   rc_flag = calc::xyz | calc::energy | calc::grad;
+   testBeginWithArgs(argc, argv);
+   initialize();
+
+   energy(calc::v0);
+   COMPARE_REALS(esum, ref_e, eps_e);
+
+   energy(calc::v4);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   energy(calc::v5);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   finish();
+   testEnd();
+}
+
+TEST_CASE("ESolv-9-Implicit", "[ff][amoeba][esolv]")
+{
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/water18.xyz");
    TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/water18.key");
    TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
