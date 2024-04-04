@@ -149,14 +149,14 @@ void esolv(int vers)
    esolvInit(vers);
 
    if (solvtyp == Solv::GK) {
-      enp(vers);
-   }
-
-   if (solvtyp == Solv::GK) {
       if ((not use(Potent::MPOLE)) and (not use(Potent::POLAR))) {
          inducegk(uind, uinp, uinds, uinps, vers);
       }
       egk(vers);
+   }
+
+   if (solvtyp == Solv::GK) {
+      enp(vers);
    }
 
    torque(vers, desx, desy, desz);
@@ -192,11 +192,11 @@ void esolvInit(int vers)
 
 void enp(int vers)
 {
-   // cavitation energy
-   ecav(vers);
-
    // edisp energy
    ewca(vers);
+
+   // cavitation energy
+   ecav(vers);
 }
 
 void egk(int vers)
