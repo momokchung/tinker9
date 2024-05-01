@@ -28,7 +28,7 @@ void alfedge(double* a, double* b, double ra, double rb,
    double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
 void alfcxedges();
 void alfcxfaces();
-void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ballwsurf, double* ballwvol,
+void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
 
 }
@@ -99,8 +99,6 @@ public:
    ~Face();
 };
 
-TINKER_EXTERN double tsurf;
-TINKER_EXTERN double tvol;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
 TINKER_EXTERN double* radii;

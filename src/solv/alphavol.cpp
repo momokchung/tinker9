@@ -4,7 +4,7 @@
 
 namespace tinker
 {
-void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ballwsurf, double* ballwvol,
+void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder)
 {
    int ia,ib,ic,id;
@@ -39,9 +39,7 @@ void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ba
 
    // initialize results arrays
    WSurf = 0;
-   Surf  = 0;
    WVol  = 0;
-   Vol   = 0;
    for (int i = 0; i < nvertices; i++) {
       ballwsurf[i] = 0.;
       ballwvol[i] = 0.;
@@ -311,13 +309,13 @@ void alphavol(double& WSurf, double& WVol, double& Surf, double& Vol, double* ba
 
       coefaS = vertices[i].coefs; coefaV = vertices[i].coefv;
 
-      Surf           += ballwsurf[i];
-      ballwsurf[i]    = ballwsurf[i]*coefaS;
-      WSurf          += ballwsurf[i];
+      double bwsurf = ballwsurf[i]*coefaS;
+      ballwsurf[i] = bwsurf;
+      WSurf += bwsurf;
 
-      Vol           += ballwvol[i];
-      ballwvol[i]    = ballwvol[i]*coefaV;
-      WVol          += ballwvol[i];
+      double bwvol = ballwvol[i]*coefaV;;
+      ballwvol[i] = bwvol;
+      WVol += bwvol;
    }
 
    // shift as 4 first vertices are pseudo atoms

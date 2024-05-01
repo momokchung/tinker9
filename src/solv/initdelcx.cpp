@@ -8,9 +8,9 @@ void initdelcx()
 {
    // initialize vertices and tetra
    vertices.clear();
-   vertices.resize(n+4);
+   vertices.reserve(atoms::n+4);
    tetra.clear();
-   tetra.reserve(10*n);
+   tetra.reserve(10*atoms::n);
 
    while (!link_facet.empty()) {
       link_facet.pop();

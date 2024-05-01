@@ -17,7 +17,7 @@ void alphamol(int vers)
    alfcxfaces();
 
    auto do_g = vers & calc::grad;
-   alphavol(wsurf, wvol, tsurf, tvol, surf, vol,
+   alphavol(wsurf, wvol, surf, vol,
       dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz, do_g);
 }
 }
