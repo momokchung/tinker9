@@ -3,7 +3,8 @@
 
 namespace tinker
 {
-void flip_1_4(int ipoint, int itetra, int& tetra_last)
+void flip_1_4(std::vector<Tetrahedron>& tetra, int ipoint, int itetra, int& tetra_last,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill)
 {
    int k, newtetra;
    int jtetra;
@@ -113,8 +114,9 @@ void flip_1_4(int ipoint, int itetra, int& tetra_last)
 }
 
 // flip_4_1 implements a 4->1 flip in 3D for regular triangulation
-void flip_4_1( int itetra, int jtetra, int ktetra, int ltetra, int* ivertices,
-   int idp, int jdp, int kdp, int ldp, bool test_acpo, int& ierr, int& tetra_last)
+void flip_4_1(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, int itetra, int jtetra, int ktetra,
+   int ltetra, int* ivertices, int idp, int jdp, int kdp, int ldp, bool test_acpo, int& ierr, int& tetra_last,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill)
 {
    int p,o,a,b,c;
    int ishare,jshare,kshare,lshare;
@@ -259,8 +261,9 @@ void flip_4_1( int itetra, int jtetra, int ktetra, int ltetra, int* ivertices,
 }
 
 // flip_2_3 implements a 2->3 flip in 3D for regular triangulation
-void flip_2_3(int itetra, int jtetra, int* vertices, int* facei, int* facej,
-   bool test_abpo, bool test_bcpo, bool test_capo, int& ierr, int& tetra_last)
+void flip_2_3(std::vector<Tetrahedron>& tetra, int itetra, int jtetra, int* vertices,
+   int* facei, int* facej,bool test_abpo, bool test_bcpo, bool test_capo, int& ierr, int& tetra_last,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill)
 {
    int k,p,o;
    int it,jt,idx,jdx;
@@ -408,8 +411,9 @@ void flip_2_3(int itetra, int jtetra, int* vertices, int* facei, int* facej,
 }
 
 // flip_3_2 implements a 3->2 flip in 3D for regular triangulation
-void flip_3_2(int itetra, int jtetra, int ktetra, int* vertices, int* edgei,
-    int* edgej, int* edgek, bool test_bcpo, bool test_acpo, int& ierr, int& tetra_last)
+void flip_3_2(std::vector<Tetrahedron>& tetra, int itetra, int jtetra, int ktetra, int* vertices,
+   int* edgei, int* edgej, int* edgek, bool test_bcpo, bool test_acpo, int& ierr, int& tetra_last,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill)
 {
    int k,p,o,c;
    int it,jt,kt,idx,jdx,kdx;
@@ -588,8 +592,8 @@ void flip_3_2(int itetra, int jtetra, int ktetra, int* vertices, int* edgei,
 
 // find_tetra tests if four given points form an
 // existing tetrahedron in the current Delaunay
-inline void find_tetra(int itetra, int idx_c, int a, int b, int o,
-   int& ifind, int& tetra_loc, int& idx_a, int& idx_b)
+inline void find_tetra(std::vector<Tetrahedron>& tetra, int itetra, int idx_c,
+   int a, int b, int o, int& ifind, int& tetra_loc, int& idx_a, int& idx_b)
 {
    // We are testing if tetrahedron (abpo) exists. If it exists, it is
    // a neighbour of abcp, on the face opposite to vertex c.
@@ -622,7 +626,7 @@ inline void find_tetra(int itetra, int idx_c, int a, int b, int o,
 }
 
 // define_facet definess the triangle of intersection of two tetrahedra
-inline void define_facet(int itetra, int jtetra, int idx_o, int* facei, int* facej)
+inline void define_facet(std::vector<Tetrahedron>& tetra, int itetra, int jtetra, int idx_o, int* facei, int* facej)
 {
    int ia, ib, ie, ig;
    int k;
@@ -663,7 +667,8 @@ inline void define_facet(int itetra, int jtetra, int idx_o, int* facei, int* fac
 }
 
 // flip restores the regularity of Delaunay triangulation
-void flip()
+void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill)
 {
    int ii,ij;
    int idxi,idxj,idxk,idxl;
@@ -732,13 +737,13 @@ void flip()
       if (tetra[itetra].info[0]==1) itest_abcp = 1;
 
       // check for local regularity (and convexity)
-      regular_convex(a, b, c, p, o, itest_abcp, regular, convex, test_abpo, test_bcpo, test_capo); 
+      regular_convex(vertices, a, b, c, p, o, itest_abcp, regular, convex, test_abpo, test_bcpo, test_capo); 
 
       // if the link facet is locally regular, discard
       if (regular) continue;
 
       // define neighbors of the facet on itetra and jtetra
-      define_facet(itetra, jtetra, idx_o, facei, facej);
+      define_facet(tetra, itetra, jtetra, idx_o, facei, facej);
 
       test_abpc = (itest_abcp != 1);
 
@@ -758,8 +763,7 @@ void flip()
          vert_flip[2] = c;
          vert_flip[3] = p;
          vert_flip[4] = o;
-         flip_2_3(itetra, jtetra, vert_flip, facei, facej, test_abpo, test_bcpo, test_capo, ierr, tetra_last);
-
+         flip_2_3(tetra, itetra, jtetra, vert_flip, facei, facej, test_abpo, test_bcpo, test_capo, ierr, tetra_last, link_facet, link_index, free, kill);
          continue;
       }
 
@@ -785,7 +789,7 @@ void flip()
 
       if (test_abpo != test_abpc) {
          ireflex++;
-         find_tetra(itetra, 2, a, b, o, ifind, tetra_ab, idx_a, idx_b);
+         find_tetra(tetra, itetra, 2, a, b, o, ifind, tetra_ab, idx_a, idx_b);
 
          if (ifind==1) {
             tetra_flip[iflip] = tetra_ab;
@@ -816,7 +820,7 @@ void flip()
       if (test_acpo != test_acpb) {
 
          ireflex++;
-         find_tetra(itetra, 1, a, c, o, ifind, tetra_ac, idx_a, idx_c);
+         find_tetra(tetra, itetra, 1, a, c, o, ifind, tetra_ac, idx_a, idx_c);
 
          if (ifind==1)  {
             tetra_flip[iflip] = tetra_ac;
@@ -845,7 +849,7 @@ void flip()
       if (test_bcpo != test_bcpa) {
 
          ireflex++;
-         find_tetra(itetra, 0, b, c, o, ifind, tetra_bc, idx_b, idx_c);
+         find_tetra(tetra, itetra, 0, b, c, o, ifind, tetra_bc, idx_b, idx_c);
 
          if (ifind==1)  {
             tetra_flip[iflip] = tetra_bc;
@@ -879,8 +883,7 @@ void flip()
          edgej[1] = facej[ib];
          edgek[0] = edge_val[0][0];
          edgek[1] = edge_val[0][1];
-         flip_3_2(itetra, jtetra, tetra_flip[0], vert_flip, edgei, edgej, edgek, test_or[0][0], test_or[0][1], ierr, tetra_last);
-
+         flip_3_2(tetra, itetra, jtetra, tetra_flip[0], vert_flip, edgei, edgej, edgek, test_or[0][0], test_or[0][1], ierr, tetra_last, link_facet, link_index, free, kill);
       }
       else if (iflip==2) {
          // In this case, one point is redundant: the point common to
@@ -907,7 +910,7 @@ void flip()
          else {
             test = test_abpo;
          }
-         flip_4_1(itetra, jtetra, tetra_flip[0], tetra_flip[1], vert_flip, idxi, idxj, idxk, idxl, test, ierr, tetra_last);
+         flip_4_1(vertices, tetra, itetra, jtetra, tetra_flip[0], tetra_flip[1], vert_flip, idxi, idxj, idxk, idxl, test, ierr, tetra_last, link_facet, link_index, free, kill);
       }
       else {
          TINKER_THROW("DELFLIP  --  Three Edges Flippable");

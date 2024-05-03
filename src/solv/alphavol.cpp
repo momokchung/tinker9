@@ -4,7 +4,9 @@
 
 namespace tinker
 {
-void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
+void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
+   std::vector<Edge>& edges, std::vector<Face>& faces,
+   double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder)
 {
    int ia,ib,ic,id;
@@ -60,7 +62,7 @@ void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
       coefaS = vertices[ia].coefs; coefbS = vertices[ib].coefs;
       coefaV = vertices[ia].coefv; coefbV = vertices[ib].coefv;
 
-      rab2 = dist2(ia, ib);
+      rab2 = dist2(vertices, ia, ib);
       rab = std::sqrt(rab2);
 
       twosph(ra, ra2, rb, rb2, rab, rab2, surfa, surfb, vola, volb, r, phi);

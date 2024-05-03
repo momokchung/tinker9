@@ -1,6 +1,21 @@
 #include "ff/solv/alphamol.h"
 
 namespace tinker {
+AlfAtom::AlfAtom(int idx, double x, double y, double z, double r, double coefs, double coefv)
+{
+    this->index = idx;
+    this->coord[0] = x;
+    this->coord[1] = y;
+    this->coord[2] = z;
+    this->r = r;
+    this->coefs = coefs;
+    this->coefv = coefv;
+
+    this->w = x*x + y*y + z*z - r*r;
+}
+
+AlfAtom::~AlfAtom() {}
+
 Vertex::Vertex(double x, double y, double z, double r, double coefs, double coefv)
 {
    this->coord[0] = x;

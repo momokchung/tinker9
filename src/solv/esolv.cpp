@@ -289,7 +289,7 @@ void ecav(int vers)
    }
 
    // cavitation energy
-   alphamol(vers);
+   alfmol(vers);
    esurf = wsurf;
    double reff = 0.5 * std::sqrt(esurf/(pi*surften));
    double reff2 = reff * reff;

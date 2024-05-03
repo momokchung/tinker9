@@ -9,30 +9,6 @@
 #include <stack>
 #include <vector>
 
-namespace tinker {
-/// \ingroup solv
-void alphamol(int vers);
-void initdelcx();
-void delaunay();
-void minor2(double a11, double a21, int& res, double eps=1e-10);
-void minor3(double a11, double a12, double a21, double a22, double a31, double a32, int& res, double eps=1e-10);
-void minor4(double* coord_a, double* coord_b, double* coord_c, double* coord_d, int& res, double eps=1e-10);
-void minor5(double* coord_a, double r1, double* coord_b, double r2, double* coord_c,
-   double r3, double* coord_d, double r4, double* coord_e, double r5, int& res, double eps=1e-10);
-void flip_1_4(int ipoint, int itetra, int& tetra_last);
-void flip();
-void regular_convex(int a, int b, int c, int p, int o, int itest_abcp,
-   bool& regular, bool& convex, bool& test_abpo, bool& test_bcpo, bool& test_capo) ;
-void alfcx(double alpha);
-void alfedge(double* a, double* b, double ra, double rb, 
-   double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
-void alfcxedges();
-void alfcxfaces();
-void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
-   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
-
-}
-
 //====================================================================//
 //                                                                    //
 //                          Global Variables                          //
@@ -40,22 +16,37 @@ void alphavol(double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
 //====================================================================//
 
 namespace tinker {
+class AlfAtom {
+public:
+   int index;
+   double r;
+   double coord[3];
+   double w;
+   double coefs,coefv;
+
+   AlfAtom() {}
+
+   AlfAtom(int idx, double x, double y, double z, double r, double coefs, double coefv);
+
+   ~AlfAtom();
+};
+
 class Vertex {
-   public:
-      double r;
-      double coord[3];
-      double w;
-      double coefs,coefv;
-      double gamma;
+public:
+   double r;
+   double coord[3];
+   double w;
+   double coefs,coefv;
+   double gamma;
 
-      std::bitset<8> info;
-      bool status;
+   std::bitset<8> info;
+   bool status;
 
-      Vertex() {}
+   Vertex() {}
 
-      Vertex(double x, double y, double z, double r, double coefs, double coefv);
+   Vertex(double x, double y, double z, double r, double coefs, double coefv);
 
-      ~Vertex();
+   ~Vertex();
 };
 
 class Tetrahedron {
@@ -115,14 +106,7 @@ TINKER_EXTERN double* dvolz;
 constexpr double deleps = 1e-3;
 constexpr double delepsvol = 1e-13;
 constexpr double alfeps = 1e-10;
-TINKER_EXTERN std::vector<Vertex> vertices;
-TINKER_EXTERN std::vector<Tetrahedron> tetra;
-TINKER_EXTERN std::vector<Edge> edges;
-TINKER_EXTERN std::vector<Face> faces;
-TINKER_EXTERN std::queue<std::pair<int,int>> link_facet;
-TINKER_EXTERN std::queue<std::pair<int,int>> link_index;
-TINKER_EXTERN std::stack<int> free;
-TINKER_EXTERN std::vector<int> kill;
+TINKER_EXTERN std::vector<AlfAtom> alfatoms;
 
 constexpr int inf4_1[4] = {1, 1, 0, 0};
 constexpr int sign4_1[4] = {-1, 1, 1, -1};
@@ -273,4 +257,34 @@ constexpr int pair[6][2] = {
    {0, 2},
    {0, 1}
 };
+}
+
+namespace tinker {
+/// \ingroup solv
+void alfmol(int vers);
+void alphamol(int natoms, AlfAtom* alfatoms, double& wsurf, double& wvol, double* surf, double* vol,
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
+void initdelcx(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
+   std::queue<std::pair<int,int>>& link_facet,std::queue<std::pair<int,int>>& link_index,std::stack<int>& free,std::vector<int>& kill);
+void delaunay(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
+void minor2(double a11, double a21, int& res, double eps=1e-10);
+void minor3(double a11, double a12, double a21, double a22, double a31, double a32, int& res, double eps=1e-10);
+void minor4(double* coord_a, double* coord_b, double* coord_c, double* coord_d, int& res, double eps=1e-10);
+void minor5(double* coord_a, double r1, double* coord_b, double r2, double* coord_c,
+   double r3, double* coord_d, double r4, double* coord_e, double r5, int& res, double eps=1e-10);
+void flip_1_4(std::vector<Tetrahedron>& tetra, int ipoint, int itetra, int& tetra_last,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
+void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
+   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
+void regular_convex(std::vector<Vertex>& vertices, int a, int b, int c, int p, int o, int itest_abcp,
+   bool& regular, bool& convex, bool& test_abpo, bool& test_bcpo, bool& test_capo);
+void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, double alpha);
+void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, double rb, 
+   double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
+void alfcxedges(std::vector<Tetrahedron>& tetra, std::vector<Edge>& edges);
+void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces);
+void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
+   std::vector<Edge>& edges, std::vector<Face>& faces,
+   double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
 }

@@ -3,17 +3,17 @@
 
 namespace tinker
 {
-inline void getcoord2(int ia, int ja, double* a, double* b, double* cg, double& ra, double& rb);
-inline void getcoord4(int ia, int ja, int ka, int la, double* a, double* b,
-   double* c, double* d, double& ra, double& rb, double& rc, double& rd);
-inline void getcoord5(int ia, int ja, int ka, int la,
+inline void getcoord2(std::vector<Vertex>& vertices, int ia, int ja, double* a, double* b, double* cg, double& ra, double& rb);
+inline void getcoord4(std::vector<Vertex>& vertices, int ia, int ja, int ka, int la,
+   double* a, double* b, double* c, double* d, double& ra, double& rb, double& rc, double& rd);
+inline void getcoord5(std::vector<Vertex>& vertices, int ia, int ja, int ka, int la,
    int ma, double* a, double* b, double* c, double* d, double* e,
    double& ra, double& rb, double& rc, double& rd, double& re);
 void vertattach(double* a, double* b, double ra, double rb, int& testa, int& testb);
 
 // "alfcx" builds the alpha complex based on
 // the weighted Delaunay triangulation
-void alfcx(double alpha)
+void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, double alpha)
 {
    double ra,rb,rc,rd,re;
    double a[4],b[4],c[4],d[4],e[4],cg[3];
@@ -42,7 +42,7 @@ void alfcx(double alpha)
       i = tetra[idx].vertices[0]; j = tetra[idx].vertices[1];
       k = tetra[idx].vertices[2]; l = tetra[idx].vertices[3];
 
-      getcoord4(i, j, k, l, a, b, c, d, ra, rb, rc, rd);
+      getcoord4(vertices, i, j, k, l, a, b, c, d, ra, rb, rc, rd);
 
       int iflag;
       alftetra(a, b, c, d, ra, rb, rc, rd, iflag, alpha);
@@ -103,11 +103,11 @@ void alfcx(double alpha)
             int m;
             if (jtetra>=0) {
                m = tetra[jtetra].vertices[jtrig];
-               getcoord5(i, j, k, l, m, a, b, c, d, e, ra, rb, rc, rd, re);
+               getcoord5(vertices, i, j, k, l, m, a, b, c, d, e, ra, rb, rc, rd, re);
             }
             else {
                m = -1;
-               getcoord4(i, j, k, l, a, b, c, d, ra, rb, rc, rd);
+               getcoord4(vertices, i, j, k, l, a, b, c, d, ra, rb, rc, rd);
             }
             int irad, iattach;
             alftrig(a, b, c, d, e, ra, rb, rc, rd, re, m, irad, iattach, alpha);
@@ -252,9 +252,9 @@ void alfcx(double alpha)
          // smaller than the radius of the sphere orthogonal
          // to the two balls corresponding to the edge
 
-         getcoord2(i, j, a, b, cg, ra, rb);
+         getcoord2(vertices, i, j, a, b, cg, ra, rb);
          int irad, iattach;
-         alfedge(a, b, ra, rb, cg, listcheck, irad, iattach, alpha);
+         alfedge(vertices, a, b, ra, rb, cg, listcheck, irad, iattach, alpha);
 
          if (iattach==0 && irad == 1) {
             tetra[idx].info_edge[iedge] = 1;
@@ -291,7 +291,7 @@ void alfcx(double alpha)
 // getcoord2 extracts two atoms from the global array
 // containing all atoms of the protein, centers them on (0,0,0),
 // recomputes their weights and stores them in local arrays
-inline void getcoord2(int ia, int ja, double* a, double* b, double* cg, double& ra, double& rb)
+inline void getcoord2(std::vector<Vertex>& vertices, int ia, int ja, double* a, double* b, double* cg, double& ra, double& rb)
 {
    double x;
 
@@ -315,7 +315,7 @@ inline void getcoord2(int ia, int ja, double* a, double* b, double* cg, double& 
 // getcoord4 extracts four atoms from the global array
 // containing all atoms of the protein, centers them on (0,0,0),
 // recomputes their weights and stores them in local arrays
-inline void getcoord4(int ia, int ja, int ka, int la, double* a, double* b,
+inline void getcoord4(std::vector<Vertex>& vertices, int ia, int ja, int ka, int la, double* a, double* b,
    double* c, double* d, double& ra, double& rb, double& rc, double& rd)
 {
    double x;
@@ -347,7 +347,7 @@ inline void getcoord4(int ia, int ja, int ka, int la, double* a, double* b,
 // getcoord5 extracts five atoms from the global array
 // containing all atoms of the protein, centers them on (0,0,0),
 // recomputes their weights and stores them in local arrays
-inline void getcoord5(int ia, int ja, int ka, int la,
+inline void getcoord5(std::vector<Vertex>& vertices, int ia, int ja, int ka, int la,
    int ma, double* a, double* b, double* c, double* d, double* e,
    double& ra, double& rb, double& rc, double& rd, double& re)
 {

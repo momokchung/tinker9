@@ -6,7 +6,7 @@ inline void edgeradius(double* a, double* b, double ra, double rb, double* Dab, 
 inline void edgeattach(double* a, double* b, double* c, double ra, double rb, double rc, double* Dab, double* Sab, double* Tab, int& testa);
 
 // "alfedge" checks if the edge belongs to the alpha complex
-void alfedge(double* a, double* b, double ra, double rb, 
+void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, double rb, 
    double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha)
 {
    double Dab[4], Sab[3], Tab[3];

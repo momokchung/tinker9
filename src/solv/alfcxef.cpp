@@ -5,7 +5,7 @@ namespace tinker
 {
 // "alfcxedges" generates the list of edges in
 // the Alpha complex
-void alfcxedges()
+void alfcxedges(std::vector<Tetrahedron>& tetra, std::vector<Edge>& edges)
 {
    int face_info[6][2] = {
       { 0, 1},
@@ -25,12 +25,11 @@ void alfcxedges()
       { 0, 1},
    };
 
-   edges.clear();
-
    // define mask on edges of tetrahedra, to check if already seen
-
    int ntetra = tetra.size();
    std::bitset<6> *tetra_mask = new std::bitset<6>[ntetra];
+   edges.clear();
+   edges.reserve(ntetra);
 
    std::bitset<6> zero(std::string("000000"));
    for (int i = 0; i < ntetra; i++) {
@@ -148,7 +147,7 @@ void alfcxedges()
 
 // "alfcxfaces" procedure generates the list of boundary
 // faces in the alpha complex
-void alfcxfaces()
+void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces)
 {
    int face_edge[4][3] = {
       { 2, 1, 0},
@@ -163,9 +162,9 @@ void alfcxfaces()
    int i, j, k;
    double coef;
 
-   faces.clear();
-
    int ntetra = tetra.size();
+   faces.clear();
+   faces.reserve(ntetra);
 
    int e_1, e_2, e_3; 
 

@@ -382,7 +382,7 @@ inline int findedge(Tetrahedron t, int i1, int j1)
    return ipair;
 }
 
-inline double dist2(int n1, int n2)
+inline double dist2(std::vector<Vertex>& vertices, int n1, int n2)
 {
    double x;
    double dist = 0;
