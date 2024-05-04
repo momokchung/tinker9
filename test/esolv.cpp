@@ -6,7 +6,8 @@
 #include "testrt.h"
 
 using namespace tinker;
-
+// TODO_MOSES add test for AlphaMol and AlphaMol2
+// TODO_MOSES add test for None, Sort3D, BRIO, Split, KDTree
 TEST_CASE("ESolv-1-Implicit", "[ff][amoeba][esolv]")
 {
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/1l2y.xyz");

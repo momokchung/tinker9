@@ -14,6 +14,7 @@
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
 #include <tinker/detail/nonpol.hh>
+#include <tinker/detail/openmp.hh>
 #include <tinker/detail/solute.hh>
 #include <tinker/routines.h>
 
@@ -117,6 +118,13 @@ void esolvData(RcOp op)
          coefS[i] = solute::asolv[i];
          coefV[i] = 1.0;
       }
+      // TODO_MOSES read from Tinker8
+      alfmeth = AlfMethod::AlphaMol2;
+      alfsort = AlfSort::KDTree;
+      // alfnthd = openmp::nthread;
+      alfnthd = 8;
+
+      if (alfmeth == AlfMethod::AlphaMol2) initHilbert(3);
    }
 }
 

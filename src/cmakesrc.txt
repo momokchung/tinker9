@@ -73,6 +73,7 @@ rwcrd.cpp
 solv/alfcx.cpp
 solv/alfcxef.cpp
 solv/alfedge.cpp
+solv/alforder.cpp
 solv/alfshape.cpp
 solv/alphamol.cpp
 solv/alphavol.cpp

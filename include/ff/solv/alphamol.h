@@ -2,7 +2,7 @@
 #include "ff/energybuffer.h"
 #include "ff/precision.h"
 #include "tool/rcman.h"
-#include <tinker/detail/atoms.hh>
+#include <algorithm>
 #include <bitset>
 #include <cmath>
 #include <queue>
@@ -90,6 +90,24 @@ public:
    ~Face();
 };
 
+enum class AlfMethod
+{
+   AlphaMol,
+   AlphaMol2,
+};
+
+enum class AlfSort
+{
+   None,
+   Sort3D,
+   BRIO,
+   Split,
+   KDTree,
+};
+
+constexpr double deleps = 1e-3;
+constexpr double delepsvol = 1e-13;
+constexpr double alfeps = 1e-10;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
 TINKER_EXTERN double* radii;
@@ -103,10 +121,10 @@ TINKER_EXTERN double* dsurfz;
 TINKER_EXTERN double* dvolx;
 TINKER_EXTERN double* dvoly;
 TINKER_EXTERN double* dvolz;
-constexpr double deleps = 1e-3;
-constexpr double delepsvol = 1e-13;
-constexpr double alfeps = 1e-10;
 TINKER_EXTERN std::vector<AlfAtom> alfatoms;
+TINKER_EXTERN AlfMethod alfmeth;
+TINKER_EXTERN AlfSort alfsort;
+TINKER_EXTERN int alfnthd;
 
 constexpr int inf4_1[4] = {1, 1, 0, 0};
 constexpr int sign4_1[4] = {-1, 1, 1, -1};
@@ -257,6 +275,13 @@ constexpr int pair[6][2] = {
    {0, 2},
    {0, 1}
 };
+
+constexpr int hilbert_order = 52;
+constexpr int hilbert_limit = 8;
+constexpr int brio_threshold = 64;
+constexpr double brio_ratio = 0.125;
+TINKER_EXTERN int transgc[8][3][8];
+TINKER_EXTERN int tsb1mod3[8];
 }
 
 namespace tinker {
@@ -264,6 +289,7 @@ namespace tinker {
 void alfmol(int vers);
 void alphamol(int natoms, AlfAtom* alfatoms, double& wsurf, double& wvol, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
+void alphamol2(int vers);
 void initdelcx(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::queue<std::pair<int,int>>& link_facet,std::queue<std::pair<int,int>>& link_index,std::stack<int>& free,std::vector<int>& kill);
 void delaunay(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
@@ -284,7 +310,14 @@ void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, dou
 void alfcxedges(std::vector<Tetrahedron>& tetra, std::vector<Edge>& edges);
 void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces);
 void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
-   std::vector<Edge>& edges, std::vector<Face>& faces,
-   double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
+   std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
+void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);
+void alforder(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double rmax, int nthreads, std::vector<int>& Nval);
+void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);
+void initHilbert(int ndim);
+void sort3DHilbert(AlfAtom *alfatoms, int size, int e, int d, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int depth);
+void brioHilbert(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int depth);
+void splitGrid(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int ncube, std::vector<int>& Nval);
+void kdTree(std::vector<AlfAtom>& alfatoms, int nsplit_tot, std::vector<int>& Nval);
 }

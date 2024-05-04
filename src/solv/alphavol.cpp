@@ -5,8 +5,7 @@
 namespace tinker
 {
 void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
-   std::vector<Edge>& edges, std::vector<Face>& faces,
-   double& WSurf, double& WVol, double* ballwsurf, double* ballwvol,
+   std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder)
 {
    int ia,ib,ic,id;
@@ -40,8 +39,6 @@ void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    int ntetra = tetra.size();
 
    // initialize results arrays
-   WSurf = 0;
-   WVol  = 0;
    for (int i = 0; i < nvertices; i++) {
       ballwsurf[i] = 0.;
       ballwvol[i] = 0.;
@@ -311,13 +308,8 @@ void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
 
       coefaS = vertices[i].coefs; coefaV = vertices[i].coefv;
 
-      double bwsurf = ballwsurf[i]*coefaS;
-      ballwsurf[i] = bwsurf;
-      WSurf += bwsurf;
-
-      double bwvol = ballwvol[i]*coefaV;;
-      ballwvol[i] = bwvol;
-      WVol += bwvol;
+      ballwsurf[i] *= coefaS;
+      ballwvol[i] *= coefaV;
    }
 
    // shift as 4 first vertices are pseudo atoms
