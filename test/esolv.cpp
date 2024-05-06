@@ -7,6 +7,7 @@
 
 using namespace tinker;
 // TODO_MOSES add test for AlphaMol and AlphaMol2
+// TODO_MOSES add test for with and without hydrogen
 // TODO_MOSES add test for None, Sort3D, BRIO, Split, KDTree
 TEST_CASE("ESolv-1-Implicit", "[ff][amoeba][esolv]")
 {
