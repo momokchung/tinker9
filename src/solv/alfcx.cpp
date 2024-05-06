@@ -285,6 +285,14 @@ void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, doubl
       vertices[i].info[7] = 1;
    }
 
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+      printf("\n Number of tetrahedra in Delaunay complex : %d", ntet_del);
+      printf("\n Number of tetrahedra in Alpha complex    : %d", ntet_alp);
+      printf("\n Number of triangles in Alpha complex     : %d", ntrig);
+      printf("\n Number of edges in Alpha complex         : %d", nedge);
+      printf("\n Number of vertices in Alpha complex      : %d\n", nvert);
+   }
+
    delete [] tetra_mask;
 }
 

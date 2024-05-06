@@ -11,13 +11,26 @@ void initalfatm()
    alfatoms.clear();
    alfatoms.reserve(atoms::n);
 
+   // initialize atomic
+   for (int i = 0; i < atoms::n; i++) {
+      surf[i] = 0;
+      vol[i] = 0;
+      dsurfx[i] = 0;
+      dsurfy[i] = 0;
+      dsurfz[i] = 0;
+      dvolx[i] = 0;
+      dvoly[i] = 0;
+      dvolz[i] = 0;
+   }
+
    // copy atoms into alfatoms list
    double xi, yi, zi, ri, cs, cv;
-   for(int i = 0; i < atoms::n; i++) {
+   for (int i = 0; i < atoms::n; i++) {
+      ri = radii[i];
+      if (ri == 0) continue;
       xi = atoms::x[i];
       yi = atoms::y[i];
       zi = atoms::z[i];
-      ri = radii[i];
       cs = coefS[i];
       cv = coefV[i];
       AlfAtom atm(i, xi, yi, zi, ri, cs, cv);
@@ -37,17 +50,13 @@ void alfmol(int vers)
    initalfatm();
 
    // run AlphaMol
-   if (alfmeth == AlfMethod::AlphaMol) {
-      alphamol(alfatoms.size(), &(alfatoms[0]), wsurf, wvol, surf, vol,
-         dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz, vers);
-   }
+   if (alfmeth == AlfMethod::AlphaMol) alphamol1(vers);
    else if (alfmeth == AlfMethod::AlphaMol2) alphamol2(vers);
 }
 
-void alphamol(int natoms, AlfAtom* alfatoms, double& wsurf, double& wvol, double* surf, double* vol,
+void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers)
 {
-   bool debug = false;
    clock_t start_s,stop_s;
    double tot_t = 0;
 
@@ -61,89 +70,127 @@ void alphamol(int natoms, AlfAtom* alfatoms, double& wsurf, double& wvol, double
    std::vector<int> kill;
 
    // initialize Delaunay procedure
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    initdelcx(natoms, alfatoms, vertices, tetra, link_facet, link_index, free, kill);
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n Initdelcx compute time    : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
    // compute Delaunay triangulation
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    delaunay(vertices, tetra, link_facet, link_index, free, kill);
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n Delaunay compute time     : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
    // generate alpha complex (with alpha=0.0)
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    double alpha = 0;
    alfcx(vertices, tetra, alpha);
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n AlphaCx compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    alfcxedges(tetra, edges);
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n AlphaCxEdges compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    alfcxfaces(tetra, faces);
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n AlphaCxFaces compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       start_s = clock();
    }
    auto do_g = vers & calc::grad;
    alphavol(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz, do_g);
-   if (alfmeth==AlfMethod::AlphaMol) {
-      wsurf = 0;
-      wvol = 0;
-      int nvertices = vertices.size();
-      int nballs = 0;
-      for (int i = 0; i < nvertices; i++) if (vertices[i].status==1) nballs++;
-      for (int i = 0; i < nballs; i++) {
-         wsurf += surf[i];
-         wvol += vol[i];
-      }
-   }
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n Volumes compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
+      printf("\n AlphaMol compute time     : %10.6f ms\n", tot_t*1000);
+   }
+}
+
+void alphamol1(int vers)
+{
+   int natoms = alfatoms.size();
+   int nfudge = 8;
+   double* surfthd = new double[natoms+nfudge];
+   double* volthd = new double[natoms+nfudge];
+   double* dsurfxthd = new double[natoms+nfudge];
+   double* dsurfythd = new double[natoms+nfudge];
+   double* dsurfzthd = new double[natoms+nfudge];
+   double* dvolxthd = new double[natoms+nfudge];
+   double* dvolythd = new double[natoms+nfudge];
+   double* dvolzthd = new double[natoms+nfudge];
+   alphamol(natoms, &(alfatoms[0]), surfthd, volthd,
+      dsurfxthd, dsurfythd, dsurfzthd, dvolxthd, dvolythd, dvolzthd, vers);
+
+   wsurf = 0;
+   wvol = 0;
+   for(int i = 0; i < natoms; i++) {
+      wsurf += surfthd[i];
+      wvol += volthd[i];
    }
 
-   if (debug and alfmeth==AlfMethod::AlphaMol) {
-      printf("\n AlphaMol compute time     : %10.6f ms\n", tot_t*1000);
+   for (int i = 0; i < natoms; i++) {
+      surf[alfatoms[i].index] = surfthd[i];
+      vol[alfatoms[i].index] = volthd[i];
+   }
+
+   auto do_g = vers & calc::grad;
+   if (do_g) {
+      for (int i = 0; i < natoms; i++) {
+         dsurfx[alfatoms[i].index] = dsurfxthd[i];
+         dsurfy[alfatoms[i].index] = dsurfythd[i];
+         dsurfz[alfatoms[i].index] = dsurfzthd[i];
+         dvolx[alfatoms[i].index] = dvolxthd[i];
+         dvoly[alfatoms[i].index] = dvolythd[i];
+         dvolz[alfatoms[i].index] = dvolzthd[i];
+      }
+   }
+
+   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       printf("\n Van der Waals Surface Area and Volume :\n");
       int width = 20;
       int precision = 4;
       printf("\n Total Area :              %*.*f Square Angstroms", width, precision, wsurf);
       printf("\n Total Volume :            %*.*f Cubic Angstroms", width, precision, wvol);
    }
+
+   delete[] surfthd;
+   delete[] volthd;
+   delete[] dsurfxthd;
+   delete[] dsurfythd;
+   delete[] dsurfzthd;
+   delete[] dvolxthd;
+   delete[] dvolythd;
+   delete[] dvolzthd;
 }
 
 inline void gettime(double& t1, double& u1);
@@ -176,19 +223,18 @@ int threadids[NUM_THREADS];
 
 void alphamol2(int vers)
 {
-   bool debug = false;
    double t1,t2,u1,u2,diff;
    double tot_t = 0;
 
    // if needed, reorder  atoms
-   if (debug) gettime(t1, u1);
+   if (alfdebug) gettime(t1, u1);
    double xmin,ymin,zmin;
    double xmax,ymax,zmax;
    double rmax;
    std::vector<int> Nval(alfnthd + 1, 0);
    alfboxsize(&alfatoms[0], alfatoms.size(), xmin, ymin, zmin, xmax, ymax, zmax, rmax);
    alforder(xmin, ymin, zmin, xmax, ymax, zmax, rmax, alfnthd, Nval);
-   if (debug) {
+   if (alfdebug) {
       gettime(t2, u2);
       diff = gettimediff(t1, u1, t2, u2);
       printf("\n Alforder compute time : %10.6f ms\n", diff*1000);
@@ -196,18 +242,18 @@ void alphamol2(int vers)
    }
 
    // run AlphaMol algorithm
-   if (debug) gettime(t1, u1);
+   if (alfdebug) gettime(t1, u1);
    int natoms = alfatoms.size();
    double buffer = 2*rmax;
    multimol(buffer, vers, alfnthd, Nval);
-   if (debug) {
+   if (alfdebug) {
       gettime(t2, u2);
       diff = gettimediff(t1, u1, t2, u2);
       printf("\n MultiMol compute time : %10.6f ms\n", diff*1000);
       tot_t += diff;
    }
 
-   if (debug) {
+   if (alfdebug) {
       printf("\n AlphaMol2 compute time : %10.6f ms\n", tot_t*1000);
       printf("\n Van der Waals Surface Area and Volume :\n");
       int width = 20;
@@ -347,8 +393,6 @@ void* singlemol(void* data)
    }
 
    int nfudge = 8;
-   double tmp1;
-   double tmp2;
    double* surfthd = new double[ntot+nfudge];
    double* volthd = new double[ntot+nfudge];
    double* dsurfxthd = new double[ntot+nfudge];
@@ -359,7 +403,7 @@ void* singlemol(void* data)
    double* dvolzthd = new double[ntot+nfudge];
    int vers = info[threadid].vers;
 
-   alphamol(ntot, newatoms, tmp1, tmp2, surfthd, volthd,
+   alphamol(ntot, newatoms, surfthd, volthd,
       dsurfxthd, dsurfythd, dsurfzthd, dvolxthd, dvolythd, dvolzthd, vers);
 
    // transfer information to thread
@@ -371,11 +415,13 @@ void* singlemol(void* data)
       info[threadid].wvol += volthd[i];
    }
 
-   auto do_g = vers & calc::grad;
    for (int i = 0; i < natm; i++) {
       info[threadid].surf[newatoms[i].index] = surfthd[i];
       info[threadid].vol[newatoms[i].index] = volthd[i];
-      if (do_g) {
+   }
+   auto do_g = vers & calc::grad;
+   if (do_g) {
+      for (int i = 0; i < natm; i++) {
          info[threadid].dsurfx[newatoms[i].index] = dsurfxthd[i];
          info[threadid].dsurfy[newatoms[i].index] = dsurfythd[i];
          info[threadid].dsurfz[newatoms[i].index] = dsurfzthd[i];

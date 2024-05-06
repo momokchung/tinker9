@@ -125,6 +125,8 @@ TINKER_EXTERN std::vector<AlfAtom> alfatoms;
 TINKER_EXTERN AlfMethod alfmeth;
 TINKER_EXTERN AlfSort alfsort;
 TINKER_EXTERN int alfnthd;
+TINKER_EXTERN bool alfh;
+TINKER_EXTERN bool alfdebug;
 
 constexpr int inf4_1[4] = {1, 1, 0, 0};
 constexpr int sign4_1[4] = {-1, 1, 1, -1};
@@ -287,8 +289,9 @@ TINKER_EXTERN int tsb1mod3[8];
 namespace tinker {
 /// \ingroup solv
 void alfmol(int vers);
-void alphamol(int natoms, AlfAtom* alfatoms, double& wsurf, double& wvol, double* surf, double* vol,
+void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
+void alphamol1(int vers);
 void alphamol2(int vers);
 void initdelcx(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::queue<std::pair<int,int>>& link_facet,std::queue<std::pair<int,int>>& link_index,std::stack<int>& free,std::vector<int>& kill);

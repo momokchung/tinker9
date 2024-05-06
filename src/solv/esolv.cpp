@@ -13,6 +13,7 @@
 #include "tool/darray.h"
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
+#include <tinker/detail/atomid.hh>
 #include <tinker/detail/nonpol.hh>
 #include <tinker/detail/openmp.hh>
 #include <tinker/detail/solute.hh>
@@ -79,15 +80,14 @@ void esolvData(RcOp op)
       radii = new double[n];
       coefS = new double[n];
       coefV = new double[n];
-      int fudge = 8;
-      surf = new double[n+fudge];
-      vol = new double[n+fudge];
-      dsurfx = new double[n+fudge];
-      dsurfy = new double[n+fudge];
-      dsurfz = new double[n+fudge];
-      dvolx = new double[n+fudge];
-      dvoly = new double[n+fudge];
-      dvolz = new double[n+fudge];
+      surf = new double[n];
+      vol = new double[n];
+      dsurfx = new double[n];
+      dsurfy = new double[n];
+      dsurfz = new double[n];
+      dvolx = new double[n];
+      dvoly = new double[n];
+      dvolz = new double[n];
       dcavx = new double[n];
       dcavy = new double[n];
       dcavz = new double[n];
@@ -112,17 +112,20 @@ void esolvData(RcOp op)
       spoff = nonpol::spoff;
       stcut = nonpol::stcut;
       stoff = nonpol::stoff;
-      for (int i = 0; i < n; ++i) {
-         double exclude = 1.4;
-         radii[i] = nonpol::radcav[i] + exclude;
-         coefS[i] = solute::asolv[i];
-         coefV[i] = 1.0;
-      }
       // TODO_MOSES read from Tinker8
       alfmeth = AlfMethod::AlphaMol2;
       alfsort = AlfSort::KDTree;
+      alfh = true;
+      alfdebug = false;
       // alfnthd = openmp::nthread;
       alfnthd = 8;
+      for (int i = 0; i < n; ++i) {
+         coefS[i] = solute::asolv[i];
+         coefV[i] = 1.0;
+         double exclude = 1.4;
+         if (!alfh and atomid::atomic[i] == 1) radii[i] = 0;
+         else radii[i] = nonpol::radcav[i] + exclude;
+      }
 
       if (alfmeth == AlfMethod::AlphaMol2) initHilbert(3);
    }
