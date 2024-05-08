@@ -166,7 +166,7 @@ void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces)
    faces.clear();
    faces.reserve(ntetra);
 
-   int e_1, e_2, e_3; 
+   int e_1, e_2, e_3;
 
    for(int idx = 0; idx < ntetra; idx++) {
       // "dead" tetrahedron are ignored
@@ -182,9 +182,9 @@ void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces)
          j = tetra[idx].vertices[other3[itrig][1]];
          k = tetra[idx].vertices[other3[itrig][2]];
 
-         e_1 = tetra[idx].info_edge[face_edge[itrig][0]]; 
-         e_2 = tetra[idx].info_edge[face_edge[itrig][1]]; 
-         e_3 = tetra[idx].info_edge[face_edge[itrig][2]]; 
+         e_1 = tetra[idx].info_edge[face_edge[itrig][0]];
+         e_2 = tetra[idx].info_edge[face_edge[itrig][1]];
+         e_3 = tetra[idx].info_edge[face_edge[itrig][2]];
 
          if (jtetra==-1) {
             coef = 1.0;

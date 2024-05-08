@@ -67,7 +67,7 @@ class Edge {
 public:
    int vertices[2];
    double gamma;
-   double len,surf,vol; 
+   double len,surf,vol;
    double dsurf,dvol;
 
    Edge() {}

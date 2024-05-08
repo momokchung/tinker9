@@ -135,9 +135,9 @@ void addBogus(int npoints, AlfAtom* alfatoms, double* bcoord, double* brad)
       cx = 0.5*(c1x+c2x);
       cy = 0.5*(c1y+c2y);
       cz = 0.5*(c1z+c2z);
-      u1x = c2x-c1x; 
-      u1y = c2y-c1y; 
-      u1z = c2z-c1z; 
+      u1x = c2x-c1x;
+      u1y = c2y-c1y;
+      u1z = c2z-c1z;
       if ((u1z!=0) || (u1x!=-u1y)) {
          v1x = u1z;
          v1y = u1z;

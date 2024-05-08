@@ -97,10 +97,10 @@ void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
       rc = vertices[ic].r; rc2 = rc*rc;
       rd = vertices[id].r; rd2 = rd*rd;
 
-      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv; 
-      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv; 
-      coefcS = vertices[ic].coefs; coefcV = vertices[ic].coefv; 
-      coefdS = vertices[id].coefs; coefdV = vertices[id].coefv; 
+      coefaS = vertices[ia].coefs; coefaV = vertices[ia].coefv;
+      coefbS = vertices[ib].coefs; coefbV = vertices[ib].coefv;
+      coefcS = vertices[ic].coefs; coefcV = vertices[ic].coefv;
+      coefdS = vertices[id].coefs; coefdV = vertices[id].coefv;
 
       for (int iedge = 0; iedge < 6; iedge++) {
          // iedge is the edge number in the tetrahedron idx, with:
@@ -275,10 +275,10 @@ void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
       vola, volb, r, phi, dsurfa2, dsurfb2, dvola2, dvolb2, 
       dr, dphi, compder);
 
-      ballwsurf[ia] -= coefval*surfa; 
-      ballwsurf[ib] -= coefval*surfb; 
-      ballwvol[ia]  -= coefval*vola; 
-      ballwvol[ib]  -= coefval*volb; 
+      ballwsurf[ia] -= coefval*surfa;
+      ballwsurf[ib] -= coefval*surfb;
+      ballwvol[ia]  -= coefval*vola;
+      ballwvol[ib]  -= coefval*volb;
 
       if (compder) {
          edges[iedge].dsurf  -= coefval* (coefaS*dsurfa2 + coefbS*dsurfb2);

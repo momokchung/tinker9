@@ -75,7 +75,7 @@ inline int splitHilbert(AlfAtom *alfatoms, int size, int gc0, int gc1,
 
    // Find the current splitting axis. 'axis' is a value 0, or 1, or 2, which 
    // correspoding to x-, or y- or z-axis.
-   axis = (gc0 ^ gc1) >> 1; 
+   axis = (gc0 ^ gc1) >> 1;
 
    // Calulate the split position along the axis.
    if (axis == 0) {
@@ -181,7 +181,7 @@ void sort3DHilbert(AlfAtom *alfatoms, int size, int e, int d, double xmin, doubl
          }
          else {
             // calculate e(w) = gc(2 * floor((w - 1) / 2)).
-            k = 2 * ((w - 1) / 2); 
+            k = 2 * ((w - 1) / 2);
             e_w = k ^ (k >> 1); // = gc(k).
          }
          k = e_w;

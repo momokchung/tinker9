@@ -677,7 +677,7 @@ void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    int itest_abcp;
    int ierr,tetra_last;
    int ireflex,iflip,iorder;
-   int ifind,tetra_ab,tetra_ac,tetra_bc; 
+   int ifind,tetra_ab,tetra_ac,tetra_bc;
    int idx_a,idx_b,idx_c;
    int ia,ib,ic;
    int facei[3],facej[3],edgei[2],edgej[2],edgek[2];
@@ -685,7 +685,7 @@ void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    int tetra_flip[3],list_flip[3];
    int vert_flip[5];
    std::pair<int,int> facet,index;
-   bool convex,regular,test_abpo,test_bcpo,test_capo; 
+   bool convex,regular,test_abpo,test_bcpo,test_capo;
    bool test,test_abpc,test_bcpa,test_acpo,test_acpb;
    bool test_or[3][2];
    idx_a = 0;
@@ -737,7 +737,7 @@ void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
       if (tetra[itetra].info[0]==1) itest_abcp = 1;
 
       // check for local regularity (and convexity)
-      regular_convex(vertices, a, b, c, p, o, itest_abcp, regular, convex, test_abpo, test_bcpo, test_capo); 
+      regular_convex(vertices, a, b, c, p, o, itest_abcp, regular, convex, test_abpo, test_bcpo, test_capo);
 
       // if the link facet is locally regular, discard
       if (regular) continue;

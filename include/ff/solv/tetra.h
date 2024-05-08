@@ -100,7 +100,7 @@ inline void tetdihedder(double r12sq, double r13sq, double r14sq,
    double val123,val124,val134,val234;
    double val213,val214,val314,val324,val312;
    double det12,det13,det14,det23,det24,det34;
-   double minori[4]; 
+   double minori[4];
    double dminori[4][6] = {0};
    double det[6],dnum[6][6],val[4];
    double dist[6];
@@ -257,7 +257,7 @@ inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
    double val123,val124,val134,val234;
    double val213,val214,val314,val324,val312;
    double det12,det13,det14,det23,det24,det34;
-   double minori[4]; 
+   double minori[4];
    double dminori[4][3] = {0};
    double dist[3],det[6],dnum[6][3],val[4];
    constexpr double twopi = 2 * pi;
@@ -351,9 +351,9 @@ inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
    det[2] = det23; det[1] = det24; det[0] = det34;
    dist[0] = std::sqrt(r12sq); dist[1] = std::sqrt(r13sq); dist[2] = std::sqrt(r23sq);
 
-   dminori[0][2] = -(val234 + 2*r24sq); 
-   dminori[1][1] = -(val134 + 2*r14sq); 
-   dminori[2][0] = -(val124 + 2*r14sq); 
+   dminori[0][2] = -(val234 + 2*r24sq);
+   dminori[1][1] = -(val134 + 2*r14sq);
+   dminori[2][0] = -(val124 + 2*r14sq);
    dminori[3][0] = -(val123 + 2*r13sq); dminori[3][1] = -(val123 + 2*r12sq); dminori[3][2] = val123;
 
    dnum[5][0] = -2*val134+val123+val124; dnum[5][1] = 2*r12sq + val124; dnum[5][2] = -val124;
@@ -399,7 +399,7 @@ inline void tet3dihedcos(double r12sq, double r13sq, double r14sq,
 {
    double val1, val2, val3, val4;
    double val123, val124, val134, val234;
-   double val213, val214; 
+   double val213, val214;
    double det12, det13, det23;
    double minori[4];
    double dminori[4][3] = {0};

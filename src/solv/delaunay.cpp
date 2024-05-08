@@ -57,12 +57,12 @@ void delaunay(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, st
    //    int flag;
    //    do {
    //       peel(vertices, tetra, flag);
-   //    } while (flag != 0); 
+   //    } while (flag != 0);
    // }
    int flag;
    do {
       peel(vertices, tetra, flag);
-   } while (flag != 0); 
+   } while (flag != 0);
 }
 
 inline void insidetetra(std::vector<Vertex>& vertices, int p, int a, int b, int c, int d, int iorient, bool& is_in, bool& redundant, int& ifail);
@@ -896,7 +896,7 @@ inline void peel(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
          if (tetra[i].neighbors[j]==-1) itest = true;
       }
 
-      if (!itest) continue; 
+      if (!itest) continue;
 
       // This is a tetrahedron at the boundary: we test
       // if it is flat, i.e. if its volume is 0
