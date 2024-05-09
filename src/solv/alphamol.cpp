@@ -127,7 +127,9 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
       start_s = clock();
    }
    auto do_g = vers & calc::grad;
-   alphavol(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz, do_g);
+   if (do_g) alphavol<true>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
+   else alphavol<false>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
+
    if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
       stop_s = clock();
       printf("\n Volumes compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);

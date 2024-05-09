@@ -13,17 +13,21 @@ inline double plane_dist(double ra2, double rb2, double rab2)
    return lambda;
 }
 
-// "tetdihed" computes the six dihedral angles of a
-// tetrahedronfrom its edge lengths
-inline void tetdihed(double r12sq, double r13sq, double r14sq,
+// "tetdihedder" computes the derivative of the six
+// dihedral angles of atetrahedronfrom its edge lengths
+template <bool compder>
+inline void tetdihedder(double r12sq, double r13sq, double r14sq,
    double r23sq, double r24sq, double r34sq, double* angle,
-   double* cosine, double* sine)
+   double* cosine, double* sine, double deriv[6][6])
 {
-   double val1,val2,val3,val4;
+   double val1,val2,val3,val4,vala;
    double val123,val124,val134,val234;
    double val213,val214,val314,val324,val312;
    double det12,det13,det14,det23,det24,det34;
    double minori[4];
+   double dminori[4][6] = {0};
+   double det[6],dnum[6][6],val[4];
+   double dist[6];
    constexpr double twopi = 2 * pi;
 
    // Define the Cayley Menger matrix:
@@ -57,94 +61,7 @@ inline void tetdihed(double r12sq, double r13sq, double r14sq,
    val2 = 1.0/std::sqrt(-minori[2]);
    val1 = 1.0/std::sqrt(-minori[3]);
 
-   // Now compute all angles (in fact, cosine of the angle):
-   //           (-1)^(i+j) * det(Mij) 
-   // cos(i,j)= ---------------------
-   //            sqrt(M(i,i)*M(j,j))
-   // where det(Mij) = M(i,j) is the determinant of the Cayley-Menger matrix with row i
-   // and column j removed
-
-   det12 = -2*r12sq*val134 - val123*val124;
-   det13 = -2*r13sq*val124 - val123*val134;
-   det14 = -2*r14sq*val123 - val124*val134;
-
-   val213 = r13sq -r12sq -r23sq;
-   val214 = r14sq -r12sq -r24sq;
-   val312 = r12sq -r13sq -r23sq;
-   val314 = r14sq -r13sq -r34sq;
-   val324 = r24sq -r23sq -r34sq;
-
-   det23 = -2*r23sq*val214 - val213*val234;
-   det24 = -2*r24sq*val213 - val214*val234;
-   det34 = -2*r34sq*val312 - val314*val324;
-
-   cosine[0] = det12*val1*val2;
-   cosine[1] = det13*val1*val3;
-   cosine[2] = det14*val2*val3;
-   cosine[3] = det23*val1*val4;
-   cosine[4] = det24*val2*val4;
-   cosine[5] = det34*val3*val4;
-
-   for (int i = 0; i < 6; i++) {
-      if (std::abs(cosine[i] - 1) < teteps) cosine[i] = 1;
-      else if (std::abs(cosine[i] + 1) < teteps) cosine[i] = -1;
-   }
-
-   for (int i = 0; i < 6; i++) {
-      angle[i] = std::acos(cosine[i]);
-      sine[i]  = std::sin(angle[i]);
-      angle[i] /= twopi;
-   }
-}
-
-// "tetdihedder" computes the derivative of the six
-// dihedral angles of atetrahedronfrom its edge lengths
-inline void tetdihedder(double r12sq, double r13sq, double r14sq,
-   double r23sq, double r24sq, double r34sq, double* angle,
-   double* cosine, double* sine, double deriv[6][6])
-{
-   double val1,val2,val3,val4,vala;
-   double val123,val124,val134,val234;
-   double val213,val214,val314,val324,val312;
-   double det12,det13,det14,det23,det24,det34;
-   double minori[4];
-   double dminori[4][6] = {0};
-   double det[6],dnum[6][6],val[4];
-   double dist[6];
-   constexpr double twopi = 2 * pi;
-
-   // Define the Cayley Menger matrix:
-   // M = ( 0      r12^2  r13^2  r14^2  1)
-   //     ( r12^2  0      r23^2  r24^2  1)
-   //     ( r13^2  r23^2  0      r34^2  1)
-   //     ( r14^2  r24^2  r34^2  0      1)
-   //     ( 1      1      1      1      0)
-   // Compute all minors M(i,i): determinant of the Cayley-Menger matrix with row i
-   // and column j removed
-   // These determinants are of the form:
-   // det = | 0 a b 1 |
-   //       | a 0 c 1 |
-   //       | b c 0 1 |
-   //       | 1 1 1 0 |
-   // then:
-   // det = (c - a - b )^2 - 4ab
-
-   val234 = (r34sq - r23sq - r24sq);
-   val134  = (r34sq - r14sq - r13sq);
-   val124  = (r24sq - r12sq - r14sq);
-   val123  = (r23sq - r12sq - r13sq);
-
-   minori[0] = val234*val234 - 4*r23sq*r24sq;
-   minori[1] = val134*val134 - 4*r13sq*r14sq;
-   minori[2] = val124*val124 - 4*r12sq*r14sq;
-   minori[3] = val123*val123 - 4*r12sq*r13sq;
-
-   val4 = 1.0/std::sqrt(-minori[0]);
-   val3 = 1.0/std::sqrt(-minori[1]);
-   val2 = 1.0/std::sqrt(-minori[2]);
-   val1 = 1.0/std::sqrt(-minori[3]);
-
-   val[0] = val4; val[1] = val3; val[2] = val2; val[3] = val1;
+   if CONSTEXPR (compder) val[0] = val4; val[1] = val3; val[2] = val2; val[3] = val1;
 
    // Now compute all angles (in fact, cosine of the angle):
    //           (-1)^(i+j) * det(Mij) 
@@ -184,6 +101,8 @@ inline void tetdihedder(double r12sq, double r13sq, double r14sq,
       sine[i]  = std::sin(angle[i]);
       angle[i] /= twopi;
    }
+
+   if CONSTEXPR (!compder) return;
 
    det[5] = det12; det[4] = det13; det[3] = det14;
    det[2] = det23; det[1] = det24; det[0] = det34;
@@ -241,8 +160,7 @@ inline void tetdihedder(double r12sq, double r13sq, double r14sq,
             val2 = vala/minori[j];
             val3 = vala/minori[i];
             for (int l = 0; l < 6; l++) {
-               deriv[jj][l] = val1*dnum[k][l]
-               +val2*dminori[j][l]+val3*dminori[i][l];
+               deriv[jj][l] = val1*dnum[k][l]+val2*dminori[j][l]+val3*dminori[i][l];
                deriv[jj][l] *= 2*dist[l];
             }
          }
@@ -261,9 +179,10 @@ inline void tetdihedder(double r12sq, double r13sq, double r14sq,
 // "tetdihedder3" computes the six dihedral angles of a tetrahedron
 // ABCD from its edge lengths as well as their derivatives with
 // respect to the 3 edge lengths AB, AC and BC
+template <bool compder>
 inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
    double r23sq, double r24sq, double r34sq, double* angle,
-   double* cosine, double* sine, double deriv[6][3], int option)
+   double* cosine, double* sine, double deriv[6][3])
 {
    double val1,val2,val3,val4,vala;
    double val123,val124,val134,val234;
@@ -346,7 +265,7 @@ inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
       angle[i] /= twopi;
    }
 
-   if (option==0) return;
+   if CONSTEXPR (!compder) return;
 
    // Now compute derivatives of the angles with respect to the edge lengths
    // Since (see above):
@@ -410,9 +329,9 @@ inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
 
 // "tet3dihedcos" computes three of the six dihedral angles
 // of a tetrahedron from its edge lengths
+template <bool compder>
 inline void tet3dihedcos(double r12sq, double r13sq, double r14sq,
-   double r23sq, double r24sq,double r34sq, double* cosine,
-   double deriv[3][3], bool compder)
+   double r23sq, double r24sq,double r34sq, double* cosine, double deriv[3][3])
 {
    double val1, val2, val3, val4;
    double val123, val124, val134, val234;
@@ -473,7 +392,7 @@ inline void tet3dihedcos(double r12sq, double r13sq, double r14sq,
    cosine[1] = det13*val1*val3;
    cosine[2] = det23*val1*val4;
 
-   if (!compder) return;
+   if CONSTEXPR (!compder) return;
 
    dminori[0][2] = -(val234 + 2*r24sq);
    dminori[1][1] = -(val134 + 2*r14sq);
@@ -512,13 +431,13 @@ inline void tet3dihedcos(double r12sq, double r13sq, double r14sq,
 // "tetvorder" computes the volume of the intersection of
 // the tetrahedron formed by the center of 4 balls with
 // the Voronoi cells corresponding to these balls
+template <bool compder>
 inline void tetvorder(double ra2,double rb2,double rc2,double rd2,
    double rab, double rac, double rad, double rbc, double rbd,
    double rcd, double rab2, double rac2, double rad2,double rbc2,
    double rbd2, double rcd2, double* cos_ang, double* sin_ang,
    double deriv[6][6], double& vola, double& volb, double& volc, 
-   double& vold, double* dvola, double* dvolb, double* dvolc, double* dvold,
-   bool compder)
+   double& vold, double* dvola, double* dvolb, double* dvolc, double* dvold)
 {
    double l1,l2,l3,l4,l5,l6;
    double val1,val2,val3,val4,val5,val6;
@@ -562,16 +481,16 @@ inline void tetvorder(double ra2,double rb2,double rc2,double rd2,
    // point of intersection of the three spheres such that (A,B,C,P_ABC) is ccw.
    // The edge lengths in this tetrahedron are: rab, rac, rAP=ra, rbc, rBP=rb, rCP=rc
 
-   tet3dihedcos(rab2, rac2, ra2, rbc2, rb2, rc2, cosine_abc, deriv_abc, compder);
+   tet3dihedcos<compder>(rab2, rac2, ra2, rbc2, rb2, rc2, cosine_abc, deriv_abc);
 
    // repeat for tetrahedron (A,B,D,P_ABD)
-   tet3dihedcos(rab2, rad2, ra2, rbd2, rb2, rd2, cosine_abd, deriv_abd, compder);
+   tet3dihedcos<compder>(rab2, rad2, ra2, rbd2, rb2, rd2, cosine_abd, deriv_abd);
 
    // repeat for tetrahedron (A,C,D,P_ACD)
-   tet3dihedcos(rac2, rad2, ra2, rcd2, rc2, rd2, cosine_acd, deriv_acd, compder);
+   tet3dihedcos<compder>(rac2, rad2, ra2, rcd2, rc2, rd2, cosine_acd, deriv_acd);
 
    // repeat for tetrahedron (B,C,D,P_BCD)
-   tet3dihedcos(rbc2, rbd2, rb2, rcd2, rc2, rd2, cosine_bcd, deriv_bcd, compder);
+   tet3dihedcos<compder>(rbc2, rbd2, rb2, rcd2, rc2, rd2, cosine_bcd, deriv_bcd);
 
    cos_abc = cosine_abc[0]; cos_acb = cosine_abc[1]; cos_bca = cosine_abc[2];
    cos_abd = cosine_abd[0]; cos_adb = cosine_abd[1]; cos_bda = cosine_abd[2];
@@ -609,7 +528,7 @@ inline void tetvorder(double ra2,double rb2,double rc2,double rd2,
    volc = (val2*cap_ac+val4*cap_bc+val6b*cap_cd)/6;
    vold = (val3*cap_ad+val5*cap_bd+val6*cap_cd)/6;
 
-   if (!compder) return;
+   if CONSTEXPR (!compder) return;
 
    dval1b = l1; dval2b = l2; dval3b = l3;
    dval4b = l4; dval5b = l5; dval6b = l6;

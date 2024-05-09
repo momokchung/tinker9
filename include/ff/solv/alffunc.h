@@ -448,9 +448,10 @@ inline void twosph(double ra, double ra2, double rb, double rb2,
 
 // "twosphder" calculates the surface area and volume derivatives
 // of the intersection of two spheres
+template <bool compder>
 inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, double rab2,
    double& surfa, double& surfb, double& vola, double& volb, double& r, double& phi,
-   double& dsurfa, double& dsurfb, double& dvola, double& dvolb, double& dr, double& dphi, bool compder)
+   double& dsurfa, double& dsurfb, double& dvola, double& dvolb, double& dr, double& dphi)
 {
    double cosine,vala,valb,lambda,ha,hb;
    double Aab,sa,ca,sb,cb;
@@ -495,7 +496,7 @@ inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, 
    else if (std::abs(cosine + 1) < aseps) cosine = -1;
    phi = std::acos(cosine);
 
-   if (!compder) return;
+   if CONSTEXPR (!compder) return;
 
    dera = - lambda;
    derb = lambda - 1;
@@ -512,11 +513,12 @@ inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, 
 
 // "threesphder" calculates the surface area and volume derivatives
 // of the intersection of three spheres
+template <bool compder>
 inline void threesphder(double ra, double rb,double rc, double ra2,
    double rb2, double rc2, double rab, double rac, double rbc,
    double rab2, double rac2, double rbc2, double *angle,
    double& surfa, double& surfb, double& surfc, double& vola, double& volb, double& volc,
-   double* dsurfa, double* dsurfb, double* dsurfc, double* dvola, double* dvolb, double* dvolc, bool compder)
+   double* dsurfa, double* dsurfb, double* dsurfc, double* dvola, double* dvolb, double* dvolc)
 {
    double a1,a2,a3,s2,c1,c2;
    double seg_ang_ab,seg_ang_ac,seg_ang_bc;
@@ -546,7 +548,7 @@ inline void threesphder(double ra, double rb,double rc, double ra2,
    // point of intersection of the three spheres such that (A,B,C,P) is ccw.
    // The edge lengths in this tetrahedron are: rab, rac, rAP=ra, rbc, rBP=rb, rCP=rc
 
-   tetdihedder3(rab2, rac2, ra2, rbc2, rb2, rc2, angle, cosine, sine, deriv, compder);
+   tetdihedder3<compder>(rab2, rac2, ra2, rbc2, rb2, rc2, angle, cosine, sine, deriv);
 
    // the seg_ang_ are the dihedral angles around the three edges AB, AC and BC
 
@@ -615,7 +617,7 @@ inline void threesphder(double ra, double rb,double rc, double ra2,
 
    volc = (s2 - c1 - c2)/3;
 
-   if (!compder) return;
+   if CONSTEXPR (!compder) return;
 
    der_val1b = l1; der_val1  = 1-l1;
    der_val2b = l2; der_val2  = 1-l2;
@@ -699,7 +701,8 @@ inline void threesphder(double ra, double rb,double rc, double ra2,
    dvolc[2] = dvolc[2]/3;
 }
 
-inline double trig_dradius(double a, double b, double c, double *der_r, bool compder)
+template <bool compder>
+inline double trig_dradius(double a, double b, double c, double *der_r)
 {
    double u = 4*a*b*c - (a+b+c-1)*(a+b+c-1);
    double sqr_u = std::sqrt(u);
@@ -709,7 +712,7 @@ inline double trig_dradius(double a, double b, double c, double *der_r, bool com
 
    double r = 0.5 + 0.5* sqr_u/sqr_v;
 
-   if (!compder) return r;
+   if CONSTEXPR (!compder) return r;
 
    double du_da = 4*b*c - 2*(a+b+c-1);
    double du_db = 4*a*c - 2*(a+b+c-1);
@@ -728,7 +731,8 @@ inline double trig_dradius(double a, double b, double c, double *der_r, bool com
 
 // "trig_darea" omputes the surface area S of a
 // spherical triangle and its derivatives
-inline double trig_darea(double a, double b, double c, double *der_S, bool compder)
+template <bool compder>
+inline double trig_darea(double a, double b, double c, double *der_S)
 {
    double tol = 1.e-14;
 
@@ -744,7 +748,7 @@ inline double trig_darea(double a, double b, double c, double *der_S, bool compd
 
    double S = 2*std::asin(wt);
 
-   if (!compder) return S;
+   if CONSTEXPR (!compder) return S;
 
    if (w>0) {
       der_S[0] = (b+c-a-1)/(a*w);

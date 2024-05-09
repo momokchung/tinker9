@@ -318,9 +318,10 @@ void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, dou
    double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
 void alfcxedges(std::vector<Tetrahedron>& tetra, std::vector<Edge>& edges);
 void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces);
+template <bool compder>
 void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,
-   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, bool compder);
+   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz);
 void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);
 void alforder(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double rmax, int nthreads, std::vector<int>& Nval);
 void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);
