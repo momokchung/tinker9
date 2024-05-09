@@ -6,6 +6,9 @@
 
 namespace tinker
 {
+constexpr double aseps = 1e-14;
+constexpr double gceps = 1e-14;
+
 inline double psub(double r1, double r2)
 {
    constexpr double epsabs = 1e-14;
@@ -438,6 +441,8 @@ inline void twosph(double ra, double ra2, double rb, double rb2,
 
    // get angle between normals of the sphere at a point on this circle
    cosine = (ra2+rb2-rab2)/(2.0*ra*rb);
+   if (std::abs(cosine - 1) < aseps) cosine = 1;
+   else if (std::abs(cosine + 1) < aseps) cosine = -1;
    phi = std::acos(cosine);
 }
 
@@ -486,6 +491,8 @@ inline void twosphder(double ra, double ra2, double rb, double rb2, double rab, 
 
    // get angle between normals of the sphere at a point on this circle
    cosine = (ra2+rb2-rab2)/(2.0*ra*rb);
+   if (std::abs(cosine - 1) < aseps) cosine = 1;
+   else if (std::abs(cosine + 1) < aseps) cosine = -1;
    phi = std::acos(cosine);
 
    if (!compder) return;
@@ -730,8 +737,12 @@ inline double trig_darea(double a, double b, double c, double *der_S, bool compd
    if (std::fabs(u) < tol) u = 0.0;
    double w = std::sqrt(std::fabs(u));
    double t = std::sqrt(v);
+   double wt = w/t;
 
-   double S = 2*std::asin(w/t);
+   if (std::abs(wt - 1) < gceps) wt = 1;
+   else if (std::abs(wt + 1) < gceps) wt = -1;
+
+   double S = 2*std::asin(wt);
 
    if (!compder) return S;
 

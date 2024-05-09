@@ -4,6 +4,8 @@
 
 namespace tinker
 {
+constexpr double teteps = 1e-14;
+
 inline double plane_dist(double ra2, double rb2, double rab2)
 {
    double lambda = 0.50 - (ra2-rb2)/(2*rab2);
@@ -82,6 +84,11 @@ inline void tetdihed(double r12sq, double r13sq, double r14sq,
    cosine[3] = det23*val1*val4;
    cosine[4] = det24*val2*val4;
    cosine[5] = det34*val3*val4;
+
+   for (int i = 0; i < 6; i++) {
+      if (std::abs(cosine[i] - 1) < teteps) cosine[i] = 1;
+      else if (std::abs(cosine[i] + 1) < teteps) cosine[i] = -1;
+   }
 
    for (int i = 0; i < 6; i++) {
       angle[i] = std::acos(cosine[i]);
@@ -166,6 +173,11 @@ inline void tetdihedder(double r12sq, double r13sq, double r14sq,
    cosine[3] = det23*val1*val4;
    cosine[4] = det24*val2*val4;
    cosine[5] = det34*val3*val4;
+
+   for (int i = 0; i < 6; i++) {
+      if (std::abs(cosine[i] - 1) < teteps) cosine[i] = 1;
+      else if (std::abs(cosine[i] + 1) < teteps) cosine[i] = -1;
+   }
 
    for (int i = 0; i < 6; i++) {
       angle[i] = std::acos(cosine[i]);
@@ -322,6 +334,11 @@ inline void tetdihedder3(double r12sq, double r13sq, double r14sq,
    cosine[3] = det23*val1*val4;
    cosine[4] = det24*val2*val4;
    cosine[5] = det34*val3*val4;
+
+   for (int i = 0; i < 6; i++) {
+      if (std::abs(cosine[i] - 1) < teteps) cosine[i] = 1;
+      else if (std::abs(cosine[i] + 1) < teteps) cosine[i] = -1;
+   }
 
    for (int i = 0; i < 6; i++) {
       angle[i] = std::acos(cosine[i]);

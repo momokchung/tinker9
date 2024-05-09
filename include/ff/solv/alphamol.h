@@ -105,9 +105,9 @@ enum class AlfSort
    KDTree,
 };
 
-constexpr double deleps = 1e-3;
-constexpr double delepsvol = 1e-13;
-constexpr double alfeps = 1e-10;
+constexpr double deleps = 1e-4;
+constexpr double delepsvol = 1e-4;
+constexpr double alfeps = 1e-5;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
 TINKER_EXTERN double* radii;
