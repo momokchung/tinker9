@@ -15,7 +15,6 @@
 #include "tool/iofortstr.h"
 #include <tinker/detail/atomid.hh>
 #include <tinker/detail/nonpol.hh>
-#include <tinker/detail/openmp.hh>
 #include <tinker/detail/solute.hh>
 #include <tinker/routines.h>
 
@@ -117,7 +116,7 @@ void esolvData(RcOp op)
       alfsort = AlfSort::KDTree;
       alfh = true;
       alfdebug = false;
-      // alfnthd = openmp::nthread;
+      alfdigit = 8;
       alfnthd = 8;
       for (int i = 0; i < n; ++i) {
          coefS[i] = solute::asolv[i];

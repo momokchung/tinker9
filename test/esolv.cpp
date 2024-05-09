@@ -1,5 +1,6 @@
 #include "ff/modamoeba.h"
 #include "ff/evdw.h"
+#include "ff/solv/alphamol.h"
 #include "ff/solv/solute.h"
 
 #include "test.h"
@@ -45,6 +46,14 @@ TEST_CASE("ESolv-1-Implicit", "[ff][amoeba][esolv]")
 
    energy(calc::v5);
    COMPARE_GRADIENT(ref_g, eps_g);
+
+   // check alfdigit is even
+   REQUIRE(alfdigit > 0);
+   REQUIRE((alfdigit % 2) == 0);
+
+   // check alfnthd is a power of 2
+   REQUIRE(alfnthd > 0);
+   REQUIRE((alfnthd & (alfnthd - 1)) == 0);
 
    finish();
    testEnd();

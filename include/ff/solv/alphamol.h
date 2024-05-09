@@ -21,7 +21,6 @@ public:
    int index;
    double r;
    double coord[3];
-   double w;
    double coefs,coefv;
 
    AlfAtom() {}
@@ -29,6 +28,9 @@ public:
    AlfAtom(int idx, double x, double y, double z, double r, double coefs, double coefv);
 
    ~AlfAtom();
+
+private:
+   double truncate_real(double x, int ndigit);
 };
 
 class Vertex {
@@ -47,6 +49,9 @@ public:
    Vertex(double x, double y, double z, double r, double coefs, double coefv);
 
    ~Vertex();
+
+private:
+   double truncate_real(double x, int ndigit);
 };
 
 class Tetrahedron {
@@ -124,6 +129,7 @@ TINKER_EXTERN double* dvolz;
 TINKER_EXTERN std::vector<AlfAtom> alfatoms;
 TINKER_EXTERN AlfMethod alfmeth;
 TINKER_EXTERN AlfSort alfsort;
+TINKER_EXTERN int alfdigit;
 TINKER_EXTERN int alfnthd;
 TINKER_EXTERN bool alfh;
 TINKER_EXTERN bool alfdebug;
