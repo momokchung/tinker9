@@ -1,7 +1,10 @@
 #include "ff/solv/alphamol.h"
+#include <tinker/detail/atomid.hh>
 #include <tinker/detail/atoms.hh>
+#include <tinker/routines.h>
 #include <algorithm>
 #include <pthread.h>
+#include <random>
 #include <sys/time.h>
 
 namespace tinker {
@@ -23,14 +26,37 @@ void initalfatm()
       dvolz[i] = 0;
    }
 
+   // check for symmetry
+   SymTyp symtyp;
+
+   // allocate
+   double* xref = new double[atoms::n];
+   double* yref = new double[atoms::n];
+   double* zref = new double[atoms::n];
+
+   // copy coordinates
+   for (int i = 0; i < atoms::n; i++) {
+      xref[i] = atoms::x[i];
+      yref[i] = atoms::y[i];
+      zref[i] = atoms::z[i];
+   }
+   chksymm(atoms::n, atomid::mass, xref, yref, zref, symtyp);
+
+   // wiggle if system is symmetric
+   double eps = 1e-5;
+   bool dowiggle_linear = symtyp == SymTyp::Linear and atoms::n > 2;
+   bool dowiggle_planar = symtyp == SymTyp::Planar and atoms::n > 3;
+   bool dowiggle = dowiggle_linear or dowiggle_planar;
+   if (dowiggle) wiggle(atoms::n, xref, yref, zref, eps);
+
    // copy atoms into alfatoms list
    double xi, yi, zi, ri, cs, cv;
    for (int i = 0; i < atoms::n; i++) {
       ri = radii[i];
       if (ri == 0) continue;
-      xi = atoms::x[i];
-      yi = atoms::y[i];
-      zi = atoms::z[i];
+      xi = xref[i];
+      yi = yref[i];
+      zi = zref[i];
       cs = coefS[i];
       cv = coefV[i];
       AlfAtom atm(i, xi, yi, zi, ri, cs, cv);
@@ -42,12 +68,218 @@ void initalfatm()
    if (shuffle) {
       std::random_shuffle(alfatoms.begin(), alfatoms.end());
    }
+
+   // deallocate
+   delete[] xref;
+   delete[] yref;
+   delete[] zref;
+}
+
+// "chksymm" examines the current coordinates for linearity,
+// planarity, an internal mirror plane or center of inversion
+void chksymm(int n, double* mass, double* xref, double* yref, double* zref, SymTyp& symtyp)
+{
+   // copy coordinates
+   double* x = new double[n];
+   double* y = new double[n];
+   double* z = new double[n];
+   for (int i = 0; i < n; i++) {
+      x[i] = xref[i];
+      y[i] = yref[i];
+      z[i] = zref[i];
+   }
+
+   // move the atomic coordinates into the inertial frame
+   inertia(n, mass, x, y, z);
+
+   double eps = 1e-4;
+   symtyp = SymTyp::None;
+   bool xnul = true;
+   bool ynul = true;
+   bool znul = true;
+   for (int i = 0; i < n; i++) {
+      if (std::abs(x[i]) > eps) xnul = false;
+      if (std::abs(y[i]) > eps) ynul = false;
+      if (std::abs(z[i]) > eps) znul = false;
+   }
+   if (n == 3) symtyp = SymTyp::Planar;
+   if (xnul) symtyp = SymTyp::Planar;
+   if (ynul) symtyp = SymTyp::Planar;
+   if (znul) symtyp = SymTyp::Planar;
+   if (n == 2) symtyp = SymTyp::Linear;
+   if (xnul and ynul) symtyp = SymTyp::Linear;
+   if (xnul and znul) symtyp = SymTyp::Linear;
+   if (ynul and znul) symtyp = SymTyp::Linear;
+   if (n == 1) symtyp = SymTyp::Single;
+
+   // test mean coords for mirror plane and inversion center
+   if (symtyp == SymTyp::None) {
+      double xave = 0;
+      double yave = 0;
+      double zave = 0;
+      for (int i = 0; i < n; i++) {
+         xave += x[i];
+         yave += y[i];
+         zave += z[i];
+      }
+      xave = std::abs(xave) / n;
+      yave = std::abs(yave) / n;
+      zave = std::abs(zave) / n;
+      int nave = 0;
+      if (xave < eps) nave++;
+      if (yave < eps) nave++;
+      if (zave < eps) nave++;
+      if (nave != 0) symtyp = SymTyp::Mirror;
+      if (nave == 3) symtyp = SymTyp::Center;
+   }
+
+   // deallocate
+   delete[] x;
+   delete[] y;
+   delete[] z;
+}
+
+void ranvec(double vec[3])
+{
+   std::random_device rd;
+   std::mt19937 gen(rd());
+   std::uniform_int_distribution<> dis(0, 1);
+   std::uniform_real_distribution<double> distribution1(0.1, 1.0);
+   std::uniform_real_distribution<double> distribution2(-1.0, -0.1);
+
+   double r[3];
+   for (int i = 0; i < 3; i++) {
+      if (dis(gen) == 0) r[i] = distribution1(gen);
+      else r[i] = distribution2(gen);
+   }
+
+   double mag = std::sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+
+   // Normalize the vector
+   vec[0] = r[0] / mag;
+   vec[1] = r[1] / mag;
+   vec[2] = r[2] / mag;
+}
+
+void wiggle(int n, double* x, double* y, double* z, double eps)
+{
+   double vec[3];
+   for (int i = 0; i < n; i++) {
+      ranvec(vec);
+      x[i] += eps*vec[0];
+      y[i] += eps*vec[1];
+      z[i] += eps*vec[2];
+   }
+}
+
+void inertia(int n, double* mass, double* x, double* y, double* z)
+{
+   int index[3];
+   double weigh,total,dot;
+   double xcm,ycm,zcm;
+   double xx,xy,xz,yy,yz,zz;
+   double xterm,yterm,zterm;
+   double phi,theta,psi;
+   double moment[3];
+   double tensor[9],vec[9];
+
+   // compute the position of the center of mass
+   total = 0;
+   xcm = 0;
+   ycm = 0;
+   zcm = 0;
+   for (int i = 0; i < n; i++) {
+      weigh = mass[i];
+      total += weigh;
+      xcm += x[i]*weigh;
+      ycm += y[i]*weigh;
+      zcm += z[i]*weigh;
+   }
+   xcm /= total;
+   ycm /= total;
+   zcm /= total;
+
+   // compute and then diagonalize the inertia tensor
+   xx = 0;
+   xy = 0;
+   xz = 0;
+   yy = 0;
+   yz = 0;
+   zz = 0;
+   for (int i = 0; i < n; i++) {
+      weigh = mass[i];
+      xterm = x[i] - xcm;
+      yterm = y[i] - ycm;
+      zterm = z[i] - zcm;
+      xx += xterm*xterm*weigh;
+      xy += xterm*yterm*weigh;
+      xz += xterm*zterm*weigh;
+      yy += yterm*yterm*weigh;
+      yz += yterm*zterm*weigh;
+      zz += zterm*zterm*weigh;
+   }
+   tensor[0] = yy + zz;
+   tensor[1] = -xy;
+   tensor[2] = -xz;
+   tensor[3] = -xy;
+   tensor[4] = xx + zz;
+   tensor[5] = -yz;
+   tensor[6] = -xz;
+   tensor[7] = -yz;
+   tensor[8] = xx + yy;
+   int dim = 3;
+   tinker_f_jacobi(&dim,tensor,moment,vec);
+
+   // select the direction for each principal moment axis
+   for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < n; j++) {
+         xterm = vec[3*i+0] * (x[j]-xcm);
+         yterm = vec[3*i+1] * (y[j]-ycm);
+         zterm = vec[3*i+2] * (z[j]-zcm);
+         dot = xterm + yterm + zterm;
+         if (dot < 0.0) {
+            for (int k = 0; k < 3; k++) {
+               vec[3*i+k] = -vec[3*i+k];
+            }
+         }
+         if (dot != 0) break;
+      }
+   }
+
+   // moment axes must give a right-handed coordinate system
+   xterm = vec[0] * (vec[4]*vec[8]-vec[7]*vec[5]);
+   yterm = vec[1] * (vec[6]*vec[5]-vec[3]*vec[8]);
+   zterm = vec[2] * (vec[3]*vec[7]-vec[6]*vec[4]);
+   dot = xterm + yterm + zterm;
+   if (dot < 0) {
+      for (int j = 0; j < 3; j++) {
+         vec[6+j] = -vec[6+j];
+      }
+   }
+
+   // translate to origin, then apply Euler rotation matrix
+   for (int i = 0; i < n; i++) {
+      xterm = x[i] - xcm;
+      yterm = y[i] - ycm;
+      zterm = z[i] - zcm;
+      x[i] = vec[0]*xterm + vec[1]*yterm + vec[2]*zterm;
+      y[i] = vec[3]*xterm + vec[4]*yterm + vec[5]*zterm;
+      z[i] = vec[6]*xterm + vec[7]*yterm + vec[8]*zterm;
+   }
 }
 
 void alfmol(int vers)
 {
    // initialize alfatoms
+   clock_t start_s,stop_s;
+   if (alfdebug) {
+      start_s = clock();
+   }
    initalfatm();
+   if (alfdebug) {
+      stop_s = clock();
+      printf("\n Initalfatm compute time    : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
+   }
 
    // run AlphaMol
    if (alfmeth == AlfMethod::AlphaMol) alphamol1(vers);

@@ -110,6 +110,16 @@ enum class AlfSort
    KDTree,
 };
 
+enum class SymTyp
+{
+   None,
+   Single,
+   Linear,
+   Planar,
+   Mirror,
+   Center,
+};
+
 constexpr double deleps = 1e-4;
 constexpr double delepsvol = 1e-4;
 constexpr double alfeps = 1e-5;
@@ -330,4 +340,7 @@ void sort3DHilbert(AlfAtom *alfatoms, int size, int e, int d, double xmin, doubl
 void brioHilbert(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int depth);
 void splitGrid(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int ncube, std::vector<int>& Nval);
 void kdTree(std::vector<AlfAtom>& alfatoms, int nsplit_tot, std::vector<int>& Nval);
+void chksymm(int n, double* mass, double* xref, double* yref, double* zref, SymTyp& symtyp);
+void wiggle(int n, double* x, double* y, double* z, double eps);
+void inertia(int n, double* mass, double* x, double* y, double* z);
 }
