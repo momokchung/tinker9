@@ -139,6 +139,8 @@ TINKER_EXTERN AlfMethod alfmeth;
 TINKER_EXTERN AlfSort alfsort;
 TINKER_EXTERN int alfdigit;
 TINKER_EXTERN int alfnthd;
+TINKER_EXTERN double delcxeps;
+TINKER_EXTERN double alfcxeps;
 TINKER_EXTERN bool alfh;
 TINKER_EXTERN bool alfdebug;
 TINKER_EXTERN bool alfsos;

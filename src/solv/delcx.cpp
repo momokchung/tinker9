@@ -12,6 +12,7 @@ namespace tinker
 void Delcx::init(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra)
 {
    sos.init_sos_gmp();
+   eps = delcxeps;
 
    // initialize vertices and tetra
    vertices.clear();

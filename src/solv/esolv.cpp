@@ -119,6 +119,8 @@ void esolvData(RcOp op)
       alfdebug = true;
       alfdigit = 8;
       alfnthd = 8;
+      delcxeps = 1e-2;
+      alfcxeps = 1e-5;
       for (int i = 0; i < n; ++i) {
          coefS[i] = solute::asolv[i];
          coefV[i] = 1.0;

@@ -92,7 +92,7 @@ protected:
    std::stack<int> free;
    std::vector<int> kill;
 
-   double eps = 1e-2;
+   double eps;
 
    int inf4_1[4] = {1, 1, 0, 0};
    int sign4_1[4] = {-1, 1, 1, -1};
