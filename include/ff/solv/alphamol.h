@@ -159,10 +159,8 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
 void alphamol1(int vers);
 void alphamol2(int vers);
-template <bool compder>
-void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
-   std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,
-   double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz);
+
+// AlphaMol2 spatial decomposition
 void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);
 void alforder(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double rmax, int nthreads, std::vector<int>& Nval);
 void initHilbert(int ndim);
@@ -170,6 +168,8 @@ void sort3DHilbert(AlfAtom *alfatoms, int size, int e, int d, double xmin, doubl
 void brioHilbert(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int depth);
 void splitGrid(AlfAtom *alfatoms, int size, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, int ncube, std::vector<int>& Nval);
 void kdTree(std::vector<AlfAtom>& alfatoms, int nsplit_tot, std::vector<int>& Nval);
+
+// break linear and planar symmetry
 void chksymm(int n, double* mass, double* xref, double* yref, double* zref, SymTyp& symtyp);
 void wiggle(int n, double* x, double* y, double* z, double eps);
 void inertia(int n, double* mass, double* x, double* y, double* z);

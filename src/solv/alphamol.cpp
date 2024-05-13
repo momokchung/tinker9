@@ -1,5 +1,6 @@
 #include "ff/solv/alfcx.h"
 #include "ff/solv/alphamol.h"
+#include "ff/solv/alphavol.h"
 #include "ff/solv/delcx.h"
 #include <tinker/detail/atomid.hh>
 #include <tinker/detail/atoms.hh>
@@ -302,6 +303,7 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
 
    Delcx delcx;
    Alfcx alfcx;
+   AlphaVol alphavol;
 
    // initialize Delaunay procedure
    if (alfprint) {
@@ -342,8 +344,8 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
       start_s = clock();
    }
    auto do_g = vers & calc::grad;
-   if (do_g) alphavol<true>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
-   else alphavol<false>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
+   if (do_g) alphavol.alphavol<true>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
+   else alphavol.alphavol<false>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
 
    if (alfprint) {
       stop_s = clock();
