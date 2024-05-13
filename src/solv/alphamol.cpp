@@ -1,3 +1,4 @@
+#include "ff/solv/alfcx.h"
 #include "ff/solv/alphamol.h"
 #include "ff/solv/delcx.h"
 #include <tinker/detail/atomid.hh>
@@ -300,6 +301,7 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    std::vector<Face> faces;
 
    Delcx delcx;
+   Alfcx alfcx;
 
    // initialize Delaunay procedure
    if (alfprint) {
@@ -329,30 +331,10 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
       start_s = clock();
    }
    double alpha = 0;
-   alfcx(vertices, tetra, alpha);
+   alfcx.alfcx(vertices, tetra, edges, faces, alpha);
    if (alfprint) {
       stop_s = clock();
       printf("\n AlphaCx compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
-      tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
-   }
-
-   if (alfprint) {
-      start_s = clock();
-   }
-   alfcxedges(tetra, edges);
-   if (alfprint) {
-      stop_s = clock();
-      printf("\n AlphaCxEdges compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
-      tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
-   }
-
-   if (alfprint) {
-      start_s = clock();
-   }
-   alfcxfaces(tetra, faces);
-   if (alfprint) {
-      stop_s = clock();
-      printf("\n AlphaCxFaces compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 

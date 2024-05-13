@@ -120,7 +120,6 @@ enum class SymTyp
    Center,
 };
 
-constexpr double alfeps = 1e-5;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
 TINKER_EXTERN double* radii;
@@ -145,37 +144,6 @@ TINKER_EXTERN bool alfh;
 TINKER_EXTERN bool alfdebug;
 TINKER_EXTERN bool alfsos;
 
-constexpr int other3[4][3] = {
-   {1, 2, 3},
-   {0, 2, 3},
-   {0, 1, 3},
-   {0, 1, 2}
-};
-constexpr int face_info[6][2] = {
-   {0, 1},
-   {0, 2},
-   {0, 3},
-   {1, 2},
-   {1, 3},
-   {2, 3}
-};
-constexpr int face_pos[6][2] = {
-   {1, 0},
-   {2, 0},
-   {3, 0},
-   {2, 1},
-   {3, 1},
-   {3, 2}
-};
-constexpr int pair[6][2] = {
-   {2, 3},
-   {1, 3},
-   {1, 2},
-   {0, 3},
-   {0, 2},
-   {0, 1}
-};
-
 constexpr int hilbert_order = 52;
 constexpr int hilbert_limit = 8;
 constexpr int brio_threshold = 64;
@@ -191,11 +159,6 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
 void alphamol1(int vers);
 void alphamol2(int vers);
-void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, double alpha);
-void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, double rb, 
-   double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);
-void alfcxedges(std::vector<Tetrahedron>& tetra, std::vector<Edge>& edges);
-void alfcxfaces(std::vector<Tetrahedron>& tetra, std::vector<Face>& faces);
 template <bool compder>
 void alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,
