@@ -114,8 +114,9 @@ void esolvData(RcOp op)
       // TODO_MOSES read from Tinker8
       alfmeth = AlfMethod::AlphaMol2;
       alfsort = AlfSort::KDTree;
+      alfsos = true;
       alfh = true;
-      alfdebug = false;
+      alfdebug = true;
       alfdigit = 8;
       alfnthd = 8;
       for (int i = 0; i < n; ++i) {
@@ -274,7 +275,7 @@ void tswitch(double cut, double off, double& c0, double& c1, double& c2, double&
    double off2 = off * off;
    double off3 = off2 * off;
    double cut2 = cut * cut;
-   
+
    double denom = std::pow((off-cut),5);
    c0 = off*off2 * (off2-5*off*cut+10*cut2) / denom;
    c1 = -30 * off2*cut2 / denom;

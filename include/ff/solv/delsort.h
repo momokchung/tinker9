@@ -2,11 +2,17 @@
 
 namespace tinker
 {
-// "delsort" contains various sorting tools to be used when
-// checking if vertex is inside a tetrahedron
+class DelcxSort {
+public:
+   inline void valsort2(int a, int b, int& ia, int& ib, int& iswap);
+   inline void valsort3(int a, int b, int c, int& ia, int& ib, int& ic, int& iswap);
+   inline void valsort4(int a, int b, int c, int d, int& ia, int& ib, int& ic, int& id, int& iswap);
+   inline void valsort5(int a, int b, int c, int d, int e, int& ia, int& ib, int& ic, int& id, int& ie, int& iswap);
+   inline void sort4_sign(int* list, int* idx, int& iswap, int n);
+};
 
 // valsort2: sort two integers and count number of swaps
-inline void valsort2(int a, int b, int& ia, int& ib, int& iswap)
+inline void DelcxSort::valsort2(int a, int b, int& ia, int& ib, int& iswap)
 {
    iswap = 1;
    if (a > b) {
@@ -21,7 +27,7 @@ inline void valsort2(int a, int b, int& ia, int& ib, int& iswap)
 }
 
 // valsort3: sort three integers and count number of swaps
-inline void valsort3(int a, int b, int c, int& ia, int& ib, int& ic, int& iswap)
+inline void DelcxSort::valsort3(int a, int b, int c, int& ia, int& ib, int& ic, int& iswap)
 {
    valsort2(a, b, ia, ib, iswap);
 
@@ -43,7 +49,7 @@ inline void valsort3(int a, int b, int c, int& ia, int& ib, int& ic, int& iswap)
 }
 
 // valsort4: sort four integers and count number of swaps
-inline void valsort4(int a, int b, int c, int d, int& ia, int& ib, int& ic, int& id, int& iswap)
+inline void DelcxSort::valsort4(int a, int b, int c, int d, int& ia, int& ib, int& ic, int& id, int& iswap)
 {
    valsort3(a, b, c, ia, ib, ic, iswap);
 
@@ -71,7 +77,7 @@ inline void valsort4(int a, int b, int c, int d, int& ia, int& ib, int& ic, int&
 }
 
 // valsort5: sort five integers and count number of swaps
-inline void valsort5(int a, int b, int c, int d, int e, int& ia, int& ib, int& ic, int& id, int& ie, int& iswap)
+inline void DelcxSort::valsort5(int a, int b, int c, int d, int e, int& ia, int& ib, int& ic, int& id, int& ie, int& iswap)
 {
    valsort4(a, b, c, d, ia, ib, ic, id, iswap);
 
@@ -105,7 +111,7 @@ inline void valsort5(int a, int b, int c, int d, int e, int& ia, int& ib, int& i
 }
 
 // sort4_sign: sorts the list of 4 numbers, and computes the signature of the permutation
-inline void sort4sign(int* list, int* idx, int& iswap, int n)
+inline void DelcxSort::sort4_sign(int* list, int* idx, int& iswap, int n)
 {
    for (int i = 0; i < n; i++) idx[i] = i;
 

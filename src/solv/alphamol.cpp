@@ -1,4 +1,5 @@
 #include "ff/solv/alphamol.h"
+#include "ff/solv/delcx.h"
 #include <tinker/detail/atomid.hh>
 #include <tinker/detail/atoms.hh>
 #include <tinker/routines.h>
@@ -43,7 +44,7 @@ void initalfatm()
    chksymm(atoms::n, atomid::mass, xref, yref, zref, symtyp);
 
    // wiggle if system is symmetric
-   double eps = 1e-5;
+   double eps = 1e-3;
    bool dowiggle_linear = symtyp == SymTyp::Linear and atoms::n > 2;
    bool dowiggle_planar = symtyp == SymTyp::Planar and atoms::n > 3;
    bool dowiggle = dowiggle_linear or dowiggle_planar;
@@ -291,78 +292,78 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
 {
    clock_t start_s,stop_s;
    double tot_t = 0;
+   bool alfprint = alfdebug and alfmeth==AlfMethod::AlphaMol;
 
    std::vector<Vertex> vertices;
    std::vector<Tetrahedron> tetra;
    std::vector<Edge> edges;
    std::vector<Face> faces;
-   std::queue<std::pair<int,int>> link_facet;
-   std::queue<std::pair<int,int>> link_index;
-   std::stack<int> free;
-   std::vector<int> kill;
+
+   Delcx delcx;
 
    // initialize Delaunay procedure
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
-   initdelcx(natoms, alfatoms, vertices, tetra, link_facet, link_index, free, kill);
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   delcx.init(natoms, alfatoms, vertices, tetra);
+   if (alfprint) {
       stop_s = clock();
-      printf("\n Initdelcx compute time    : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
+      printf("\n Init compute time         : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
    // compute Delaunay triangulation
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
-   delaunay(vertices, tetra, link_facet, link_index, free, kill);
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfsos) delcx.regular3D<true>(vertices, tetra);
+   else delcx.regular3D<false>(vertices, tetra);
+   if (alfprint) {
       stop_s = clock();
-      printf("\n Delaunay compute time     : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
+      printf("\n Regular3D compute time    : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
    // generate alpha complex (with alpha=0.0)
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
    double alpha = 0;
    alfcx(vertices, tetra, alpha);
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       stop_s = clock();
       printf("\n AlphaCx compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
    alfcxedges(tetra, edges);
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       stop_s = clock();
       printf("\n AlphaCxEdges compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
    alfcxfaces(tetra, faces);
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       stop_s = clock();
       printf("\n AlphaCxFaces compute time : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
    }
 
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       start_s = clock();
    }
    auto do_g = vers & calc::grad;
    if (do_g) alphavol<true>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
    else alphavol<false>(vertices, tetra, edges, faces, surf, vol, dsurfx, dsurfy, dsurfz, dvolx, dvoly, dvolz);
 
-   if (alfdebug and alfmeth==AlfMethod::AlphaMol) {
+   if (alfprint) {
       stop_s = clock();
       printf("\n Volumes compute time      : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
       tot_t += (stop_s-start_s)/double(CLOCKS_PER_SEC);
@@ -433,7 +434,7 @@ inline bool inBox(double Point[3], double Xlim[2], double Ylim[2], double Zlim[2
 void multimol(double buffer, int vers, int nthreads, std::vector<int>& Nval);
 void* singlemol(void* data);
 
-#define NUM_THREADS 128 
+#define NUM_THREADS 128
 pthread_t threads[NUM_THREADS];
 typedef struct thread_data {
    int vers;

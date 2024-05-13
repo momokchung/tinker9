@@ -120,8 +120,6 @@ enum class SymTyp
    Center,
 };
 
-constexpr double deleps = 1e-4;
-constexpr double delepsvol = 1e-4;
 constexpr double alfeps = 1e-5;
 TINKER_EXTERN double wsurf;
 TINKER_EXTERN double wvol;
@@ -143,126 +141,8 @@ TINKER_EXTERN int alfdigit;
 TINKER_EXTERN int alfnthd;
 TINKER_EXTERN bool alfh;
 TINKER_EXTERN bool alfdebug;
+TINKER_EXTERN bool alfsos;
 
-constexpr int inf4_1[4] = {1, 1, 0, 0};
-constexpr int sign4_1[4] = {-1, 1, 1, -1};
-constexpr int inf4_2[4][4] = {
-   { -1, 1, 2, 2},
-   { 1, -1, 2, 2},
-   { 2, 2, -1, 0},
-   { 2, 2, 0, -1}
-};
-constexpr int sign4_2[4][4] = {
-   { 0, 1, -1, 1},
-   { -1, 0, 1, -1},
-   { 1, -1, 0, 1},
-   { -1, 1, -1, 0}
-};
-constexpr int sign4_3[4] = {-1, 1, -1, 1};
-constexpr int inf5_2[4][4] = {
-   { -1, 1, 0, 0},
-   { 1, -1, 0, 0},
-   { 0, 0, -1, 0},
-   { 0, 0, 0, -1}
-};
-constexpr int sign5_2[4][4] = {
-   { 0, -1, -1, 1},
-   { 1, 0, -1, 1},
-   { 1, 1, 0, 1},
-   { -1, -1, -1, 0}
-};
-constexpr int inf5_3[4] = {0, 0, 2, 2};
-constexpr int sign5_3[4] = {1, 1, -1, 1};
-constexpr int order1[4][3] = {
-   { 2, 1, 3},
-   { 0, 2, 3},
-   { 1, 0, 3},
-   { 0, 1, 2}
-};
-constexpr int ord_rc[3][3] = {
-   {0, 1, 2},
-   {2, 0, 1},
-   {1, 2, 0},
-};
-constexpr int order2[6][2] = {
-   { 2, 3},
-   { 3, 1},
-   { 1, 2},
-   { 0, 3},
-   { 2, 0},
-   { 0, 1}
-};
-constexpr int order3[6][2] = {
-   { 0, 1},
-   { 0, 2},
-   { 0, 3},
-   { 1, 2},
-   { 1, 3},
-   { 2, 3}
-};
-constexpr int idxList[4][3] = {
-   { 0, 0, 0},
-   { 0, 1, 1},
-   { 1, 1, 2},
-   { 2, 2, 2}
-};
-constexpr int table32[3][3] = {
-   { 0, 1, 2},
-   { 0, 2, 1},
-   { 2, 0, 1}
-};
-constexpr int table32_2[3][2] = {
-   { 0, 1},
-   { 0, 2},
-   { 1, 2}
-};
-constexpr int table41[3][3] = {
-   { 1, 0, 2},
-   { 0, 1, 2},
-   { 0, 2, 1}
-};
-constexpr int table41_2[3][2] = {
-   { 0, 0},
-   { 1, 0},
-   { 1, 1}
-};
-constexpr int order[3][2] = {
-   { 1, 2},
-   { 2, 0},
-   { 0, 1}
-};
-constexpr int other[4][3] = {
-   { 1, 2, 3},
-   { 0, 2, 3},
-   { 0, 1, 3},
-   { 0, 1, 2}
-};
-constexpr int other2[4][4][2] = {
-   {
-      { -1, -1},
-      { 2, 3},
-      { 1, 3},
-      { 1, 2}
-   },
-   {
-      { 2, 3},
-      { -1, -1},
-      { 0, 3},
-      { 0, 2}
-   },
-   {
-      { 1, 3},
-      { 0, 3},
-      { -1, -1},
-      { 0, 1}
-   },
-   {
-      { 1, 2},
-      { 0, 2},
-      { 0, 1},
-      { -1, -1}
-   },
-};
 constexpr int other3[4][3] = {
    {1, 2, 3},
    {0, 2, 3},
@@ -309,20 +189,6 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
 void alphamol1(int vers);
 void alphamol2(int vers);
-void initdelcx(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
-   std::queue<std::pair<int,int>>& link_facet,std::queue<std::pair<int,int>>& link_index,std::stack<int>& free,std::vector<int>& kill);
-void delaunay(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
-void minor2(double a11, double a21, int& res, double eps=1e-10);
-void minor3(double a11, double a12, double a21, double a22, double a31, double a32, int& res, double eps=1e-10);
-void minor4(double* coord_a, double* coord_b, double* coord_c, double* coord_d, int& res, double eps=1e-10);
-void minor5(double* coord_a, double r1, double* coord_b, double r2, double* coord_c,
-   double r3, double* coord_d, double r4, double* coord_e, double r5, int& res, double eps=1e-10);
-void flip_1_4(std::vector<Tetrahedron>& tetra, int ipoint, int itetra, int& tetra_last,
-   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
-void flip(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
-   std::queue<std::pair<int,int>>& link_facet, std::queue<std::pair<int,int>>& link_index, std::stack<int>& free, std::vector<int>& kill);
-void regular_convex(std::vector<Vertex>& vertices, int a, int b, int c, int p, int o, int itest_abcp,
-   bool& regular, bool& convex, bool& test_abpo, bool& test_bcpo, bool& test_capo);
 void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra, double alpha);
 void alfedge(std::vector<Vertex>& vertices, double* a, double* b, double ra, double rb, 
    double* cg, std::vector<int>& listcheck, int& irad, int& iattach, double alpha);

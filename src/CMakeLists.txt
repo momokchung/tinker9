@@ -31,6 +31,8 @@ add_library (tinker9_version OBJECT
 target_link_libraries (tinker9_version PRIVATE __t9_intf)
 set_target_properties (tinker9_version PROPERTIES CXX_STANDARD ${T9_CPPSTD})
 
+# gmp
+target_link_libraries (tinker9_cpp PRIVATE __t9_intf gmp)
 
 # macro
 target_compile_definitions (__t9_intf INTERFACE ${T9_DEFS})
