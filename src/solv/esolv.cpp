@@ -114,7 +114,7 @@ void esolvData(RcOp op)
       // TODO_MOSES read from Tinker8
       alfmeth = AlfMethod::AlphaMol2;
       alfsort = AlfSort::KDTree;
-      alfsos = false;
+      alfsos = true;
       alfh = true;
       alfdebug = true;
       alfdigit = 8;

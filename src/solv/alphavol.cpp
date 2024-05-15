@@ -1,6 +1,5 @@
 #include "ff/solv/alphamol.h"
 #include "ff/solv/alphavol.h"
-#include "math/const.h"
 
 namespace tinker
 {
@@ -32,7 +31,6 @@ void AlphaVol::alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>&
    double dsurfa3[3],dsurfb3[3],dsurfc3[3];
    double dvola3[3],dvolb3[3],dvolc3[3];
    double dvola[6],dvolb[6],dvolc[6],dvold[6];
-   constexpr double twopi = 2 * pi;
 
    int nedges = edges.size();
    int nvertices = vertices.size();
@@ -121,12 +119,14 @@ void AlphaVol::alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>&
       rbd = edges[edge_list[4]].len; rbd2 = rbd*rbd;
       rcd = edges[edge_list[5]].len; rcd2 = rcd*rcd;
 
+      double tetvol = tetra_volume(rab2, rac2, rad2, rbc2, rbd2, rcd2);
+
       // characterize tetrahedron (A,B,C,D)
-      tetdihedder<compder>(rab2, rac2, rad2, rbc2, rbd2, rcd2, angle, cosine, sine, deriv);
+      tetdihedder<compder>(rab2, rac2, rad2, rbc2, rbd2, rcd2, tetvol, angle, cosine, sine, deriv);
 
       // add fraction of tetrahedron that "belongs" to each ball
       tetvorder<compder>(ra2, rb2, rc2, rd2, rab, rac, rad, rbc,
-      rbd, rcd, rab2, rac2, rad2, rbc2, rbd2, rcd2, cosine, sine,
+      rbd, rcd, rab2, rac2, rad2, rbc2, rbd2, rcd2, tetvol, cosine, sine,
       deriv, vola, volb, volc, vold, dvola, dvolb, dvolc, dvold);
 
       ballwvol[ia] += vola; ballwvol[ib] += volb;
@@ -225,7 +225,7 @@ void AlphaVol::alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>&
       rbc = edges[e3].len; rbc2=rbc*rbc;
 
       threesphder<compder>(ra, rb, rc, ra2, rb2, rc2, rab, rac, rbc, rab2, rac2, rbc2,
-      angle, surfa, surfb, surfc, vola, volb, volc, 
+      angle, surfa, surfb, surfc, vola, volb, volc,
       dsurfa3, dsurfb3, dsurfc3, dvola3, dvolb3, dvolc3);
 
       ballwsurf[ia] += coefval*surfa;
@@ -384,7 +384,6 @@ inline void AlphaVol::twosph(double ra, double ra2, double rb, double rb2,
 {
    double cosine,vala,valb,lambda,ha,hb;
    double Aab,sa,ca,sb,cb;
-   constexpr double twopi = 2 * pi;
 
    // Get distance between center of sphere A and Voronoi plane
    // between A and B
@@ -435,7 +434,6 @@ inline void AlphaVol::twosphder(double ra, double ra2, double rb, double rb2, do
    double cosine,vala,valb,lambda,ha,hb;
    double Aab,sa,ca,sb,cb;
    double dera,derb;
-   constexpr double twopi = 2 * pi;
 
    // Get distance between center of sphere A and Voronoi plane
    // between A and B
@@ -514,7 +512,6 @@ inline void AlphaVol::threesphder(double ra, double rb,double rc, double ra2,
    double val2_abc,val2_acb,val2_bca;
    double der_val1b,der_val1,der_val2b,der_val2,der_val3b,der_val3;
    double cosine[6],sine[6],deriv[6][3];
-   constexpr double twopi = 2 * pi;
 
    l1 = plane_dist(ra2, rb2, rab2);
    l2 = plane_dist(ra2, rc2, rac2);
@@ -643,38 +640,38 @@ inline void AlphaVol::threesphder(double ra, double rb,double rc, double ra2,
    val2_acb = rho_ac2*(1 - cos_acb*cos_acb + sin_acb*sin_acb);
    val2_bca = rho_bc2*(1 - cos_bca*cos_bca + sin_bca*sin_bca);
 
-   dvola[0] = ra*dsurfa[0] - der_val1b*s_abc - 
+   dvola[0] = ra*dsurfa[0] - der_val1b*s_abc -
       (val1b*deriv[0][0]*val2_abc + val2b*deriv[1][0]*val2_acb)
       - val1b*drho_ab2*val_abc;
    dvola[0] = dvola[0]/3;
-   dvola[1] = ra*dsurfa[1] - der_val2b*s_acb - 
+   dvola[1] = ra*dsurfa[1] - der_val2b*s_acb -
       (val1b*deriv[0][1]*val2_abc + val2b*deriv[1][1]*val2_acb)
       - val2b*drho_ac2*val_acb;
    dvola[1] = dvola[1]/3;
-   dvola[2] = ra*dsurfa[2] - 
+   dvola[2] = ra*dsurfa[2] -
       (val1b*deriv[0][2]*val2_abc + val2b*deriv[1][2]*val2_acb);
    dvola[2] = dvola[2]/3;
 
-   dvolb[0] = rb*dsurfb[0] - der_val1*s_abc - 
+   dvolb[0] = rb*dsurfb[0] - der_val1*s_abc -
       (val1*deriv[0][0]*val2_abc + val3b*deriv[3][0]*val2_bca)
       - val1*drho_ab2*val_abc;
    dvolb[0] = dvolb[0]/3;
-   dvolb[1] = rb*dsurfb[1] - 
+   dvolb[1] = rb*dsurfb[1] -
       (val1*deriv[0][1]*val2_abc + val3b*deriv[3][1]*val2_bca);
    dvolb[1] = dvolb[1]/3;
-   dvolb[2] = rb*dsurfb[2] - der_val3b*s_bca - 
+   dvolb[2] = rb*dsurfb[2] - der_val3b*s_bca -
       (val1*deriv[0][2]*val2_abc + val3b*deriv[3][2]*val2_bca)
       - val3b*drho_bc2*val_bca;
    dvolb[2] = dvolb[2]/3;
 
-   dvolc[0] = rc*dsurfc[0] - 
+   dvolc[0] = rc*dsurfc[0] -
       (val2*deriv[1][0]*val2_acb + val3*deriv[3][0]*val2_bca);
    dvolc[0] = dvolc[0]/3;
-   dvolc[1] = rc*dsurfc[1] - der_val2*s_acb - 
+   dvolc[1] = rc*dsurfc[1] - der_val2*s_acb -
       (val2*deriv[1][1]*val2_acb + val3*deriv[3][1]*val2_bca)
       - val2*drho_ac2*val_acb;
    dvolc[1] = dvolc[1]/3;
-   dvolc[2] = rc*dsurfc[2] - der_val3*s_bca - 
+   dvolc[2] = rc*dsurfc[2] - der_val3*s_bca -
       (val2*deriv[1][2]*val2_acb + val3*deriv[3][2]*val2_bca)
       - val3*drho_bc2*val_bca;
    dvolc[2] = dvolc[2]/3;
@@ -691,7 +688,7 @@ inline double AlphaVol::plane_dist(double ra2, double rb2, double rab2)
 // dihedral angles of atetrahedronfrom its edge lengths
 template <bool compder>
 inline void AlphaVol::tetdihedder(double r12sq, double r13sq, double r14sq,
-   double r23sq, double r24sq, double r34sq, double* angle,
+   double r23sq, double r24sq, double r34sq, double tetvol, double* angle,
    double* cosine, double* sine, double deriv[6][6])
 {
    double val1,val2,val3,val4,vala;
@@ -702,7 +699,6 @@ inline void AlphaVol::tetdihedder(double r12sq, double r13sq, double r14sq,
    double dminori[4][6] = {0};
    double det[6],dnum[6][6],val[4];
    double dist[6];
-   constexpr double twopi = 2 * pi;
 
    // Define the Cayley Menger matrix:
    // M = ( 0      r12^2  r13^2  r14^2  1)
@@ -738,7 +734,7 @@ inline void AlphaVol::tetdihedder(double r12sq, double r13sq, double r14sq,
    if CONSTEXPR (compder) val[0] = val4; val[1] = val3; val[2] = val2; val[3] = val1;
 
    // Now compute all angles (in fact, cosine of the angle):
-   //           (-1)^(i+j) * det(Mij) 
+   //           (-1)^(i+j) * det(Mij)
    // cos(i,j)= ---------------------
    //            sqrt(M(i,i)*M(j,j))
    // where det(Mij) = M(i,j) is the determinant of the Cayley-Menger matrix with row i
@@ -777,6 +773,12 @@ inline void AlphaVol::tetdihedder(double r12sq, double r13sq, double r14sq,
    }
 
    if CONSTEXPR (!compder) return;
+
+   for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 6; j++) deriv[i][j] = 0;
+   }
+
+   if (tetvol < teteps) return;
 
    det[5] = det12; det[4] = det13; det[3] = det14;
    det[2] = det23; det[1] = det24; det[0] = det34;
@@ -865,7 +867,6 @@ inline void AlphaVol::tetdihedder3(double r12sq, double r13sq, double r14sq,
    double minori[4];
    double dminori[4][3] = {0};
    double dist[3],det[6],dnum[6][3],val[4];
-   constexpr double twopi = 2 * pi;
 
    // Define the Cayley Menger matrix:
    // M = ( 0      r12^2  r13^2  r14^2  1)
@@ -898,10 +899,10 @@ inline void AlphaVol::tetdihedder3(double r12sq, double r13sq, double r14sq,
    val2 = 1.0/std::sqrt(-minori[2]);
    val1 = 1.0/std::sqrt(-minori[3]);
 
-   val[0] = val4; val[1] = val3; val[2] = val2; val[3] = val1;
+   if CONSTEXPR (compder) val[0] = val4; val[1] = val3; val[2] = val2; val[3] = val1;
 
    // Now compute all angles (in fact, cosine of the angle):
-   //           (-1)^(i+j) * det(Mij) 
+   //           (-1)^(i+j) * det(Mij)
    // cos(i,j)= ---------------------
    //            sqrt(M(i,i)*M(j,j))
    // where det(Mij) = M(i,j) is the determinant of the Cayley-Menger matrix with row i
@@ -940,6 +941,14 @@ inline void AlphaVol::tetdihedder3(double r12sq, double r13sq, double r14sq,
    }
 
    if CONSTEXPR (!compder) return;
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 3; j++) deriv[i][j] = 0;
+    }
+
+    double tetvol = tetra_volume(r12sq, r13sq, r14sq, r23sq, r24sq, r34sq);
+
+    if (tetvol < teteps) return;
 
    // Now compute derivatives of the angles with respect to the edge lengths
    // Since (see above):
@@ -984,8 +993,7 @@ inline void AlphaVol::tetdihedder3(double r12sq, double r13sq, double r14sq,
             val2 = vala/minori[j];
             val3 = vala/minori[i];
             for (int l = 0; l < 3; l++) {
-               deriv[jj][l] = val1*dnum[k][l]
-               +val2*dminori[j][l]+val3*dminori[i][l];
+               deriv[jj][l] = val1*dnum[k][l]+val2*dminori[j][l]+val3*dminori[i][l];
                deriv[jj][l] *= 2*dist[l];
             }
          }
@@ -1048,7 +1056,7 @@ inline void AlphaVol::tet3dihedcos(double r12sq, double r13sq, double r14sq,
    val1 = 1.0/std::sqrt(-minori[3]);
 
    // Now compute all angles (in fact, cosine of the angle):
-   //           (-1)^(i+j) * det(Mij) 
+   //           (-1)^(i+j) * det(Mij)
    // cos(i,j)= ---------------------
    //            sqrt(M(i,i)*M(j,j))
    // where det(Mij) = M(i,j) is the determinant of the Cayley-Menger matrix with row i
@@ -1109,8 +1117,8 @@ template <bool compder>
 inline void AlphaVol::tetvorder(double ra2,double rb2,double rc2,double rd2,
    double rab, double rac, double rad, double rbc, double rbd,
    double rcd, double rab2, double rac2, double rad2,double rbc2,
-   double rbd2, double rcd2, double* cos_ang, double* sin_ang,
-   double deriv[6][6], double& vola, double& volb, double& volc, 
+   double rbd2, double rcd2, double tetvol, double* cos_ang, double* sin_ang,
+   double deriv[6][6], double& vola, double& volb, double& volc,
    double& vold, double* dvola, double* dvolb, double* dvolc, double* dvold)
 {
    double l1,l2,l3,l4,l5,l6;
@@ -1203,6 +1211,15 @@ inline void AlphaVol::tetvorder(double ra2,double rb2,double rc2,double rd2,
    vold = (val3*cap_ad+val5*cap_bd+val6*cap_cd)/6;
 
    if CONSTEXPR (!compder) return;
+
+    for (int i = 0; i < 6; i++) {
+        dvola[i] = 0;
+        dvolb[i] = 0;
+        dvolc[i] = 0;
+        dvold[i] = 0;
+    }
+
+    if (tetvol < teteps) return;
 
    dval1b = l1; dval2b = l2; dval3b = l3;
    dval4b = l4; dval5b = l5; dval6b = l6;
@@ -1388,6 +1405,31 @@ inline void AlphaVol::tetvorder(double ra2,double rb2,double rc2,double rd2,
    dvold[2] += dval3*cap_ad/6;
    dvold[4] += dval5*cap_bd/6;
    dvold[5] += dval6*cap_cd/6;
+}
+
+inline double AlphaVol::tetra_volume(double r12sq, double r13sq, double r14sq, double r23sq, double r24sq, double r34sq)
+{
+   double val1, val2, val3, det5, vol;
+   double mat5[5][5];
+
+   mat5[0][0] = 0;     mat5[0][1] = r12sq; mat5[0][2] = r13sq; mat5[0][3] = r14sq; mat5[0][4] = 1;
+   mat5[1][0] = r12sq; mat5[1][1] = 0;     mat5[1][2] = r23sq; mat5[1][3] = r24sq; mat5[1][4] = 1;
+   mat5[2][0] = r13sq; mat5[2][1] = r23sq; mat5[2][2] = 0;     mat5[2][3] = r34sq; mat5[2][4] = 1;
+   mat5[3][0] = r14sq; mat5[3][1] = r24sq; mat5[3][2] = r34sq; mat5[3][3] = 0;     mat5[3][4] = 1;
+   mat5[4][0] = 1;     mat5[4][1] = 1;     mat5[4][2] = 1;     mat5[4][3] = 1;     mat5[4][4] = 0;
+
+   val1 = mat5[1][2] - mat5[0][1] - mat5[0][2];
+   val2 = mat5[1][3] - mat5[0][1] - mat5[0][3];
+   val3 = mat5[2][3] - mat5[0][2] - mat5[0][3];
+
+   det5 = 8*mat5[0][1]*mat5[0][2]*mat5[0][3] - 2*val1*val2*val3
+        - 2*mat5[0][1]*val3*val3 - 2*mat5[0][2]*val2*val2
+        - 2*mat5[0][3]*val1*val1;
+
+   if (det5 < 0) det5 = 0;
+   vol = std::sqrt(det5/288.0);
+
+   return vol;
 }
 
 // explicit instatiation
