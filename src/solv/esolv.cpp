@@ -116,7 +116,7 @@ void esolvData(RcOp op)
       alfsort = AlfSort::KDTree;
       alfsos = true;
       alfh = true;
-      alfdebug = true;
+      alfdebug = false;
       alfdigit = 8;
       alfnthd = 8;
       delcxeps = 1e-2;
