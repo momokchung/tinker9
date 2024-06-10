@@ -84,10 +84,10 @@ void mdrestRemoveP_cu(int n, double invtotmass, const vel_prec* restrict idata,
    }
 }
 
-template <unsigned int B>
+template <int B>
 __global__
-void mdrestSumX1_cu(int n, pos_prec* restrict odata, const double* restrict mass,
-   const pos_prec* restrict x, const pos_prec* restrict y, const pos_prec* restrict z)
+void mdrestSumX_cu(int n, double invtotmass, pos_prec* restrict data, const double* restrict mass,
+   const pos_prec* restrict x, const pos_prec* restrict y, const pos_prec* restrict z, pos_prec* restrict xout)
 {
    static_assert(B == 64, "");
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
@@ -113,27 +113,19 @@ void mdrestSumX1_cu(int n, pos_prec* restrict odata, const double* restrict mass
    // clang-format on
    if (t == 0) {
       const int b = blockIdx.x;
-      odata[3 * b + 0] = tx[t] + tx[t + 1];
-      odata[3 * b + 1] = ty[t] + ty[t + 1];
-      odata[3 * b + 2] = tz[t] + tz[t + 1];
+      data[3 * b + 0] = tx[t] + tx[t + 1];
+      data[3 * b + 1] = ty[t] + ty[t + 1];
+      data[3 * b + 2] = tz[t] + tz[t + 1];
    }
-}
+   __syncthreads();
 
-template <int B>
-__global__
-void mdrestSumX2_cu(int n, double invtotmass, const pos_prec* restrict idata, pos_prec* restrict xout)
-{
-   static_assert(B == 64, "");
-   const int t = threadIdx.x;
-
-   pos_prec xsum = 0, ysum = 0, zsum = 0;
+   xsum = 0, ysum = 0, zsum = 0;
    for (int i = t; i < gridDim.x; i += B) {
-      xsum += idata[3 * i + 0];
-      ysum += idata[3 * i + 1];
-      zsum += idata[3 * i + 2];
+      xsum += data[3 * i + 0];
+      ysum += data[3 * i + 1];
+      zsum += data[3 * i + 2];
    }
 
-   __shared__ pos_prec tx[B], ty[B], tz[B];
    // clang-format off
    tx[t] = xsum; ty[t] = ysum; tz[t] = zsum;                                 __syncthreads();
    if (t < 32) { tx[t] += tx[t+32]; ty[t] += ty[t+32]; tz[t] += tz[t+32]; }  __syncthreads();
@@ -142,19 +134,16 @@ void mdrestSumX2_cu(int n, double invtotmass, const pos_prec* restrict idata, po
    if (t <  4) { tx[t] += tx[t+ 4]; ty[t] += ty[t+ 4]; tz[t] += tz[t+ 4]; }  __syncthreads();
    if (t <  2) { tx[t] += tx[t+ 2]; ty[t] += ty[t+ 2]; tz[t] += tz[t+ 2]; }  __syncthreads();
    // clang-format on
-   xsum = (tx[0] + tx[1]) * invtotmass;
-   ysum = (ty[0] + ty[1]) * invtotmass;
-   zsum = (tz[0] + tz[1]) * invtotmass;
-   xout[0] = xsum;
-   xout[1] = ysum;
-   xout[2] = zsum;
+   xout[0] = (tx[0] + tx[1]) * invtotmass;
+   xout[1] = (ty[0] + ty[1]) * invtotmass;
+   xout[2] = (tz[0] + tz[1]) * invtotmass;
 }
 
-template <unsigned int B>
+template <int B>
 __global__
-void mdrestSumA1_cu(int n, vel_prec* restrict odata, const double* restrict mass,
+void mdrestSumA_cu(int n, vel_prec* restrict data, const double* restrict mass,
    const pos_prec* restrict x, const pos_prec* restrict y, const pos_prec* restrict z,
-   const vel_prec* restrict vx, const vel_prec* restrict vy, const vel_prec* restrict vz)
+   const vel_prec* restrict vx, const vel_prec* restrict vy, const vel_prec* restrict vz, vel_prec* restrict xout)
 {
    static_assert(B == 64, "");
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
@@ -180,27 +169,19 @@ void mdrestSumA1_cu(int n, vel_prec* restrict odata, const double* restrict mass
    // clang-format on
    if (t == 0) {
       const int b = blockIdx.x;
-      odata[3 * b + 0] = tx[t] + tx[t + 1];
-      odata[3 * b + 1] = ty[t] + ty[t + 1];
-      odata[3 * b + 2] = tz[t] + tz[t + 1];
+      data[3 * b + 0] = tx[t] + tx[t + 1];
+      data[3 * b + 1] = ty[t] + ty[t + 1];
+      data[3 * b + 2] = tz[t] + tz[t + 1];
    }
-}
+   __syncthreads();
 
-template <int B>
-__global__
-void mdrestSumA2_cu(int n, const vel_prec* restrict idata, vel_prec* restrict xout)
-{
-   static_assert(B == 64, "");
-   const int t = threadIdx.x;
-
-   vel_prec xsum = 0, ysum = 0, zsum = 0;
+   xsum = 0, ysum = 0, zsum = 0;
    for (int i = t; i < gridDim.x; i += B) {
-      xsum += idata[3 * i + 0];
-      ysum += idata[3 * i + 1];
-      zsum += idata[3 * i + 2];
+      xsum += data[3 * i + 0];
+      ysum += data[3 * i + 1];
+      zsum += data[3 * i + 2];
    }
 
-   __shared__ vel_prec tx[B], ty[B], tz[B];
    // clang-format off
    tx[t] = xsum; ty[t] = ysum; tz[t] = zsum;                                 __syncthreads();
    if (t < 32) { tx[t] += tx[t+32]; ty[t] += ty[t+32]; tz[t] += tz[t+32]; }  __syncthreads();
@@ -209,19 +190,16 @@ void mdrestSumA2_cu(int n, const vel_prec* restrict idata, vel_prec* restrict xo
    if (t <  4) { tx[t] += tx[t+ 4]; ty[t] += ty[t+ 4]; tz[t] += tz[t+ 4]; }  __syncthreads();
    if (t <  2) { tx[t] += tx[t+ 2]; ty[t] += ty[t+ 2]; tz[t] += tz[t+ 2]; }  __syncthreads();
    // clang-format on
-   xsum = tx[0] + tx[1];
-   ysum = ty[0] + ty[1];
-   zsum = tz[0] + tz[1];
-   xout[0] = xsum;
-   xout[1] = ysum;
-   xout[2] = zsum;
+   xout[0] = tx[0] + tx[1];
+   xout[1] = ty[0] + ty[1];
+   xout[2] = tz[0] + tz[1];
 }
 
 template <unsigned int B>
 __global__
-void mdrestSumT1_cu(int n, pos_prec* restrict odata, const double* restrict mass,
+void mdrestSumT_cu(int n, pos_prec* restrict data, const double* restrict mass,
    const pos_prec xtot, const pos_prec ytot, const pos_prec ztot,
-   const pos_prec* restrict x, const pos_prec* restrict y, const pos_prec* restrict z)
+   const pos_prec* restrict x, const pos_prec* restrict y, const pos_prec* restrict z, pos_prec* restrict xout)
 {
    static_assert(B == 64, "");
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
@@ -258,33 +236,25 @@ void mdrestSumT1_cu(int n, pos_prec* restrict odata, const double* restrict mass
    // clang-format on
    if (t == 0) {
       const int b = blockIdx.x;
-      odata[6 * b + 0] = txx[t] + txx[t + 1];
-      odata[6 * b + 1] = txy[t] + txy[t + 1];
-      odata[6 * b + 2] = txz[t] + txz[t + 1];
-      odata[6 * b + 3] = tyy[t] + tyy[t + 1];
-      odata[6 * b + 4] = tyz[t] + tyz[t + 1];
-      odata[6 * b + 5] = tzz[t] + tzz[t + 1];
+      data[6 * b + 0] = txx[t] + txx[t + 1];
+      data[6 * b + 1] = txy[t] + txy[t + 1];
+      data[6 * b + 2] = txz[t] + txz[t + 1];
+      data[6 * b + 3] = tyy[t] + tyy[t + 1];
+      data[6 * b + 4] = tyz[t] + tyz[t + 1];
+      data[6 * b + 5] = tzz[t] + tzz[t + 1];
    }
-}
+   __syncthreads();
 
-template <int B>
-__global__
-void mdrestSumT2_cu(int n, const pos_prec* restrict idata, pos_prec* restrict xout)
-{
-   static_assert(B == 64, "");
-   const int t = threadIdx.x;
-
-   pos_prec xx = 0, xy = 0, xz = 0, yy = 0, yz = 0, zz = 0;
+   xx = 0, xy = 0, xz = 0, yy = 0, yz = 0, zz = 0;
    for (int i = t; i < gridDim.x; i += B) {
-      xx += idata[6 * i + 0];
-      xy += idata[6 * i + 1];
-      xz += idata[6 * i + 2];
-      yy += idata[6 * i + 3];
-      yz += idata[6 * i + 4];
-      zz += idata[6 * i + 5];
+      xx += data[6 * i + 0];
+      xy += data[6 * i + 1];
+      xz += data[6 * i + 2];
+      yy += data[6 * i + 3];
+      yz += data[6 * i + 4];
+      zz += data[6 * i + 5];
    }
 
-   __shared__ pos_prec txx[B], txy[B], txz[B], tyy[B], tyz[B], tzz[B];
    // clang-format off
    txx[t] = xx; txy[t] = xy; txz[t] = xz; tyy[t] = yy; tyz[t] = yz; tzz[t] = zz;   __syncthreads();
    if (t < 32) { txx[t] += txx[t+32]; txy[t] += txy[t+32]; txz[t] += txz[t+32];
@@ -298,18 +268,12 @@ void mdrestSumT2_cu(int n, const pos_prec* restrict idata, pos_prec* restrict xo
    if (t <  2) { txx[t] += txx[t+ 2]; txy[t] += txy[t+ 2]; txz[t] += txz[t+ 2];
                  tyy[t] += tyy[t+ 2]; tyz[t] += tyz[t+ 2]; tzz[t] += tzz[t+ 2]; }  __syncthreads();
    // clang-format on
-   xx = txx[0] + txx[1];
-   xy = txy[0] + txy[1];
-   xz = txz[0] + txz[1];
-   yy = tyy[0] + tyy[1];
-   yz = tyz[0] + tyz[1];
-   zz = tzz[0] + tzz[1];
-   xout[0] = xx;
-   xout[1] = xy;
-   xout[2] = xz;
-   xout[3] = yy;
-   xout[4] = yz;
-   xout[5] = zz;
+   xout[0] = txx[0] + txx[1];
+   xout[1] = txy[0] + txy[1];
+   xout[2] = txz[0] + txz[1];
+   xout[3] = tyy[0] + tyy[1];
+   xout[4] = tyz[0] + tyz[1];
+   xout[5] = tzz[0] + tzz[1];
 }
 
 __global__
@@ -381,22 +345,19 @@ void mdrestRemoveAngularMomentum_cu()
    int ngrid_b = std::min(grid_siz1_b, grid_siz2_b);
 
    // calculate the center of mass
-   mdrestSumX1_cu<B><<<ngrid, B, 0, g::s0>>>(n, ptrx, mass, xpos, ypos, zpos);
-   mdrestSumX2_cu<B><<<ngrid, B, 0, g::s0>>>(n, invtotmass, ptrx, xout);
+   mdrestSumX_cu<B><<<ngrid, B, 0, g::s0>>>(n, invtotmass, ptrx, mass, xpos, ypos, zpos, xout);
    pos_prec cm[3];
    darray::copyout(g::q0, 3, cm, xout);
    waitFor(g::q0);
 
    // calculate the angular momentum of system
-   mdrestSumA1_cu<B><<<ngrid, B, 0, g::s0>>>(n, ptrv, mass, xpos, ypos, zpos, vx, vy, vz);
-   mdrestSumA2_cu<B><<<ngrid, B, 0, g::s0>>>(n, ptrv, vout);
+   mdrestSumA_cu<B><<<ngrid, B, 0, g::s0>>>(n, ptrv, mass, xpos, ypos, zpos, vx, vy, vz, vout);
    vel_prec mang[3];
    darray::copyout(g::q0, 3, mang, vout);
    waitFor(g::q0);
 
    // calculate the moment of inertia tensor
-   mdrestSumT1_cu<B><<<ngrid_b, B, 0, g::s0>>>(n, ptrx, mass, cm[0], cm[1], cm[2], xpos, ypos, zpos);
-   mdrestSumT2_cu<B><<<ngrid_b, B, 0, g::s0>>>(n, ptrx, xout);
+   mdrestSumT_cu<B><<<ngrid_b, B, 0, g::s0>>>(n, ptrx, mass, cm[0], cm[1], cm[2], xpos, ypos, zpos, xout);
    pos_prec ts[6];
    darray::copyout(g::q0, 6, ts, xout);
    waitFor(g::q0);
