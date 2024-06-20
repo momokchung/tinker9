@@ -9,7 +9,7 @@
 
  Cartesian Gradient Breakdown over Individual Atoms :
 
-  Type    Atom          dE/dX           dE/dY           dE/dZ           Norm
+  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm
 
  Anlyt         1             4.4331     -8.4604     -6.8405       11.7484
  Anlyt         2            -8.0118     -1.3375      0.7595        8.1581

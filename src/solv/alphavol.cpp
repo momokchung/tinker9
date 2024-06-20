@@ -1,8 +1,7 @@
 #include "ff/solv/alphamol.h"
 #include "ff/solv/alphavol.h"
 
-namespace tinker
-{
+namespace tinker {
 template <bool compder>
 void AlphaVol::alphavol(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::vector<Edge>& edges, std::vector<Face>& faces, double* ballwsurf, double* ballwvol,

@@ -154,11 +154,14 @@ TINKER_EXTERN int tsb1mod3[8];
 
 namespace tinker {
 /// \ingroup solv
-void alfmol(int vers);
+void alfmola(int vers);
+void alfmolb();
 void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    double* dsurfx, double* dsurfy, double* dsurfz, double* dvolx, double* dvoly, double* dvolz, int vers);
-void alphamol1(int vers);
-void alphamol2(int vers);
+void alphamol1a(int vers);
+void alphamol1b();
+void alphamol2a(int vers);
+void alphamol2b();
 
 // AlphaMol2 spatial decomposition
 void alfboxsize(AlfAtom* alfatoms, int size, double& xmin, double& ymin, double& zmin, double& xmax, double& ymax, double& zmax, double& rmax);

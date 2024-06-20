@@ -2,8 +2,7 @@
 #include "ff/solv/alphamol.h"
 #include "math/const.h"
 
-namespace tinker
-{
+namespace tinker {
 class AlphaVol {
 public:
    template <bool compder>

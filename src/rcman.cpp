@@ -35,7 +35,6 @@ void finish()
 #include "tool/platform.h"
 
 #include "ff/box.h"
-#include "ff/dloop.h"
 #include "ff/energy.h"
 #include "ff/molecule.h"
 #include "ff/nblist.h"
@@ -71,7 +70,6 @@ void deviceData(RcOp op)
    // xred, yred, and zred need to be initialized in vdw (Halgren 14-7)
    // and will be used in nblist setups.
    RcMan nbl42{nblistData, op};
-   RcMan dloop42{dloopData, op};
 
    RcMan rattle42{rattleData, op};
    RcMan vel42{mdVelData, op};

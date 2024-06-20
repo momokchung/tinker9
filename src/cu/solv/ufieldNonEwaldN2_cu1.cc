@@ -2,8 +2,8 @@
 __global__
 void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclude,
    const int (*restrict exclude)[2], const real* restrict exclude_scale, const real* restrict x, const real* restrict y,
-   const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
-   const int* restrict iakp, const real (*restrict uind)[3], const real (*restrict uinp)[3], real (*restrict field)[3],
+   const real* restrict z, int nakpl, const int* restrict iakpl, int nakpa, const int* restrict iakpa,
+   const real (*restrict uind)[3], const real (*restrict uinp)[3], real (*restrict field)[3],
    real (*restrict fieldp)[3])
 {
    using d::jpolar;
@@ -113,11 +113,9 @@ void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int n
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       uidx[threadIdx.x] = uind[i][0];
       uidy[threadIdx.x] = uind[i][1];
       uidz[threadIdx.x] = uind[i][2];
@@ -126,12 +124,12 @@ void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int n
       uipz[threadIdx.x] = uinp[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ukdx = uind[k][0];
       ukdy = uind[k][1];
       ukdz = uind[k][2];
@@ -188,7 +186,7 @@ void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int n
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < niakp; iw += nwarp) {
+   for (int iw = iwarp; iw < nakpa; iw += nwarp) {
       fidx = 0;
       fidy = 0;
       fidz = 0;
@@ -203,15 +201,13 @@ void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int n
       fkpz = 0;
 
       int tri, tx, ty;
-      tri = iakp[iw];
+      tri = iakpa[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       uidx[threadIdx.x] = uind[i][0];
       uidy[threadIdx.x] = uind[i][1];
       uidz[threadIdx.x] = uind[i][2];
@@ -220,12 +216,12 @@ void ufieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict uinfo, int n
       uipz[threadIdx.x] = uinp[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ukdx = uind[k][0];
       ukdy = uind[k][1];
       ukdz = uind[k][2];

@@ -1,9 +1,9 @@
-#include "ff/solv/solute.h"
-#include "ff/dloop.h"
 #include "ff/elec.h"
 #include "ff/evdw.h"
 #include "ff/cumodamoeba.h"
 #include "ff/modamoeba.h"
+#include "ff/solv/nblistgk.h"
+#include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"
 #include "seq/add.h"
@@ -13,23 +13,24 @@
 #include <tinker/detail/limits.hh>
 #include <cmath>
 
-namespace tinker
-{
+namespace tinker {
 #include "ewca_cu1.cc"
 #include "ewcaN2_cu1.cc"
 
 template <class Ver>
 static void ewca_cu2()
-{   
+{
+   const real off = switchOff(Switch::MPOLE);
+
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
-      ewca_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+      ewca_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          epsdsp, raddsp, epso, epsh, rmino, rminh, shctd, dspoff, slevy, awater);
    } else {
-      const auto& st = *mn2_unit;
-      ewcaN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, es, desx, desy, desz, x, y, z, st.nakp, st.iakp,
+      const auto& st = *mdloop_unit;
+      ewcaN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, es, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
          epsdsp, raddsp, epso, epsh, rmino, rminh, shctd, dspoff, slevy, awater);
    }
 
@@ -70,7 +71,7 @@ static void egka_cu2()
       egka_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
    } else {
-      const auto& st = *mn2_unit;
+      const auto& st = *mdloop_unit;
       egkaN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, nes, es, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
          trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
    }
@@ -98,20 +99,21 @@ namespace tinker {
 template <class Ver>
 static void ediff_cu2()
 {
-   const auto& st = *mspatial_v2_unit;
    const real off = switchOff(Switch::MPOLE);
    const real f = electric / dielec;
 
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (limits::use_mlist) {
+      const auto& st = *mspatial_v2_unit;
       ediff_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, nes, es, desx, desy, desz,
          off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
          st.niak, st.iak, st.lst, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
    } else {
+      const auto& st = *mdloop_unit;
       ediffN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nes, es, desx, desy, desz,
-         off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-         st.niakp, st.iakp, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
+         off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, x, y, z, st.nakpl, st.iakpl,
+         st.nakpa, st.iakpa, trqx, trqy, trqz, rpole, uind, uinds, uinp, uinps, f);
    }
 }
 

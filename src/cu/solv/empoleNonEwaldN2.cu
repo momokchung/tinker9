@@ -1,5 +1,5 @@
 #include "ff/modamoeba.h"
-#include "ff/spatial.h"
+#include "ff/solv/nblistgk.h"
 #include "ff/switch.h"
 #include "seq/launch.h"
 #include "seq/pair_mpole.h"
@@ -11,7 +11,7 @@ namespace tinker {
 template <class Ver>
 static void empoleNonEwaldN2_cu2()
 {
-   const auto& st = *mspatial_v2_unit;
+   const auto& st = *mdloop_unit;
    real off = switchOff(Switch::MPOLE);
 
    const real f = electric / dielec;
@@ -19,7 +19,7 @@ static void empoleNonEwaldN2_cu2()
 
    empoleNonEwaldN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nem, em, vir_em,
       demx, demy, demz, off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale,
-      st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niakp, st.iakp, trqx, trqy, trqz, rpole, f);
+      x, y, z, st.nakpl, st.iakpl, st.nakpa, st.iakpa, trqx, trqy, trqz, rpole, f);
 }
 
 void empoleNonEwaldN2_cu(int vers)

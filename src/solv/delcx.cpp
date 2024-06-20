@@ -5,8 +5,7 @@
 #include <cassert>
 #include <cmath>
 
-namespace tinker
-{
+namespace tinker {
 // "init" initializes and sets up Delaunay triangulation
 
 void Delcx::init(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra)
@@ -44,7 +43,7 @@ void Delcx::init(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, s
    }
 
    // copy atoms into vertex list
-   double xi, yi, zi, ri, cs, cv, cm, cg;
+   double xi, yi, zi, ri, cs, cv;
    for (int i = 0; i < natoms; i++) {
       xi = alfatoms[i].coord[0];
       yi = alfatoms[i].coord[1];
@@ -71,8 +70,6 @@ void Delcx::init(int natoms, AlfAtom* alfatoms, std::vector<Vertex>& vertices, s
          ri = brad[i];
          cs = 1.;
          cv = 1;
-         cm = 1;
-         cg = 1;
          Vertex vert(xi, yi, zi, ri, cs, cv);
          vert.info[0] = 1;
          vert.status = 0;
@@ -1843,7 +1840,7 @@ void Delcx::flip_4_1(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& te
    int ishare,jshare,kshare,lshare;
    int idx,jdx,kdx,ldx;
    int test1,newtetra;
-   std::bitset<8> ikeep, jkeep, kkeep, lkeep;
+   std::bitset<8> kkeep, lkeep;
 
    ierr = 0;
    test1 = 1;
@@ -1857,8 +1854,6 @@ void Delcx::flip_4_1(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& te
    }
 
    // store "old" info
-   ikeep = tetra[itetra].info;
-   jkeep = tetra[jtetra].info;
    kkeep = tetra[ktetra].info;
    lkeep = tetra[ltetra].info;
 

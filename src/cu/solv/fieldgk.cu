@@ -1,6 +1,6 @@
 #include "ff/modamoeba.h"
 #include "ff/cumodamoeba.h"
-#include "ff/dloop.h"
+#include "ff/solv/nblistgk.h"
 #include "ff/solv/solute.h"
 #include "ff/spatial.h"
 #include "ff/switch.h"
@@ -15,14 +15,14 @@ namespace tinker {
 
 void dfieldNonEwaldN2_cu(real (*field)[3], real (*fieldp)[3])
 {
-   const auto& st = *mspatial_v2_unit;
+   const auto& st = *mdloop_unit;
    const real off = switchOff(Switch::MPOLE);
 
    darray::zero(g::q0, n, field, fieldp);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    dfieldNonEwaldN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si3.bit0, ndpexclude, dpexclude, dpexclude_scale,
-      st.x, st.y, st.z, st.sorted,st.nakpl, st.iakpl, st.niakp, st.iakp, field, fieldp);
+      x, y, z, st.nakpl, st.iakpl, st.nakpa, st.iakpa, field, fieldp);
 }
 }
 
@@ -70,7 +70,7 @@ void dfieldgk_cu(real gkc, real fc, real fd, real fq, real (*fields)[3], real (*
       dfieldgk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.x, st.y, st.z, st.sorted,
          st.nakpl, st.iakpl, st.niak, st.iak, st.lst, fields, fieldps, rborn, gkc, fc, fd, fq);
    } else {
-      const auto& st = *mn2_unit;
+      const auto& st = *mdloop_unit;
       dfieldgkN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st.nakp, st.iakp, fields, fieldps, rborn, gkc, fc, fd, fq);
    }
 
@@ -87,14 +87,14 @@ namespace tinker {
 
 void ufieldNonEwaldN2_cu(const real (*uind)[3], const real (*uinp)[3], real (*field)[3], real (*fieldp)[3])
 {
-   const auto& st = *mspatial_v2_unit;
+   const auto& st = *mdloop_unit;
    const real off = switchOff(Switch::MPOLE);
 
    darray::zero(g::q0, n, field, fieldp);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
-   ufieldNonEwaldN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
-      st.nakpl, st.iakpl, st.niakp, st.iakp, uind, uinp, field, fieldp);
+   ufieldNonEwaldN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, x, y, z,
+      st.nakpl, st.iakpl, st.nakpa, st.iakpa, uind, uinp, field, fieldp);
 }
 
 __global__
@@ -126,24 +126,24 @@ static void ufieldgkSelf_cu1(int n, real gkc, real fd, const real (*restrict uin
 
 void ufieldgk_cu(real gkc, real fd, const real (*uinds)[3], const real (*uinps)[3], real (*fields)[3], real (*fieldps)[3])
 {
-   const auto& st = *mspatial_v2_unit;
    const real off = switchOff(Switch::MPOLE);
 
    darray::zero(g::q0, n, fields, fieldps);
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    if (limits::use_mlist) {
+      const auto& st = *mspatial_v2_unit;
       ufieldgk1_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
          st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uinds, uinps, fields, fieldps);
 
       ufieldgk2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.x, st.y, st.z, st.sorted,
          st.nakpl, st.iakpl, st.niak, st.iak, st.lst, uinds, uinps, rborn, gkc, fd, fields, fieldps);
    } else {
-      ufieldgk1N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, st.x, st.y, st.z, st.sorted,
-         st.nakpl, st.iakpl, st.niakp, st.iakp, uinds, uinps, fields, fieldps);
+      const auto& st = *mdloop_unit;
+      ufieldgk1N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, off, st.si4.bit0, nuexclude, uexclude, uexclude_scale, x, y, z,
+         st.nakpl, st.iakpl, st.nakpa, st.iakpa, uinds, uinps, fields, fieldps);
 
-      const auto& st2 = *mn2_unit;
-      ufieldgk2N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st2.nakp, st2.iakp, uinds, uinps, rborn, gkc, fd, fields, fieldps);
+      ufieldgk2N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st.nakp, st.iakp, uinds, uinps, rborn, gkc, fd, fields, fieldps);
    }
 
    launch_k1s(g::s0, n, ufieldgkSelf_cu1, n, gkc, fd, uinds, uinps, rborn, fields, fieldps);

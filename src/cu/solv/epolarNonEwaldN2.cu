@@ -1,6 +1,6 @@
 #include "ff/modamoeba.h"
 #include "ff/cumodamoeba.h"
-#include "ff/spatial.h"
+#include "ff/solv/nblistgk.h"
 #include "ff/switch.h"
 #include "seq/epolartorque.h"
 #include "seq/launch.h"
@@ -15,7 +15,7 @@ static void epolarNonEwaldN2_cu(const real (*uind)[3], const real (*uinp)[3])
 {
    constexpr bool do_g = Ver::g;
 
-   const auto& st = *mspatial_v2_unit;
+   const auto& st = *mdloop_unit;
    real off = switchOff(Switch::MPOLE);
 
    const real f = 0.5f * electric / dielec;
@@ -24,8 +24,8 @@ static void epolarNonEwaldN2_cu(const real (*uind)[3], const real (*uinp)[3])
       darray::zero(g::q0, n, ufld, dufld);
    int ngrid = gpuGridSize(BLOCK_DIM);
    epolarNonEwaldN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nep, ep, vir_ep, depx, depy, depz,
-      off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl,
-      st.niakp, st.iakp, ufld, dufld, rpole, uind, uinp, f);
+      off, st.si1.bit0, nmdpuexclude, mdpuexclude, mdpuexclude_scale, x, y, z, st.nakpl, st.iakpl,
+      st.nakpa, st.iakpa, ufld, dufld, rpole, uind, uinp, f);
 
    // torque
    if CONSTEXPR (do_g) {

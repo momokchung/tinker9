@@ -1,6 +1,7 @@
 #include "ff/amoeba/empole.h"
 #include "ff/amoeba/induce.h"
 #include "ff/atom.h"
+#include "ff/elec.h"
 #include "ff/energy.h"
 #include "ff/evdw.h"
 #include "ff/modamoeba.h"
@@ -11,9 +12,11 @@
 #include "ff/solv/solute.h"
 #include "math/zero.h"
 #include "tool/darray.h"
+#include "tool/error.h"
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
 #include <tinker/detail/atomid.hh>
+#include <tinker/detail/bound.hh>
 #include <tinker/detail/nonpol.hh>
 #include <tinker/detail/solute.hh>
 #include <tinker/routines.h>
@@ -93,6 +96,14 @@ void esolvData(RcOp op)
    }
 
    if (op & RcOp::INIT) {
+      if (bound::use_bounds) {
+         printError();
+         TINKER_THROW("ESOLV  --  Remove Bounds for Implicit Solvent Calculations");
+      }
+      if (useEwald()) {
+         printError();
+         TINKER_THROW("ESOLV  --  Ewald not defined for Implicit Solvent Calculations");
+      }
       darray::copyin(g::q0, n, raddsp, nonpol::raddsp);
       darray::copyin(g::q0, n, epsdsp, nonpol::epsdsp);
       darray::copyin(g::q0, n, cdsp, nonpol::cdsp);
@@ -302,7 +313,7 @@ void ecav(int vers)
    }
 
    // cavitation energy
-   alfmol(vers);
+   alfmolb();
    esurf = wsurf;
    double reff = 0.5 * std::sqrt(esurf/(pi*surften));
    double reff2 = reff * reff;

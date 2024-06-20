@@ -1,8 +1,7 @@
 #include "ff/solv/alfcx.h"
 #include "ff/solv/alphamol.h"
 
-namespace tinker
-{
+namespace tinker {
 void Alfcx::alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,
    std::vector<Edge>& edges, std::vector<Face>& faces, double alpha)
 {

@@ -1,5 +1,6 @@
 #include "ff/box.h"
 #include "ff/atom.h"
+#include "ff/potent.h"
 #include "tool/darray.h"
 #include "tool/externfunc.h"
 #include <tinker/detail/bound.hh>

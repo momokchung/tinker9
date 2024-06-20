@@ -1,8 +1,7 @@
 #pragma once
 #include "gmp.h"
 
-namespace tinker
-{
+namespace tinker {
 class SOS {
 public:
    void init_sos_gmp();

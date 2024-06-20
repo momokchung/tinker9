@@ -1,4 +1,4 @@
- esolv.cpp -- 1l2y
+ esolv.cpp -- alatet
 
  Total Potential Energy :               -647.0066 Kcal/mole
 

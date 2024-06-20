@@ -3,8 +3,7 @@
 #include "tool/macro.h"
 #include <cmath>
 
-namespace tinker
-{
+namespace tinker {
 // "sosgmp" defines the class used to perform multiprecision
 // simulation of simplicity calculations
 
@@ -1042,8 +1041,7 @@ void SOS::minor4_gmp(double* coord_a, double* coord_b, double* coord_c, double* 
 }
 }
 
-namespace tinker
-{
+namespace tinker {
 
 // "sos" defines the class used to perform
 // simulation of simplicity calculations
@@ -1910,8 +1908,7 @@ void SOS::minor4_nmp(double* coord_a, double* coord_b, double* coord_c, double* 
 }
 }
 
-namespace tinker
-{
+namespace tinker {
 template <bool use_sos>
 void SOS::sos_minor2(double a11, double a21, int& res)
 {

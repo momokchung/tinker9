@@ -2,7 +2,6 @@
 #include "md/pq.h"
 #include "seq/launch.h"
 #include "seq/reduce.h"
-#include "tool/externfunc.h"
 #include <tinker/detail/bound.hh>
 #include <tinker/detail/inform.hh>
 #include <tinker/detail/mdstuf.hh>

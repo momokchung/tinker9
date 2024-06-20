@@ -2,9 +2,8 @@
 __global__
 void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int nexclude,
    const int (*restrict exclude)[2], const real (*restrict exclude_scale)[2], const real* restrict x,
-   const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
-   const int* restrict iakpl, int niakp, const int* restrict iakp, real (*restrict field)[3],
-   real (*restrict fieldp)[3])
+   const real* restrict y, const real* restrict z, int nakpl, const int* restrict iakpl, int nakpa,
+   const int* restrict iakpa, real (*restrict field)[3], real (*restrict fieldp)[3])
 {
    using d::jpolar;
    using d::njpolar;
@@ -124,11 +123,9 @@ void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int 
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       ci[threadIdx.x] = rpole[i][MPL_PME_0];
       dix[threadIdx.x] = rpole[i][MPL_PME_X];
       diy[threadIdx.x] = rpole[i][MPL_PME_Y];
@@ -141,12 +138,12 @@ void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int 
       qizz[threadIdx.x] = rpole[i][MPL_PME_ZZ];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ck = rpole[k][MPL_PME_0];
       dkx = rpole[k][MPL_PME_X];
       dky = rpole[k][MPL_PME_Y];
@@ -209,7 +206,7 @@ void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int 
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < niakp; iw += nwarp) {
+   for (int iw = iwarp; iw < nakpa; iw += nwarp) {
       fidx = 0;
       fidy = 0;
       fidz = 0;
@@ -224,15 +221,13 @@ void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int 
       fkpz = 0;
 
       int tri, tx, ty;
-      tri = iakp[iw];
+      tri = iakpa[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       ci[threadIdx.x] = rpole[i][MPL_PME_0];
       dix[threadIdx.x] = rpole[i][MPL_PME_X];
       diy[threadIdx.x] = rpole[i][MPL_PME_Y];
@@ -245,12 +240,12 @@ void dfieldNonEwaldN2_cu1(int n, real off, const unsigned* restrict dpinfo, int 
       qizz[threadIdx.x] = rpole[i][MPL_PME_ZZ];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ck = rpole[k][MPL_PME_0];
       dkx = rpole[k][MPL_PME_X];
       dky = rpole[k][MPL_PME_Y];

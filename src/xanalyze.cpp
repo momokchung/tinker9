@@ -227,10 +227,16 @@ static void xAnalyzeMoments()
       if (use(Potent::POLAR)) {
          if (mplpot::use_chgpen)
             induce2(uind);
-         else
-            if (solvtyp == Solv::GK) inducegk(uind, uinp, uinds, uinps, calc::v3);
-            else induce(uind, uinp);
-         darray::copyout(g::q0, n * 3, uindv.data(), &uind[0][0]);
+         else {
+            if (solvtyp == Solv::GK) {
+               eborn(calc::energy);
+               inducegk(uind, uinp, uinds, uinps, calc::v3);
+               darray::copyout(g::q0, n * 3, uindv.data(), &uinds[0][0]);
+            } else {
+               induce(uind, uinp);
+               darray::copyout(g::q0, n * 3, uindv.data(), &uind[0][0]);
+            }
+         }
       } else {
          std::fill(uindv.begin(), uindv.end(), 0);
       }

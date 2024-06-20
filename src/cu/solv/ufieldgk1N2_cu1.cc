@@ -2,9 +2,8 @@
 __global__
 void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclude, const int (*restrict exclude)[2],
    const real* restrict exclude_scale, const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niakp,
-   const int* restrict iakp, const real (*restrict uinds)[3], const real (*restrict uinps)[3],
-   real (*restrict fields)[3], real (*restrict fieldps)[3])
+   int nakpl, const int* restrict iakpl, int nakpa, const int* restrict iakpa, const real (*restrict uinds)[3],
+   const real (*restrict uinps)[3], real (*restrict fields)[3], real (*restrict fieldps)[3])
 {
    using d::jpolar;
    using d::njpolar;
@@ -113,11 +112,9 @@ void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclu
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       uidsx[threadIdx.x] = uinds[i][0];
       uidsy[threadIdx.x] = uinds[i][1];
       uidsz[threadIdx.x] = uinds[i][2];
@@ -126,12 +123,12 @@ void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclu
       uipsz[threadIdx.x] = uinps[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ukdsx = uinds[k][0];
       ukdsy = uinds[k][1];
       ukdsz = uinds[k][2];
@@ -188,7 +185,7 @@ void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclu
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < niakp; iw += nwarp) {
+   for (int iw = iwarp; iw < nakpa; iw += nwarp) {
       fidsx = 0;
       fidsy = 0;
       fidsz = 0;
@@ -203,15 +200,13 @@ void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclu
       fkpsz = 0;
 
       int tri, tx, ty;
-      tri = iakp[iw];
+      tri = iakpa[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
+      int k = min(kid, n - 1);
       uidsx[threadIdx.x] = uinds[i][0];
       uidsy[threadIdx.x] = uinds[i][1];
       uidsz[threadIdx.x] = uinds[i][2];
@@ -220,12 +215,12 @@ void ufieldgk1N2_cu1(int n, real off, const unsigned* restrict uinfo, int nexclu
       uipsz[threadIdx.x] = uinps[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       ukdsx = uinds[k][0];
       ukdsy = uinds[k][1];
       ukdsz = uinds[k][2];

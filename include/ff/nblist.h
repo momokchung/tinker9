@@ -45,6 +45,11 @@ Nbl ulistVersion();    ///< For sparse preconditioner.
 Nbl dsplistVersion();  ///< For dispersion.
 void nblistData(RcOp); ///< Sets up data on device.
 void nblistRefresh();  ///< Updates the neighbor lists.
+void nblistUpdate(NBListUnit u);
+void nblistAlloc(Nbl version, NBListUnit& nblu, int maxn, real cutoff, real buffer,
+   const real* x, const real* y, const real* z);
+void nblistBuild(NBListUnit u);
+int nblistMaxlst(int maxn, double cutoff, double buffer);
 
 //====================================================================//
 //                                                                    //

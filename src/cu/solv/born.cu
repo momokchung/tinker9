@@ -1,6 +1,7 @@
+#include "ff/solv/nblistgk.h"
 #include "ff/solv/solute.h"
-#include "ff/dloop.h"
 #include "ff/spatial.h"
+#include "ff/switch.h"
 #include "seq/add.h"
 #include "seq/launch.h"
 #include "seq/pair_born.h"
@@ -8,25 +9,26 @@
 #include <tinker/detail/limits.hh>
 #include <cmath>
 
-namespace tinker
-{
+namespace tinker {
 #include "grycuk_cu1.cc"
 #include "grycukN2_cu1.cc"
 
 template <class Ver>
 static void grycuk_cu2()
 {
+   const real off = switchOff(Switch::MPOLE);
+
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    real pi43 = (real)4/3 * pi;
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
-      grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+      grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
    } else {
-      const auto& st = *mn2_unit;
-      grycukN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, x, y, z, st.nakp, st.iakp,
+      const auto& st = *mdloop_unit;
+      grycukN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st.nakp, st.iakp,
          descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
    }
 
@@ -51,14 +53,15 @@ void born_cu(int vers)
 }
 }
 
-namespace tinker
-{
+namespace tinker {
 #include "grycuk1_cu1.cc"
 #include "grycuk1N2_cu1.cc"
 
 template <class Ver>
 static void born1_cu2()
 {
+   const real off = switchOff(Switch::MPOLE);
+
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    bool use_gk = false;
@@ -70,11 +73,11 @@ static void born1_cu2()
 
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
-      grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, desx, desy, desz, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
+      grycuk1_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
          descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
    } else {
-      const auto& st = *mn2_unit;
-      grycuk1N2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, desx, desy, desz, x, y, z, st.nakp, st.iakp,
+      const auto& st = *mdloop_unit;
+      grycuk1N2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
          descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
    }
 }

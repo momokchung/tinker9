@@ -367,8 +367,8 @@ void KERNEL_NAME(int n          \
     OFF_KERNEL_PARAMS           \
     EXCLUDE_INFO_KERNEL_PARAMS  \
     EXCLUDE_SCALE_KERNEL_PARAMS \
-    , const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl
-    , int niakp, const int* restrict iakp
+    , int nakpl, const int* restrict iakpl
+    , int nakpa, const int* restrict iakpa
     EXTRA_KERNEL_PARAMS)
 {
     USING_DEVICE_VARIABLES    KERNEL_CONSTEXPR_FLAGS \
@@ -405,11 +405,9 @@ void KERNEL_NAME(int n          \
         tri_to_xy(tri, tx, ty);
 
         int iid = ty * WARP_SIZE + ilane;
-        int atomi = min(iid, n - 1);
-        int i = sorted[atomi].unsorted;
+        int i = min(iid, n - 1);
         int kid = tx * WARP_SIZE + ilane;
-        int atomk = min(kid, n - 1);
-        int k = sorted[atomk].unsorted;
+        int k = min(kid, n - 1);
         KERNEL_INIT_PARAMS_I_AND_K
         KERNEL_SYNCWARP
 
@@ -429,19 +427,17 @@ void KERNEL_NAME(int n          \
         KERNEL_SAVE_LOCAL_FORCE   KERNEL_SYNCWARP
     }
 
-    for (int iw = iwarp; iw < niakp; iw += nwarp) {
+    for (int iw = iwarp; iw < nakpa; iw += nwarp) {
         KERNEL_ZERO_LOCAL_FORCE
 
         int tri, tx, ty;
-        tri = iakp[iw];
+        tri = iakpa[iw];
         tri_to_xy(tri, tx, ty);
 
         int iid = ty * WARP_SIZE + ilane;
-        int atomi = min(iid, n - 1);
-        int i = sorted[atomi].unsorted;
+        int i = min(iid, n - 1);
         int kid = tx * WARP_SIZE + ilane;
-        int atomk = min(kid, n - 1);
-        int k = sorted[atomk].unsorted;
+        int k = min(kid, n - 1);
         KERNEL_INIT_PARAMS_I_AND_K
         KERNEL_SYNCWARP
 
@@ -842,7 +838,7 @@ class KernelWriter:
             k2, v2 = 'KERNEL_INIT_PARAMS_I_AND_K', ''
             k3, v3 = 'KERNEL_SHUFFLE_PARAMS_I', ''
             v1 = v1 + ivars.init_exclude() + kvars.init_exclude()
-            sorted = self.config[self.yk_use_neigh] or self.config[self.yk_use_exclude]
+            sorted = self.config[self.yk_use_neigh]
             v2 = v2 + ivars.init_block(sorted) + kvars.init_block(sorted)
             v3 = v3 + ivars.shuffle()
             d[k1], d[k2], d[k3] = v1, v2, v3

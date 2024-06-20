@@ -73,6 +73,7 @@ static bool fts(std::string eng, bool& use_flag, unsigned tsflag, const TimeScal
 #include "ff/nblist.h"
 #include "ff/pmestream.h"
 #include "ff/potent.h"
+#include "ff/solv/alphamol.h"
 #include "ff/solv/solute.h"
 #include <tinker/detail/mplpot.hh>
 #include <tinker/detail/polpot.hh>
@@ -90,7 +91,12 @@ static bool amoeba_emplar(int vers)
       return false;
    if (vers & calc::analyz)
       return false;
-   return use(Potent::MPOLE) and use(Potent::POLAR) and (mlistVersion() & Nbl::SPATIAL);
+   bool do_emplar;
+   if (use(Potent::SOLV))
+      do_emplar = (pltfm_config & Platform::CUDA);
+   else
+      do_emplar = (mlistVersion() & Nbl::SPATIAL);
+   return use(Potent::MPOLE) and use(Potent::POLAR) and do_emplar;
 }
 
 static bool amoeba_empole(int vers)
@@ -175,6 +181,13 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
    ecore_val = false;
    ecore_vdw = false;
    ecore_ele = false;
+
+   // Alfmola submits a parallel CPU job that can be run
+   // in parallel with GPU jobs.
+   // Put before other energy routines for best performance
+   if (use(Potent::SOLV))
+      if (tscfg("esolv", ecore_ele))
+         alfmola(vers);
 
    if (pltfm_config & Platform::CUDA) {
       bool calc_val = use(Potent::BOND) or use(Potent::ANGLE) or use(Potent::STRBND) or use(Potent::UREY)

@@ -782,7 +782,8 @@ void spatialDataInit_cu(SpatialUnit u)
 
    if (use(Potent::SOLV) and !limits::use_mlist) {
       std::vector<int> skip_pair(u->nakpl);
-      cudaMemcpy(skip_pair.data(), u->iakpl, u->nakpl*sizeof(int), cudaMemcpyDeviceToHost);
+      darray::copyout(g::q0, u->nakpl, skip_pair.data(), u->iakpl);
+      waitFor(g::q0);
       std::sort(skip_pair.begin(), skip_pair.end());
       std::vector<int> all_pair;
       for (int i = 0; i < u->nakp; i++) {
@@ -791,7 +792,8 @@ void spatialDataInit_cu(SpatialUnit u)
       std::vector<int> iakp;
       std::set_difference(all_pair.begin(), all_pair.end(), skip_pair.begin(), skip_pair.end(), std::back_inserter(iakp));
       u->niakp = iakp.size();
-      cudaMemcpy(u->iakp, iakp.data(), u->niakp*sizeof(int), cudaMemcpyHostToDevice);
+      darray::copyin(g::q0, u->niakp, u->iakp, iakp.data());
+      waitFor(g::q0);
    }
 
    if (box_shape == BoxShape::ORTHO) {

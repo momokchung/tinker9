@@ -1,7 +1,7 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz,
+void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off,
    const real* restrict x, const real* restrict y, const real* restrict z, int nakp, const int* restrict iakp,
    real descoff, real pi43, real factor, bool useneck, bool usetanh, const real* restrict rsolv,
    const real* restrict rdescr, const real* restrict shct, const real* restrict rborn, const real* restrict drb,
@@ -71,7 +71,7 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];

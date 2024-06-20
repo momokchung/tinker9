@@ -4,6 +4,9 @@ KERNEL_NAME: grycuk_cu1
 # CONSTEXPR_FLAGS:
 # USE_NEIGH:
 
+# CUT_DISTANCE:
+OFF_DISTANCE: 'off'
+
 EXTRA_PARAMS: |
   , real descoff
   , real pi43
@@ -43,7 +46,7 @@ FULL_PAIRWISE_INTERACTION: |
   real yr = @yk@ - @yi@;
   real zr = @zk@ - @zi@;
   real r2 = xr*xr + yr*yr + zr*zr;
-  if (incl) {
+  if (r2 <= off * off and incl) {
     real r = REAL_SQRT(r2);
     real ri = REAL_MAX(@rsi@,@rdi@) + descoff;
     real si = @rdi@ * @shcti@;

@@ -4,9 +4,9 @@ __global__
 void ehalN2_cu1(int n, CountBuffer restrict nev, EnergyBuffer restrict ev, VirialBuffer restrict vev,
    grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real cut, real off,
    const unsigned* restrict info, int nexclude, const int (*restrict exclude)[2], const real* restrict exclude_scale,
-   const real* restrict x, const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted,
-   int nakpl, const int* restrict iakpl, int niakp, const int* restrict iakp, int njvdw, real vlam, Vdw vcouple,
-   const real* restrict radmin, const real* restrict epsilon, const int* restrict jvdw, const int* restrict mut)
+   const real* restrict x, const real* restrict y, const real* restrict z, int nakpl, const int* restrict iakpl,
+   int nakpa, const int* restrict iakpa, int njvdw, real vlam, Vdw vcouple, const real* restrict radmin,
+   const real* restrict epsilon, const int* restrict jvdw, const int* restrict mut)
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_a = Ver::a;
@@ -142,19 +142,17 @@ void ehalN2_cu1(int n, CountBuffer restrict nev, EnergyBuffer restrict ev, Viria
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
+      int k = min(kid, n - 1);
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
       ijvdw = jvdw[i];
       imut = mut[i];
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       kjvdw = jvdw[k];
       kmut = mut[k];
 
@@ -233,7 +231,7 @@ void ehalN2_cu1(int n, CountBuffer restrict nev, EnergyBuffer restrict ev, Viria
       }
    }
 
-   for (int iw = iwarp; iw < niakp; iw += nwarp) {
+   for (int iw = iwarp; iw < nakpa; iw += nwarp) {
       if CONSTEXPR (do_g) {
          fix = 0;
          fiy = 0;
@@ -244,23 +242,21 @@ void ehalN2_cu1(int n, CountBuffer restrict nev, EnergyBuffer restrict ev, Viria
       }
 
       int tri, tx, ty;
-      tri = iakp[iw];
+      tri = iakpa[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
-      xi = sorted[atomi].x;
-      yi = sorted[atomi].y;
-      zi = sorted[atomi].z;
+      int k = min(kid, n - 1);
+      xi = x[i];
+      yi = y[i];
+      zi = z[i];
       ijvdw = jvdw[i];
       imut = mut[i];
-      xk = sorted[atomk].x;
-      yk = sorted[atomk].y;
-      zk = sorted[atomk].z;
+      xk = x[k];
+      yk = y[k];
+      zk = z[k];
       kjvdw = jvdw[k];
       kmut = mut[k];
 

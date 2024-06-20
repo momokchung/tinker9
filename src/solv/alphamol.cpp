@@ -1,9 +1,10 @@
+#include "ff/atom.h"
 #include "ff/solv/alfcx.h"
 #include "ff/solv/alphamol.h"
 #include "ff/solv/alphavol.h"
 #include "ff/solv/delcx.h"
+#include "tool/darray.h"
 #include <tinker/detail/atomid.hh>
-#include <tinker/detail/atoms.hh>
 #include <tinker/routines.h>
 #include <algorithm>
 #include <pthread.h>
@@ -15,10 +16,10 @@ void initalfatm()
 {
    // resize alfatoms
    alfatoms.clear();
-   alfatoms.reserve(atoms::n);
+   alfatoms.reserve(n);
 
    // initialize atomic
-   for (int i = 0; i < atoms::n; i++) {
+   for (int i = 0; i < n; i++) {
       surf[i] = 0;
       vol[i] = 0;
       dsurfx[i] = 0;
@@ -33,28 +34,42 @@ void initalfatm()
    SymTyp symtyp;
 
    // allocate
-   double* xref = new double[atoms::n];
-   double* yref = new double[atoms::n];
-   double* zref = new double[atoms::n];
+   double* xref = new double[n];
+   double* yref = new double[n];
+   double* zref = new double[n];
 
    // copy coordinates
-   for (int i = 0; i < atoms::n; i++) {
-      xref[i] = atoms::x[i];
-      yref[i] = atoms::y[i];
-      zref[i] = atoms::z[i];
+   if (sizeof(pos_prec) == sizeof(double)) {
+      darray::copyout(g::q0, n, xref, xpos);
+      darray::copyout(g::q0, n, yref, ypos);
+      darray::copyout(g::q0, n, zref, zpos);
+      waitFor(g::q0);
+   } else {
+      std::vector<pos_prec> arrx(n), arry(n), arrz(n);
+      darray::copyout(g::q0, n, arrx.data(), xpos);
+      darray::copyout(g::q0, n, arry.data(), ypos);
+      darray::copyout(g::q0, n, arrz.data(), zpos);
+      waitFor(g::q0);
+      for (int i = 0; i < n; ++i) {
+         xref[i] = arrx[i];
+         yref[i] = arry[i];
+         zref[i] = arrz[i];
+      }
    }
-   chksymm(atoms::n, atomid::mass, xref, yref, zref, symtyp);
+
+   // check symmetry of system
+   chksymm(n, atomid::mass, xref, yref, zref, symtyp);
 
    // wiggle if system is symmetric
    double eps = 1e-3;
-   bool dowiggle_linear = symtyp == SymTyp::Linear and atoms::n > 2;
-   bool dowiggle_planar = symtyp == SymTyp::Planar and atoms::n > 3;
+   bool dowiggle_linear = symtyp == SymTyp::Linear and n > 2;
+   bool dowiggle_planar = symtyp == SymTyp::Planar and n > 3;
    bool dowiggle = dowiggle_linear or dowiggle_planar;
-   if (dowiggle) wiggle(atoms::n, xref, yref, zref, eps);
+   if (dowiggle) wiggle(n, xref, yref, zref, eps);
 
    // copy atoms into alfatoms list
    double xi, yi, zi, ri, cs, cv;
-   for (int i = 0; i < atoms::n; i++) {
+   for (int i = 0; i < n; i++) {
       ri = radii[i];
       if (ri == 0) continue;
       xi = xref[i];
@@ -271,7 +286,29 @@ void inertia(int n, double* mass, double* x, double* y, double* z)
    }
 }
 
-void alfmol(int vers)
+#define NUM_THREADS 128
+pthread_t threads[NUM_THREADS];
+typedef struct thread_data {
+   int vers;
+   int N1;
+   int N2;
+   int nlist2;
+   double buffer;
+   double wsurf;
+   double wvol;
+   double* surf;
+   double* vol;
+   double* dsurfx;
+   double* dsurfy;
+   double* dsurfz;
+   double* dvolx;
+   double* dvoly;
+   double* dvolz;
+} thread_data;
+thread_data info[NUM_THREADS];
+int threadids[NUM_THREADS];
+
+void alfmola(int vers)
 {
    // initialize alfatoms
    clock_t start_s,stop_s;
@@ -284,9 +321,16 @@ void alfmol(int vers)
       printf("\n Initalfatm compute time    : %10.6f ms\n", (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000);
    }
 
-   // run AlphaMol
-   if (alfmeth == AlfMethod::AlphaMol) alphamol1(vers);
-   else if (alfmeth == AlfMethod::AlphaMol2) alphamol2(vers);
+   // run AlphaMola
+   if (alfmeth == AlfMethod::AlphaMol) alphamol1a(vers);
+   else if (alfmeth == AlfMethod::AlphaMol2) alphamol2a(vers);
+}
+
+void alfmolb()
+{
+   // run AlphaMolb
+   if (alfmeth == AlfMethod::AlphaMol) alphamol1b();
+   else if (alfmeth == AlfMethod::AlphaMol2) alphamol2b();
 }
 
 void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
@@ -355,8 +399,9 @@ void alphamol(int natoms, AlfAtom* alfatoms, double* surf, double* vol,
    }
 }
 
-void alphamol1(int vers)
+void* alphamol1thd(void* data)
 {
+   int vers = info[0].vers;
    int natoms = alfatoms.size();
    int nfudge = 8;
    double* surfthd = new double[natoms+nfudge];
@@ -410,37 +455,29 @@ void alphamol1(int vers)
    delete[] dvolxthd;
    delete[] dvolythd;
    delete[] dvolzthd;
+
+   return 0;
+}
+
+void alphamol1a(int vers)
+{
+   info[0].vers = vers;
+   pthread_create(&threads[0], NULL, alphamol1thd, NULL);
+}
+
+void alphamol1b()
+{
+   pthread_join(threads[0], NULL);
 }
 
 inline void gettime(double& t1, double& u1);
 inline double gettimediff(double t1, double u1, double t2, double u2);
 inline bool inBox(double Point[3], double Xlim[2], double Ylim[2], double Zlim[2]);
-void multimol(double buffer, int vers, int nthreads, std::vector<int>& Nval);
+void multimola(double buffer, int vers, int nthreads, std::vector<int>& Nval);
+void multimolb(int nthreads);
 void* singlemol(void* data);
 
-#define NUM_THREADS 128
-pthread_t threads[NUM_THREADS];
-typedef struct thread_data {
-   int vers;
-   int N1;
-   int N2;
-   int nlist2;
-   double buffer;
-   double wsurf;
-   double wvol;
-   double* surf;
-   double* vol;
-   double* dsurfx;
-   double* dsurfy;
-   double* dsurfz;
-   double* dvolx;
-   double* dvoly;
-   double* dvolz;
-} thread_data;
-thread_data info[NUM_THREADS];
-int threadids[NUM_THREADS];
-
-void alphamol2(int vers)
+void alphamol2a(int vers)
 {
    double t1,t2,u1,u2,diff;
    double tot_t = 0;
@@ -462,13 +499,28 @@ void alphamol2(int vers)
 
    // run AlphaMol algorithm
    if (alfdebug) gettime(t1, u1);
-   int natoms = alfatoms.size();
    double buffer = 2*rmax;
-   multimol(buffer, vers, alfnthd, Nval);
+   multimola(buffer, vers, alfnthd, Nval);
    if (alfdebug) {
       gettime(t2, u2);
       diff = gettimediff(t1, u1, t2, u2);
-      printf("\n MultiMol compute time : %10.6f ms\n", diff*1000);
+      printf("\n MultiMola compute time : %10.6f ms\n", diff*1000);
+      tot_t += diff;
+   }
+}
+
+void alphamol2b()
+{
+   double t1,t2,u1,u2,diff;
+   double tot_t = 0;
+
+   // run AlphaMol algorithm
+   if (alfdebug) gettime(t1, u1);
+   multimolb(alfnthd);
+   if (alfdebug) {
+      gettime(t2, u2);
+      diff = gettimediff(t1, u1, t2, u2);
+      printf("\n MultiMolb compute time : %10.6f ms\n", diff*1000);
       tot_t += diff;
    }
 
@@ -503,7 +555,7 @@ inline bool inBox(double Point[3], double Xlim[2], double Ylim[2], double Zlim[2
    return true;
 }
 
-void multimol(double buffer, int vers, int nthreads, std::vector<int>& Nval)
+void multimola(double buffer, int vers, int nthreads, std::vector<int>& Nval)
 {
    int N1,N2;
    int natoms = alfatoms.size();
@@ -537,11 +589,10 @@ void multimol(double buffer, int vers, int nthreads, std::vector<int>& Nval)
 
       pthread_create(&threads[i], NULL, singlemol, (void*) &threadids[i]);
    }
+}
 
-   // for(int i = 0; i < natoms; i++) {
-   //     std::cout << " i: " << i << " atom: " << alfatoms[i].index << std::endl;
-   // }
-
+void multimolb(int nthreads)
+{
    wsurf = 0;
    wvol = 0;
    for (int i = 0; i < nthreads; i++) {

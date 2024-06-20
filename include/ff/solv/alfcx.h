@@ -2,8 +2,7 @@
 #include "ff/solv/alphamol.h"
 #include <vector>
 
-namespace tinker
-{
+namespace tinker {
 class Alfcx {
 public:
    void alfcx(std::vector<Vertex>& vertices, std::vector<Tetrahedron>& tetra,

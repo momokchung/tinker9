@@ -1,6 +1,6 @@
 // ck.py Version 3.1.0
 __global__
-void grycukN2_cu1(int n, const real* restrict x, const real* restrict y, const real* restrict z, int nakp,
+void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict y, const real* restrict z, int nakp,
    const int* restrict iakp, real descoff, real pi43, bool useneck, real* restrict rborn, const real* restrict rsolv,
    const real* restrict rdescr, const real* restrict shct, const real* restrict sneck, const real* restrict aneck,
    const real* restrict bneck, const real* restrict rneck)
@@ -53,7 +53,7 @@ void grycukN2_cu1(int n, const real* restrict x, const real* restrict y, const r
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];

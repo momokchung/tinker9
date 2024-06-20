@@ -1,4 +1,5 @@
 #include "ff/nblist.h"
+#include "ff/solv/nblistgk.h"
 #include "ff/modamoeba.h"
 #include "ff/atom.h"
 #include "ff/echarge.h"
@@ -117,7 +118,7 @@ Nbl mlistVersion()
 {
    Nbl u;
    if (not use(Potent::MPOLE) and not use(Potent::POLAR) and not use(Potent::CHGTRN) and
-      not use(Potent::REPULS) and not use(Potent::SOLV)) {
+      not use(Potent::REPULS) /* and not use(Potent::SOLV) */) {
       u = Nbl::UNDEFINED;
    } else if (!limits::use_mlist) {
 #if TINKER_GPULANG_CUDA
@@ -212,7 +213,7 @@ static bool alloc_thrust_cache;
 // always first check the value of `maxn`. If `maxn` is equal to 1, it means
 // the value of cutoff can even be `INF`.
 // \see cutoffs.f
-static int nblistMaxlst(int maxn, double cutoff, double buffer)
+int nblistMaxlst(int maxn, double cutoff, double buffer)
 {
    if (maxn > 1) {
       double buf = (cutoff + buffer);
@@ -237,7 +238,7 @@ static int nblistMaxlst(int maxn, double cutoff, double buffer)
 }
 
 // RcOp::ALLOC
-static void nblistAlloc(Nbl version, NBListUnit& nblu, int maxn, real cutoff, real buffer,
+void nblistAlloc(Nbl version, NBListUnit& nblu, int maxn, real cutoff, real buffer,
    const real* x, const real* y, const real* z)
 {
    if (version & Nbl::DOUBLE_LOOP)
@@ -273,13 +274,8 @@ static void nblistAlloc(Nbl version, NBListUnit& nblu, int maxn, real cutoff, re
 }
 
 // RcOp::ALLOC
-static void spatialAlloc( //
-   SpatialUnit& unt, int n, real cut, real buf, const real* x, const real* y, const real* z,
-   int nstype,                           //
-   int ns1 = 0, int (*js1)[2] = nullptr, //
-   int ns2 = 0, int (*js2)[2] = nullptr, //
-   int ns3 = 0, int (*js3)[2] = nullptr, //
-   int ns4 = 0, int (*js4)[2] = nullptr)
+void spatialAlloc(SpatialUnit& unt, int n, real cut, real buf, const real* x, const real* y, const real* z, 
+   int nstype, int ns1, int (*js1)[2], int ns2, int (*js2)[2], int ns3, int (*js3)[2], int ns4, int (*js4)[2])
 {
 #if TINKER_CUDART
    Spatial::dataAlloc(unt, n, cut, buf, x, y, z, nstype, //
@@ -290,19 +286,24 @@ static void spatialAlloc( //
 
 // RcOp::INIT
 TINKER_FVOID1(acc1, cu0, nblistBuild, NBListUnit);
-static void nblistBuild(NBListUnit u)
+void nblistBuild(NBListUnit u)
 {
    TINKER_FCALL1(acc1, cu0, nblistBuild, u);
 }
 
 // RcOp::INIT
-static void spatialBuild(SpatialUnit unt)
+void spatialBuild(SpatialUnit unt)
 {
    Spatial::dataInit(unt);
 }
 
 void nblistData(RcOp op)
 {
+   if (use(Potent::SOLV)) {
+      nblistgkData(op);
+      return;
+   }
+
    if (op & RcOp::DEALLOC) {
       NBListUnit::clear();
       vlist_unit.close();
@@ -484,7 +485,7 @@ void nblistData(RcOp op)
 
 namespace tinker {
 TINKER_FVOID1(acc1, cu0, nblistUpdate, NBListUnit);
-static void nblistUpdate(NBListUnit u)
+void nblistUpdate(NBListUnit u)
 {
    TINKER_FCALL1(acc1, cu0, nblistUpdate, u);
 }
@@ -506,6 +507,11 @@ void spatialUpdate(SpatialUnit unt)
 
 void nblistRefresh()
 {
+   if (use(Potent::SOLV)) {
+      nblistgkRefresh();
+      return;
+   }
+
    Nbl u = Nbl::UNDEFINED;
 
    // vlist

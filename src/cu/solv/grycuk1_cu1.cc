@@ -2,12 +2,12 @@
 template <class Ver>
 __global__
 void grycuk1_cu1(int n, TINKER_IMAGE_PARAMS, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz,
-   const real* restrict x, const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted,
-   int nakpl, const int* restrict iakpl, int niak, const int* restrict iak, const int* restrict lst, real descoff,
-   real pi43, real factor, bool useneck, bool usetanh, const real* restrict rsolv, const real* restrict rdescr,
-   const real* restrict shct, const real* restrict rborn, const real* restrict drb, const real* restrict drbp,
-   const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, const real* restrict sneck,
-   const real* restrict bornint, bool use_gk)
+   real off, const real* restrict x, const real* restrict y, const real* restrict z,
+   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
+   const int* restrict lst, real descoff, real pi43, real factor, bool useneck, bool usetanh,
+   const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct, const real* restrict rborn,
+   const real* restrict drb, const real* restrict drbp, const real* restrict aneck, const real* restrict bneck,
+   const real* restrict rneck, const real* restrict sneck, const real* restrict bornint, bool use_gk)
 {
    constexpr bool do_g = Ver::g;
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
@@ -40,7 +40,7 @@ shct[k];rbk = rborn[k];drbk = drb[k];drbpk = drbp[k];sneckk = sneck[k];bornk = b
 real yr = yk[threadIdx.x] - yi[klane];
 real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
-if (incl) {
+if (r2 <= off * off and incl) {
  real r = REAL_SQRT(r2);
  real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
@@ -145,7 +145,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
@@ -259,7 +259,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];

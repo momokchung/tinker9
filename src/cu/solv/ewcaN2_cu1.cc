@@ -2,7 +2,7 @@
 template <class Ver>
 __global__
 void ewcaN2_cu1(int n, EnergyBuffer restrict es, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz,
-   const real* restrict x, const real* restrict y, const real* restrict z, int nakp, const int* restrict iakp,
+   real off, const real* restrict x, const real* restrict y, const real* restrict z, int nakp, const int* restrict iakp,
    const real* restrict epsdsp, const real* restrict raddsp, real epso, real epsh, real rmino, real rminh, real shctd,
    real dspoff, real slevy, real awater)
 {
@@ -64,7 +64,7 @@ void ewcaN2_cu1(int n, EnergyBuffer restrict es, grad_prec* restrict gx, grad_pr
          real r2 = xr * xr + yr * yr + zr * zr;
          real e;
 
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real r3 = r2 * r;
             real epsi = epsli[klane];

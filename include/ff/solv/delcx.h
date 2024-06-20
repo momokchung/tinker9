@@ -6,8 +6,7 @@
 #include <stack>
 #include <vector>
 
-namespace tinker
-{
+namespace tinker {
 class Delcx {
 public:
    // Setup calculations

@@ -1,5 +1,5 @@
 #include "ff/evdw.h"
-#include "ff/spatial.h"
+#include "ff/solv/nblistgk.h"
 #include "ff/switch.h"
 #include "math/switch.h"
 #include "seq/add.h"
@@ -26,7 +26,7 @@ static void ehalN2_cu1()
 {
    constexpr bool do_g = Ver::g;
 
-   const auto& st = *vspatial_v2_unit;
+   const auto& st = *vdloop_unit;
    const real cut = switchCut(Switch::VDW);
    const real off = switchOff(Switch::VDW);
 
@@ -36,8 +36,8 @@ static void ehalN2_cu1()
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    ehalN2_cu1<Ver><<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, nev, ev, vir_ev, gxred, gyred, gzred, cut, off,
-      st.si1.bit0, nvexclude, vexclude, vexclude_scale, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niakp,
-      st.iakp, njvdw, vlam, vcouple, radmin, epsilon, jvdw, mut);
+      st.si1.bit0, nvexclude, vexclude, vexclude_scale, xred, yred, zred, st.nakpl, st.iakpl, st.nakpa,
+      st.iakpa, njvdw, vlam, vcouple, radmin, epsilon, jvdw, mut);
 
    if CONSTEXPR (do_g) {
       ehalResolveGradient();

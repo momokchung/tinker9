@@ -4,10 +4,10 @@ __global__
 void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad_prec* restrict gx,
    grad_prec* restrict gy, grad_prec* restrict gz, real off, const unsigned* restrict mdpuinfo, int nexclude,
    const int (*restrict exclude)[2], const real (*restrict exclude_scale)[4], const real* restrict x,
-   const real* restrict y, const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl,
-   const int* restrict iakpl, int niakp, const int* restrict iakp, real* restrict trqx, real* restrict trqy,
-   real* restrict trqz, const real (*restrict rpole)[10], const real (*restrict uind)[3],
-   const real (*restrict uinds)[3], const real (*restrict uinp)[3], const real (*restrict uinps)[3], real f)
+   const real* restrict y, const real* restrict z, int nakpl, const int* restrict iakpl, int nakpa,
+   const int* restrict iakpa, real* restrict trqx, real* restrict trqy, real* restrict trqz,
+   const real (*restrict rpole)[10], const real (*restrict uind)[3], const real (*restrict uinds)[3],
+   const real (*restrict uinp)[3], const real (*restrict uinps)[3], real f)
 {
    using d::jpolar;
    using d::njpolar;
@@ -203,14 +203,12 @@ void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
-      xi[threadIdx.x] = sorted[atomi].x;
-      yi[threadIdx.x] = sorted[atomi].y;
-      zi[threadIdx.x] = sorted[atomi].z;
+      int k = min(kid, n - 1);
+      xi[threadIdx.x] = x[i];
+      yi[threadIdx.x] = y[i];
+      zi[threadIdx.x] = z[i];
       ci[threadIdx.x] = rpole[i][MPL_PME_0];
       dix[threadIdx.x] = rpole[i][MPL_PME_X];
       diy[threadIdx.x] = rpole[i][MPL_PME_Y];
@@ -235,9 +233,9 @@ void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad
       uipsz[threadIdx.x] = uinps[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xk[threadIdx.x] = sorted[atomk].x;
-      yk[threadIdx.x] = sorted[atomk].y;
-      zk[threadIdx.x] = sorted[atomk].z;
+      xk[threadIdx.x] = x[k];
+      yk[threadIdx.x] = y[k];
+      zk[threadIdx.x] = z[k];
       dkx[threadIdx.x] = rpole[k][MPL_PME_X];
       dky[threadIdx.x] = rpole[k][MPL_PME_Y];
       dkz[threadIdx.x] = rpole[k][MPL_PME_Z];
@@ -341,7 +339,7 @@ void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad
       __syncwarp();
    }
 
-   for (int iw = iwarp; iw < niakp; iw += nwarp) {
+   for (int iw = iwarp; iw < nakpa; iw += nwarp) {
       if CONSTEXPR (do_g) {
          gxi = 0;
          gyi = 0;
@@ -358,18 +356,16 @@ void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad
       }
 
       int tri, tx, ty;
-      tri = iakp[iw];
+      tri = iakpa[iw];
       tri_to_xy(tri, tx, ty);
 
       int iid = ty * WARP_SIZE + ilane;
-      int atomi = min(iid, n - 1);
-      int i = sorted[atomi].unsorted;
+      int i = min(iid, n - 1);
       int kid = tx * WARP_SIZE + ilane;
-      int atomk = min(kid, n - 1);
-      int k = sorted[atomk].unsorted;
-      xi[threadIdx.x] = sorted[atomi].x;
-      yi[threadIdx.x] = sorted[atomi].y;
-      zi[threadIdx.x] = sorted[atomi].z;
+      int k = min(kid, n - 1);
+      xi[threadIdx.x] = x[i];
+      yi[threadIdx.x] = y[i];
+      zi[threadIdx.x] = z[i];
       ci[threadIdx.x] = rpole[i][MPL_PME_0];
       dix[threadIdx.x] = rpole[i][MPL_PME_X];
       diy[threadIdx.x] = rpole[i][MPL_PME_Y];
@@ -394,9 +390,9 @@ void ediffN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad
       uipsz[threadIdx.x] = uinps[i][2];
       pdi[threadIdx.x] = pdamp[i];
       jpi[threadIdx.x] = jpolar[i];
-      xk[threadIdx.x] = sorted[atomk].x;
-      yk[threadIdx.x] = sorted[atomk].y;
-      zk[threadIdx.x] = sorted[atomk].z;
+      xk[threadIdx.x] = x[k];
+      yk[threadIdx.x] = y[k];
+      zk[threadIdx.x] = z[k];
       dkx[threadIdx.x] = rpole[k][MPL_PME_X];
       dky[threadIdx.x] = rpole[k][MPL_PME_Y];
       dkz[threadIdx.x] = rpole[k][MPL_PME_Z];

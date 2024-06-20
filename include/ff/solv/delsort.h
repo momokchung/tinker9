@@ -1,7 +1,6 @@
 #pragma once
 
-namespace tinker
-{
+namespace tinker {
 class DelcxSort {
 public:
    inline void valsort2(int a, int b, int& ia, int& ib, int& iswap);

@@ -2,7 +2,7 @@
 template <class Ver>
 __global__
 void ewca_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, grad_prec* restrict gx, grad_prec* restrict gy,
-   grad_prec* restrict gz, const real* restrict x, const real* restrict y, const real* restrict z,
+   grad_prec* restrict gz, real off, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
    const int* restrict lst, const real* restrict epsdsp, const real* restrict raddsp, real epso, real epsh, real rmino,
    real rminh, real shctd, real dspoff, real slevy, real awater)
@@ -43,7 +43,7 @@ real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
 real e;
 
-if (incl) {
+if (r2 <= off * off and incl) {
  real r = REAL_SQRT(r2);
  real r3 = r2 * r;
  real epsi = epsli[klane];
@@ -186,7 +186,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real r2 = xr * xr + yr * yr + zr * zr;
          real e;
 
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real r3 = r2 * r;
             real epsi = epsli[klane];
@@ -329,7 +329,7 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
          real r2 = xr * xr + yr * yr + zr * zr;
          real e;
 
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real r3 = r2 * r;
             real epsi = epsli[klane];

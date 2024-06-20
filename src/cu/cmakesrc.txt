@@ -13,7 +13,6 @@ compilers.cu
 cudalib.cu
 cumod.cu
 diagprecond.cu
-dloop.cu
 echarge.cu
 echglj.cu
 egvop.cu
@@ -43,10 +42,12 @@ pme.cu
 rattle.cu
 solv/born.cu
 solv/ehalN2.cu
+solv/emplargk.cu
 solv/empoleNonEwaldN2.cu
 solv/epolarNonEwaldN2.cu
 solv/esolv.cu
 solv/fieldgk.cu
+solv/nblistgk.cu
 solv/pcgsolv.cu
 spatial.cu
 upredict.cu

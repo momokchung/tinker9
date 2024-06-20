@@ -11,6 +11,14 @@ class Spatial;
 typedef GenericUnit<Spatial, GenericUnitVersion::DISABLE_ON_DEVICE> SpatialUnit;
 
 void spatialUpdate(SpatialUnit);
+void spatialAlloc( //
+   SpatialUnit& unt, int n, real cut, real buf, const real* x, const real* y, const real* z,
+   int nstype,                           //
+   int ns1 = 0, int (*js1)[2] = nullptr, //
+   int ns2 = 0, int (*js2)[2] = nullptr, //
+   int ns3 = 0, int (*js3)[2] = nullptr, //
+   int ns4 = 0, int (*js4)[2] = nullptr);
+void spatialBuild(SpatialUnit unt);
 
 class Spatial
 {
@@ -85,7 +93,7 @@ public:
    int n;     ///< Number of atoms.
 
    int* iakp; ///< List of block pairs not subject to exclusion rules. Length #niakp.
-                ///< The pair `(x,y)` was encoded via triangular number and stored as `tri(x)+y`.
+              ///< The pair `(x,y)` was encoded via triangular number and stored as `tri(x)+y`.
    int niakp; ///< Length of #iakp.
 
    ~Spatial();

@@ -12,4 +12,5 @@ namespace tinker {
 /// \note Does not count number of interactions and aborts the program
 /// if called erroneously (bug in the code).
 void emplar(int vers);
+void emplargkN2_cu(int vers);
 }

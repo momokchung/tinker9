@@ -1,10 +1,10 @@
 // ck.py Version 3.1.0
 __global__
-void grycuk_cu1(int n, TINKER_IMAGE_PARAMS, const real* restrict x, const real* restrict y, const real* restrict z,
-   const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, real descoff, real pi43, bool useneck, real* restrict rborn, const real* restrict rsolv,
-   const real* restrict rdescr, const real* restrict shct, const real* restrict sneck, const real* restrict aneck,
-   const real* restrict bneck, const real* restrict rneck)
+void grycuk_cu1(int n, TINKER_IMAGE_PARAMS, real off, const real* restrict x, const real* restrict y,
+   const real* restrict z, const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak,
+   const int* restrict iak, const int* restrict lst, real descoff, real pi43, bool useneck, real* restrict rborn,
+   const real* restrict rsolv, const real* restrict rdescr, const real* restrict shct, const real* restrict sneck,
+   const real* restrict aneck, const real* restrict bneck, const real* restrict rneck)
 {
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
@@ -35,7 +35,7 @@ shct[i];snecki[klane] = sneck[i];xk[threadIdx.x] = x[k];yk[threadIdx.x] = y[k];z
 real yr = yk[threadIdx.x] - yi[klane];
 real zr = zk[threadIdx.x] - zi[klane];
 real r2 = xr*xr + yr*yr + zr*zr;
-if (incl) {
+if (r2 <= off * off and incl) {
  real r = REAL_SQRT(r2);
  real ri = REAL_MAX(rsi[klane],rdi[klane]) + descoff;
  real si = rdi[klane] * shcti[klane];
@@ -100,7 +100,7 @@ if (incl) {
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
@@ -164,7 +164,7 @@ if (incl) {
          real yr = yk[threadIdx.x] - yi[klane];
          real zr = zk[threadIdx.x] - zi[klane];
          real r2 = xr * xr + yr * yr + zr * zr;
-         if (incl) {
+         if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];

@@ -23,7 +23,6 @@ bonded/eurey.cpp
 box.cpp
 compilers.cpp
 cudalib.cpp
-dloop.cpp
 echarge.cpp
 echglj.cpp
 egvop.cpp
@@ -80,6 +79,7 @@ solv/delcx.cpp
 solv/esolv.cpp
 solv/fieldgk.cpp
 solv/inducegk.cpp
+solv/nblistgk.cpp
 solv/sosgmp.cpp
 spatial.cpp
 switch.cpp
