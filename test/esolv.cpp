@@ -1377,17 +1377,6 @@ TEST_CASE("ESolv-11-Chksymm", "[ff][amoeba][esolv]")
 
 TEST_CASE("ESolv-12-NVE", "[ff][amoeba][esolv]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/alatet.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/alatet-dyn.key");
-   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
-   TestFile fd1(TINKER9_DIRSTR "/test/file/esolv/alatet.dyn");
-
-   const char* xn = "alatet.xyz";
-   const char* kn = "alatet-dyn.key";
-   const char* dn = "alatet.dyn";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
    const double eps = testGetEps(0.0001, 0.0001);
 
    double ref_e = -47.854199531517587;
@@ -1436,30 +1425,86 @@ TEST_CASE("ESolv-12-NVE", "[ff][amoeba][esolv]")
      -7.041401e+00, -4.948205e+00,  1.207233e+01,
    };
 
-   testBeginWithArgs(argc, argv);
-   testMdInit(0, 0);
+   SECTION("  - alatet N2")
+   {
+      TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/alatet.xyz");
+      TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/alatet-dyn.key");
+      TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
+      TestFile fd1(TINKER9_DIRSTR "/test/file/esolv/alatet.dyn");
 
-   rc_flag = calc::xyz | calc::vel | calc::mass | calc::energy | calc::grad | calc::md;
-   initialize();
+      const char* xn = "alatet.xyz";
+      const char* kn = "alatet-dyn.key";
+      const char* dn = "alatet.dyn";
+      const char* argv[] = {"dummy", xn, "-k", kn};
+      int argc = 4;
 
-   const double dt_ps = 0.002;
-   const int nsteps = 2;
-   std::vector<double> epots;
-   int old = inform::iwrite;
-   inform::iwrite = 2;
-   RespaIntegrator respa(ThermostatEnum::NONE, BarostatEnum::NONE);
-   mdPropagate(nsteps, dt_ps);
-   inform::iwrite = old;
+      testBeginWithArgs(argc, argv);
+      testMdInit(0, 0);
 
-   COMPARE_REALS(esum, ref_e, eps);
-   for (int i = 0; i < atoms::n; i++) {
-      COMPARE_REALS(atoms::x[i], ref_xyz[3*i+0], eps);
-      COMPARE_REALS(atoms::y[i], ref_xyz[3*i+1], eps);
-      COMPARE_REALS(atoms::z[i], ref_xyz[3*i+2], eps);
+      rc_flag = calc::xyz | calc::vel | calc::mass | calc::energy | calc::grad | calc::md;
+      initialize();
+
+      const double dt_ps = 0.002;
+      const int nsteps = 2;
+      std::vector<double> epots;
+      int old = inform::iwrite;
+      inform::iwrite = 2;
+      RespaIntegrator respa(ThermostatEnum::NONE, BarostatEnum::NONE);
+      mdPropagate(nsteps, dt_ps);
+      inform::iwrite = old;
+
+      COMPARE_REALS(esum, ref_e, eps);
+      for (int i = 0; i < atoms::n; i++) {
+         COMPARE_REALS(atoms::x[i], ref_xyz[3*i+0], eps);
+         COMPARE_REALS(atoms::y[i], ref_xyz[3*i+1], eps);
+         COMPARE_REALS(atoms::z[i], ref_xyz[3*i+2], eps);
+      }
+
+      finish();
+      testEnd();
+
+      TestRemoveFileOnExit("alatet.arc");
    }
 
-   finish();
-   testEnd();
+   SECTION("  - alatet neighbor-list")
+   {
+      TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/alatet.xyz");
+      TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/alatet-dyn-neigh.key");
+      TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/amoebabio18.prm");
+      TestFile fd1(TINKER9_DIRSTR "/test/file/esolv/alatet.dyn");
 
-   TestRemoveFileOnExit("alatet.arc");
+      const char* xn = "alatet.xyz";
+      const char* kn = "alatet-dyn-neigh.key";
+      const char* dn = "alatet.dyn";
+      const char* argv[] = {"dummy", xn, "-k", kn};
+      int argc = 4;
+
+      testBeginWithArgs(argc, argv);
+      testMdInit(0, 0);
+
+      rc_flag = calc::xyz | calc::vel | calc::mass | calc::energy | calc::grad | calc::md;
+      initialize();
+
+      const double dt_ps = 0.002;
+      const int nsteps = 2;
+      std::vector<double> epots;
+      int old = inform::iwrite;
+      inform::iwrite = 2;
+      RespaIntegrator respa(ThermostatEnum::NONE, BarostatEnum::NONE);
+      mdPropagate(nsteps, dt_ps);
+      inform::iwrite = old;
+
+      COMPARE_REALS(esum, ref_e, eps);
+      for (int i = 0; i < atoms::n; i++) {
+         COMPARE_REALS(atoms::x[i], ref_xyz[3*i+0], eps);
+         COMPARE_REALS(atoms::y[i], ref_xyz[3*i+1], eps);
+         COMPARE_REALS(atoms::z[i], ref_xyz[3*i+2], eps);
+      }
+
+      finish();
+      testEnd();
+
+      TestRemoveFileOnExit("alatet.arc");
+   }
+
 }

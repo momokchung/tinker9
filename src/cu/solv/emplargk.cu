@@ -29,14 +29,14 @@ static void emplargkN2_cu(const real (*uind)[3], const real (*uinp)[3])
    int ngrid = gpuGridSize(BLOCK_DIM);
 
    auto kera = emplargkN2_cu1a<Ver>;
-   kera<<<ngrid, BLOCK_DIM, 0, g::s0>>>(em, vir_em, demx, demy, demz, off, trqx, trqy, trqz, rpole,
-      uind, uinp, f, n, x, y, z, st.nakpa, st.iakpa);
+   kera<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, x, y, z, em, vir_em, demx, demy, demz, off,
+      trqx, trqy, trqz, rpole, uind, uinp, f, st.nakpa, st.iakpa);
    auto kerb = emplargkN2_cu1b<Ver>;
-   kerb<<<ngrid, BLOCK_DIM, 0, g::s0>>>(em, vir_em, demx, demy, demz, off, trqx, trqy, trqz, rpole,
-      uind, uinp, f, n, x, y, z, st.nakpl, st.iakpl);
+   kerb<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, x, y, z, em, vir_em, demx, demy, demz, off,
+      trqx, trqy, trqz, rpole, uind, uinp, f, st.nakpl, st.iakpl);
    auto kerc = emplargkN2_cu1c<Ver>;
-   kerc<<<ngrid, BLOCK_DIM, 0, g::s0>>>(em, vir_em, demx, demy, demz, off, trqx, trqy, trqz, rpole,
-      uind, uinp, f, nmdpuexclude, mdpuexclude, mdpuexclude_scale, x, y, z);
+   kerc<<<ngrid, BLOCK_DIM, 0, g::s0>>>(nmdpuexclude, mdpuexclude, mdpuexclude_scale, x, y, z,
+      em, vir_em, demx, demy, demz, off, trqx, trqy, trqz, rpole, uind, uinp, f);
 }
 
 template <class Ver>

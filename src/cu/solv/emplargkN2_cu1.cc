@@ -1,11 +1,11 @@
 // ck.py Version 3.1.0
 template <class Ver>
 __global__
-void emplargkN2_cu1c(EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, grad_prec* restrict gx,
-   grad_prec* restrict gy, grad_prec* restrict gz, real off, real* restrict trqx, real* restrict trqy,
-   real* restrict trqz, const real (*restrict rpole)[10], const real (*restrict uind)[3],
-   const real (*restrict uinp)[3], real f, int nexclude, const int (*restrict exclude)[2],
-   const real (*restrict exclude_scale)[4], const real* restrict x, const real* restrict y, const real* restrict z)
+void emplargkN2_cu1c(int nexclude, const int (*restrict exclude)[2], const real (*restrict exclude_scale)[4],
+   const real* restrict x, const real* restrict y, const real* restrict z, EnergyBuffer restrict ebuf,
+   VirialBuffer restrict vbuf, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off,
+   real* restrict trqx, real* restrict trqy, real* restrict trqz, const real (*restrict rpole)[10],
+   const real (*restrict uind)[3], const real (*restrict uinp)[3], real f)
 {
    using d::jpolar;
    using d::njpolar;
@@ -165,11 +165,11 @@ void emplargkN2_cu1c(EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, gra
 
 template <class Ver>
 __global__
-void emplargkN2_cu1b(EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, grad_prec* restrict gx,
-   grad_prec* restrict gy, grad_prec* restrict gz, real off, real* restrict trqx, real* restrict trqy,
-   real* restrict trqz, const real (*restrict rpole)[10], const real (*restrict uind)[3],
-   const real (*restrict uinp)[3], real f, int n, const real* restrict x, const real* restrict y, const real* restrict z,
-   int nakpl, const int* restrict iakpl)
+void emplargkN2_cu1b(int n, const real* restrict x, const real* restrict y, const real* restrict z,
+   EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, grad_prec* restrict gx, grad_prec* restrict gy,
+   grad_prec* restrict gz, real off, real* restrict trqx, real* restrict trqy, real* restrict trqz,
+   const real (*restrict rpole)[10], const real (*restrict uind)[3], const real (*restrict uinp)[3], real f, int nakpl,
+   const int* restrict iakpl)
 {
    using d::jpolar;
    using d::njpolar;
@@ -348,11 +348,11 @@ void emplargkN2_cu1b(EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, gra
 
 template <class Ver>
 __global__
-void emplargkN2_cu1a(EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, grad_prec* restrict gx,
-   grad_prec* restrict gy, grad_prec* restrict gz, real off, real* restrict trqx, real* restrict trqy,
-   real* restrict trqz, const real (*restrict rpole)[10], const real (*restrict uind)[3],
-   const real (*restrict uinp)[3], real f, int n, const real* restrict x, const real* restrict y, const real* restrict z,
-   int nakpa, const int* restrict iakpa)
+void emplargkN2_cu1a(int n, const real* restrict x, const real* restrict y, const real* restrict z,
+   EnergyBuffer restrict ebuf, VirialBuffer restrict vbuf, grad_prec* restrict gx, grad_prec* restrict gy,
+   grad_prec* restrict gz, real off, real* restrict trqx, real* restrict trqy, real* restrict trqz,
+   const real (*restrict rpole)[10], const real (*restrict uind)[3], const real (*restrict uinp)[3], real f, int nakpa,
+   const int* restrict iakpa)
 {
    using d::jpolar;
    using d::njpolar;
