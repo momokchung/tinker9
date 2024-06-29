@@ -1,5 +1,6 @@
 #pragma once
 #include "ff/solv/solute.h"
+#include "seq/add.h"
 #include "seq/neck.h"
 #include "seq/seq.h"
 #include <algorithm>
@@ -122,37 +123,6 @@ inline void tanhrscchr (real ii, real rhoi, real& derival, real pi43)
    real chainrule = b0*rho3 - 2*b1*rho6psi + 3*b2*rho9psi2 ;
    real tanhconst = pi43 * ((1/rho3)-recipmaxborn3);
    derival = tanhconst * chainrule * (1-tanh2);
-}
-
-__global__
-void grycukFinal_cu1(int n, real pi43, real maxbrad, bool usetanh, const real* restrict rsolv, real* restrict rborn, real* restrict bornint)
-{
-   real third = (real)0.333333333333333333;
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real ri = rsolv[i];
-      if (ri > 0) {
-         real rborni = rborn[i];
-         if (usetanh) {
-            bornint[i] = rborni;
-            tanhrsc(rborni,ri,pi43);
-         }
-         rborni = pi43 / REAL_POW(ri,3) + rborni;
-         if (rborni < 0) {
-            rborn[i] = maxbrad;
-         } else {
-            rborni = REAL_POW((rborni/pi43),third);
-            rborni = 1 / rborni;
-            rborn[i] = rborni;
-            if (rborni < ri) {
-               rborn[i] = ri;
-            } else if (rborni > maxbrad) {
-               rborn[i] = maxbrad;
-            } else if (isinf(rborni) or isnan(rborni)) {
-               rborn[i] = ri;
-            }
-         }
-      }
-   }
 }
 
 #pragma acc routine seq

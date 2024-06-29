@@ -1,6 +1,5 @@
 #include "ff/box.h"
 #include "ff/image.h"
-#include "ff/potent.h"
 #include "ff/spatial.h"
 #include "seq/copysign.h"
 #include "seq/imagefc.h"
@@ -8,8 +7,6 @@
 #include "seq/triangle.h"
 #include "tool/error.h"
 #include "tool/thrustcache.h"
-#include <tinker/detail/limits.hh>
-#include <algorithm>
 // Eventually thrust will drop c++11 support.
 #define THRUST_IGNORE_DEPRECATED_CPP_DIALECT
 #include <thrust/sort.h>
@@ -700,7 +697,6 @@ void Spatial::RunStep5(SpatialUnit u)
       u->akpf, u->sorted, u->akc, u->half);
    darray::copyout(g::q0, 1, &u->niak, dev_niak);
    waitFor(g::q0);
-   if (use(Potent::SOLV) and !limits::use_mlist) return;
    if (u->niak > u->nak * Spatial::LSTCAP) {
       int cap = Spatial::LSTCAP;
       printError();
@@ -779,22 +775,6 @@ void spatialDataInit_cu(SpatialUnit u)
       u->nakpk, nakpl_ptr1, u->akpf, u->iakpl, u->iakpl_rev, //
       u->cap_nakpl, u->nstype,                               //
       si1.bit0, si2.bit0, si3.bit0, si4.bit0);
-
-   if (use(Potent::SOLV) and !limits::use_mlist) {
-      std::vector<int> skip_pair(u->nakpl);
-      darray::copyout(g::q0, u->nakpl, skip_pair.data(), u->iakpl);
-      waitFor(g::q0);
-      std::sort(skip_pair.begin(), skip_pair.end());
-      std::vector<int> all_pair;
-      for (int i = 0; i < u->nakp; i++) {
-         all_pair.push_back(i);
-      }
-      std::vector<int> iakp;
-      std::set_difference(all_pair.begin(), all_pair.end(), skip_pair.begin(), skip_pair.end(), std::back_inserter(iakp));
-      u->niakp = iakp.size();
-      darray::copyin(g::q0, u->niakp, u->iakp, iakp.data());
-      waitFor(g::q0);
-   }
 
    if (box_shape == BoxShape::ORTHO) {
       Spatial::RunStep5<PbcOrtho>(u);

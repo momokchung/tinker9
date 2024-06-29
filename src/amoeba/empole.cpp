@@ -79,10 +79,10 @@ static void empoleEwald(int vers)
 }
 
 namespace tinker {
-TINKER_FVOID2(acc0, cu1, empoleNonEwaldN2, int);
+TINKER_FVOID2(acc1, cu1, empoleNonEwaldN2, int);
 static void empoleNonEwaldN2(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, empoleNonEwaldN2, vers);
+   TINKER_FCALL2(acc1, cu1, empoleNonEwaldN2, vers);
 }
 static void empoleNonEwaldgk(int vers)
 {

@@ -108,7 +108,6 @@ FULL_PAIRWISE_INTERACTION: |
     zero(pgrad);
 
     real tdrbi,tdpbi,tdrbk,tdpbk;
-    real dedx,dedy,dedz;
 
     pair_egka<Ver>(
       r2, xr, yr, zr, xr2, yr2, zr2,
@@ -116,7 +115,7 @@ FULL_PAIRWISE_INTERACTION: |
       @uidx@, @uidy@, @uidz@, @uipx@, @uipy@, @uipz@, @rbi@,
       @ck@, @dkx@, @dky@, @dkz@, @qkxx@, @qkxy@, @qkxz@, @qkyy@, @qkyz@, @qkzz@,
       @ukdx@, @ukdy@, @ukdz@, @ukpx@, @ukpy@, @ukpz@, @rbk@,
-      gkc, fc, fd, fq, e, pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
+      gkc, fc, fd, fq, e, pgrad, tdrbi, tdpbi, tdrbk, tdpbk);
     if CONSTEXPR (do_e) {
       estl += floatTo<ebuf_prec>(e);
       if CONSTEXPR (do_a) {

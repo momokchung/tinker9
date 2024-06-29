@@ -122,14 +122,13 @@ void egkaN2_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, grad_
             zero(pgrad);
 
             real tdrbi, tdpbi, tdrbk, tdpbk;
-            real dedx, dedy, dedz;
 
             pair_egka<Ver>(r2, xr, yr, zr, xr2, yr2, zr2, ci[klane], dix[klane], diy[klane], diz[klane], qixx[klane],
                qixy[klane], qixz[klane], qiyy[klane], qiyz[klane], qizz[klane], uidx[klane], uidy[klane], uidz[klane],
                uipx[klane], uipy[klane], uipz[klane], rbi[klane], ck, dkx[threadIdx.x], dky[threadIdx.x],
                dkz[threadIdx.x], qkxx, qkxy, qkxz, qkyy, qkyz, qkzz, ukdx[threadIdx.x], ukdy[threadIdx.x],
                ukdz[threadIdx.x], ukpx[threadIdx.x], ukpy[threadIdx.x], ukpz[threadIdx.x], rbk, gkc, fc, fd, fq, e,
-               pgrad, dedx, dedy, dedz, tdrbi, tdpbi, tdrbk, tdpbk);
+               pgrad, tdrbi, tdpbi, tdrbk, tdpbk);
             if CONSTEXPR (do_e) {
                estl += floatTo<ebuf_prec>(e);
                if CONSTEXPR (do_a) {

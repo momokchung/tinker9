@@ -55,4 +55,8 @@ nblist.cpp
 osrw.cpp
 pme.cpp
 rattle.cpp
+solv/born.cpp
+solv/esolv.cpp
+solv/fieldgk.cpp
+solv/inducegk.cpp
 )

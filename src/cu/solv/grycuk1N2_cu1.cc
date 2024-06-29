@@ -1,5 +1,4 @@
 // ck.py Version 3.1.0
-template <class Ver>
 __global__
 void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, real off,
    const real* restrict x, const real* restrict y, const real* restrict z, int nakp, const int* restrict iakp,
@@ -8,7 +7,6 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
    const real* restrict drbp, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck,
    const real* restrict sneck, const real* restrict bornint, bool use_gk)
 {
-   constexpr bool do_g = Ver::g;
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
    const int nwarp = blockDim.x * gridDim.x / WARP_SIZE;
@@ -22,14 +20,12 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
    real gxk, gyk, gzk;
 
    for (int iw = iwarp; iw < nakp; iw += nwarp) {
-      if CONSTEXPR (do_g) {
-         gxi = 0;
-         gyi = 0;
-         gzi = 0;
-         gxk = 0;
-         gyk = 0;
-         gzk = 0;
-      }
+      gxi = 0;
+      gyi = 0;
+      gzi = 0;
+      gxk = 0;
+      gyk = 0;
+      gzk = 0;
 
       int tri, tx, ty;
       tri = iakp[iw];
@@ -109,32 +105,26 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
             real dedx = de * xr;
             real dedy = de * yr;
             real dedz = de * zr;
-            if CONSTEXPR (do_g) {
-               gxi += dedx;
-               gyi += dedy;
-               gzi += dedz;
-               gxk -= dedx;
-               gyk -= dedy;
-               gzk -= dedz;
-            }
+            gxi += dedx;
+            gyi += dedy;
+            gzi += dedz;
+            gxk -= dedx;
+            gyk -= dedy;
+            gzk -= dedz;
          }
 
          iid = __shfl_sync(ALL_LANES, iid, ilane + 1);
-         if CONSTEXPR (do_g) {
-            gxi = __shfl_sync(ALL_LANES, gxi, ilane + 1);
-            gyi = __shfl_sync(ALL_LANES, gyi, ilane + 1);
-            gzi = __shfl_sync(ALL_LANES, gzi, ilane + 1);
-         }
+         gxi = __shfl_sync(ALL_LANES, gxi, ilane + 1);
+         gyi = __shfl_sync(ALL_LANES, gyi, ilane + 1);
+         gzi = __shfl_sync(ALL_LANES, gzi, ilane + 1);
       }
 
-      if CONSTEXPR (do_g) {
-         atomic_add(gxi, gx, i);
-         atomic_add(gyi, gy, i);
-         atomic_add(gzi, gz, i);
-         atomic_add(gxk, gx, k);
-         atomic_add(gyk, gy, k);
-         atomic_add(gzk, gz, k);
-      }
+      atomic_add(gxi, gx, i);
+      atomic_add(gyi, gy, i);
+      atomic_add(gzi, gz, i);
+      atomic_add(gxk, gx, k);
+      atomic_add(gyk, gy, k);
+      atomic_add(gzk, gz, k);
       __syncwarp();
    }
 }

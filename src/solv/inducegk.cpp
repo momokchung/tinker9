@@ -3,10 +3,10 @@
 #include "ff/amoeba/induce.h"
 
 namespace tinker {
-TINKER_FVOID2(acc0, cu1, induceMutualPcg3, real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
+TINKER_FVOID2(acc1, cu1, induceMutualPcg3, real (*)[3], real (*)[3], real (*)[3], real (*)[3]);
 static void induceMutualPcg3(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3])
 {
-   TINKER_FCALL2(acc0, cu1, induceMutualPcg3, uind, uinp, uinds, uinps);
+   TINKER_FCALL2(acc1, cu1, induceMutualPcg3, uind, uinp, uinds, uinps);
 }
 
 TINKER_FVOID2(acc0, cu1, induceMutualPcg5, real (*)[3], real (*)[3]);

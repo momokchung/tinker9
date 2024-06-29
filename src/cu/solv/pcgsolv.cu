@@ -25,7 +25,7 @@ static void pcg_Print_cu1(int n, real (*array)[3])
 }
 
 __global__
-static void dfieldgkFinal_cu1(int n, const real (*restrict field)[3], const real (*restrict fieldp)[3], real (*restrict fields)[3], real (*restrict fieldps)[3])
+static void dfieldgkSum_cu1(int n, const real (*restrict field)[3], const real (*restrict fieldp)[3], real (*restrict fields)[3], real (*restrict fieldps)[3])
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
       fields[i][0] += field[i][0];
@@ -61,12 +61,12 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    auto* vecps = work20_;
 
    const bool sparse_prec = polpcg::pcgprec and (switchOff(Switch::USOLVE) > 0);
-   bool dirguess = polpcg::pcgguess;
-   bool predict = polpred != UPred::NONE;
-   if (predict and nualt < maxualt) {
-      predict = false;
-      dirguess = true;
-   }
+   // bool dirguess = polpcg::pcgguess;
+   // bool predict = polpred != UPred::NONE;
+   // if (predict and nualt < maxualt) {
+   //    predict = false;
+   //    dirguess = true;
+   // }
 
    // get the electrostatic field due to permanent multipoles
    dfieldsolv(field, fieldp);
@@ -76,7 +76,7 @@ void induceMutualPcg3_cu(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], rea
    real fq = 3 * (1-dwater) / (2+3*dwater);
    darray::zero(g::q0, n, fields, fieldps);
    dfieldgk(gkc, fc, fd, fq, fields, fieldps);
-   launch_k1s(g::s0, n, dfieldgkFinal_cu1, n, field, fieldp, fields, fieldps);
+   launch_k1s(g::s0, n, dfieldgkSum_cu1, n, field, fieldp, fields, fieldps);
 
    // direct induced dipoles
    launch_k1s(g::s0, n, pcgUdirV2, n, polarity, udir, udirp, field, fieldp);
@@ -287,20 +287,21 @@ void induceMutualPcg5_cu(real (*uinds)[3], real (*uinps)[3])
    auto* vecps = work10_;
 
    const bool sparse_prec = polpcg::pcgprec and (switchOff(Switch::USOLVE) > 0);
-   bool dirguess = polpcg::pcgguess;
-   bool predict = polpred != UPred::NONE;
-   if (predict and nualt < maxualt) {
-      predict = false;
-      dirguess = true;
-   }
+   // bool dirguess = polpcg::pcgguess;
+   // bool predict = polpred != UPred::NONE;
+   // if (predict and nualt < maxualt) {
+   //    predict = false;
+   //    dirguess = true;
+   // }
 
    // get the electrostatic field due to permanent multipoles
    dfieldsolv(fields, fieldps);
    launch_k1s(g::s0, n, pcgUdirV2, n, polarity, udir, udirp, fields, fieldps);
    real dwater = 78.3;
-   real fc = 1.0 * (1.0-dwater) / (1.0*dwater);
-   real fd = 2.0 * (1.0-dwater) / (1.0+2.0*dwater);
-   real fq = 3.0 * (1.0-dwater) / (2.0+3.0*dwater);
+   real fc = 1 * (1-dwater) / (1*dwater);
+   real fd = 2 * (1-dwater) / (1+2*dwater);
+   real fq = 3 * (1-dwater) / (2+3*dwater);
+
    dfieldgk(gkc, fc, fd, fq, fields, fieldps);
 
    // direct induced dipoles

@@ -238,40 +238,40 @@ void egk(int vers)
    }
 }
 
-TINKER_FVOID2(acc0, cu1, ewca, int);
+TINKER_FVOID2(acc1, cu1, ewca, int);
 void ewca(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, ewca, vers);
+   TINKER_FCALL2(acc1, cu1, ewca, vers);
 }
 
-TINKER_FVOID2(acc0, cu1, egka, int);
+TINKER_FVOID2(acc1, cu1, egka, int);
 void egka(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, egka, vers);
+   TINKER_FCALL2(acc1, cu1, egka, vers);
 }
 
-TINKER_FVOID2(acc0, cu1, born1, int);
+TINKER_FVOID2(acc1, cu1, born1, int);
 void born1(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, born1, vers);
+   TINKER_FCALL2(acc1, cu1, born1, vers);
 }
 
-TINKER_FVOID2(acc0, cu1, ediff, int);
+TINKER_FVOID2(acc1, cu1, ediff, int);
 void ediff(int vers)
 {
-   TINKER_FCALL2(acc0, cu1, ediff, vers);
+   TINKER_FCALL2(acc1, cu1, ediff, vers);
 }
 
-TINKER_FVOID2(acc0, cu1, addToEnrgy);
+TINKER_FVOID2(acc1, cu1, addToEnrgy);
 void addToEnrgy()
 {
-   TINKER_FCALL2(acc0, cu1, addToEnrgy);
+   TINKER_FCALL2(acc1, cu1, addToEnrgy);
 }
 
-TINKER_FVOID2(acc0, cu1, addToGrad);
+TINKER_FVOID2(acc1, cu1, addToGrad);
 void addToGrad()
 {
-   TINKER_FCALL2(acc0, cu1, addToGrad);
+   TINKER_FCALL2(acc1, cu1, addToGrad);
 }
 
 void tswitch(double cut, double off, double& c0, double& c1, double& c2, double& c3, double& c4, double& c5)

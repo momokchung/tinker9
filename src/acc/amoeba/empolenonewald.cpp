@@ -209,4 +209,9 @@ void empoleNonEwald_acc(int vers)
    else if (vers == calc::v6)
       empoleNonEwald_acc1<calc::V6>();
 }
+
+void empoleNonEwaldN2_acc(int vers)
+{
+   empoleNonEwald_acc(vers);
+}
 }

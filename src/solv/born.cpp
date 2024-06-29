@@ -76,14 +76,14 @@ void eborn(int vers)
 
    darray::zero(g::q0, n, rborn, bornint);
 
-   born(vers);
+   born();
 }
 }
 
 namespace tinker {
-TINKER_FVOID2(acc0, cu1, born, int);
-void born(int vers)
+TINKER_FVOID2(acc1, cu1, born);
+void born()
 {
-   TINKER_FCALL2(acc0, cu1, born, vers);
+   TINKER_FCALL2(acc1, cu1, born);
 }
 }

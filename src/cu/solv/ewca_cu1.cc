@@ -4,8 +4,8 @@ __global__
 void ewca_cu1(int n, TINKER_IMAGE_PARAMS, EnergyBuffer restrict es, grad_prec* restrict gx, grad_prec* restrict gy,
    grad_prec* restrict gz, real off, const real* restrict x, const real* restrict y, const real* restrict z,
    const Spatial::SortedAtom* restrict sorted, int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,
-   const int* restrict lst, const real* restrict epsdsp, const real* restrict raddsp, real epso, real epsh, real rmino,
-   real rminh, real shctd, real dspoff, real slevy, real awater)
+   const int* restrict lst, const real* restrict epsdsp, const real* restrict raddsp, real epso, real epsosqrt,
+   real epsh, real epshsqrt, real rmino2, real rmino3, real rminh2, real rminh3, real shctd, real dspoff, real slwater)
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_g = Ver::g;
@@ -48,23 +48,17 @@ if (r2 <= off * off and incl) {
  real r3 = r2 * r;
  real epsi = epsli[klane];
  real rmin = rmini[klane];
- real epsosqrt = REAL_SQRT(epso);
  real epsisqrt = REAL_SQRT(epsi);
  real term1 = epsosqrt + epsisqrt;
  real term12 = term1*term1;
- real rmino2 = rmino*rmino;
- real rmino3 = rmino2*rmino;
  real rmin2 = rmin*rmin;
  real rmin3 = rmin2*rmin;
  real emixo = 4 * epso * epsi / term12;
  real rmixo = 2 * (rmino3+rmin3) / (rmino2+rmin2);
  real rmixo7 = REAL_POW(rmixo,7);
  real aoi = emixo * rmixo7;
- real epshsqrt = REAL_SQRT(epsh);
  real term2 = epshsqrt + epsisqrt;
  real term22 = term2*term2;
- real rminh2 = rminh*rminh;
- real rminh3 = rminh2*rminh;
  real emixh = 4 * epsh * epsi / term22;
  real rmixh = 2 * (rminh3+rmin3) / (rminh2+rmin2);
  real rmixh7 = REAL_POW(rmixh,7);
@@ -116,7 +110,6 @@ if (r2 <= off * off and incl) {
    si, si2, ahk, emkxh, sum2, de22, false);
  e += sum1 + sum2;
 
- real slwater = slevy * awater;
  e *= -slwater;
 
  if CONSTEXPR (do_e)
@@ -191,23 +184,17 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real r3 = r2 * r;
             real epsi = epsli[klane];
             real rmin = rmini[klane];
-            real epsosqrt = REAL_SQRT(epso);
             real epsisqrt = REAL_SQRT(epsi);
             real term1 = epsosqrt + epsisqrt;
             real term12 = term1 * term1;
-            real rmino2 = rmino * rmino;
-            real rmino3 = rmino2 * rmino;
             real rmin2 = rmin * rmin;
             real rmin3 = rmin2 * rmin;
             real emixo = 4 * epso * epsi / term12;
             real rmixo = 2 * (rmino3 + rmin3) / (rmino2 + rmin2);
             real rmixo7 = REAL_POW(rmixo, 7);
             real aoi = emixo * rmixo7;
-            real epshsqrt = REAL_SQRT(epsh);
             real term2 = epshsqrt + epsisqrt;
             real term22 = term2 * term2;
-            real rminh2 = rminh * rminh;
-            real rminh3 = rminh2 * rminh;
             real emixh = 4 * epsh * epsi / term22;
             real rmixh = 2 * (rminh3 + rmin3) / (rminh2 + rmin2);
             real rmixh7 = REAL_POW(rmixh, 7);
@@ -251,7 +238,6 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             pair_ewca<Ver>(r, r2, r3, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, de22, false);
             e += sum1 + sum2;
 
-            real slwater = slevy * awater;
             e *= -slwater;
 
             if CONSTEXPR (do_e)
@@ -334,23 +320,17 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             real r3 = r2 * r;
             real epsi = epsli[klane];
             real rmin = rmini[klane];
-            real epsosqrt = REAL_SQRT(epso);
             real epsisqrt = REAL_SQRT(epsi);
             real term1 = epsosqrt + epsisqrt;
             real term12 = term1 * term1;
-            real rmino2 = rmino * rmino;
-            real rmino3 = rmino2 * rmino;
             real rmin2 = rmin * rmin;
             real rmin3 = rmin2 * rmin;
             real emixo = 4 * epso * epsi / term12;
             real rmixo = 2 * (rmino3 + rmin3) / (rmino2 + rmin2);
             real rmixo7 = REAL_POW(rmixo, 7);
             real aoi = emixo * rmixo7;
-            real epshsqrt = REAL_SQRT(epsh);
             real term2 = epshsqrt + epsisqrt;
             real term22 = term2 * term2;
-            real rminh2 = rminh * rminh;
-            real rminh3 = rminh2 * rminh;
             real emixh = 4 * epsh * epsi / term22;
             real rmixh = 2 * (rminh3 + rmin3) / (rminh2 + rmin2);
             real rmixh7 = REAL_POW(rmixh, 7);
@@ -394,7 +374,6 @@ k);atomic_add(gyk, gy, k);atomic_add(gzk, gz, k);}
             pair_ewca<Ver>(r, r2, r3, rkh, rmkxh, rmkxh7, si, si2, ahk, emkxh, sum2, de22, false);
             e += sum1 + sum2;
 
-            real slwater = slevy * awater;
             e *= -slwater;
 
             if CONSTEXPR (do_e)

@@ -1,10 +1,12 @@
 #pragma once
+#include "math/realn.h"
 #include "seq/add.h"
+#include "seq/damp.h"
 
 namespace tinker {
 #pragma acc routine seq
 SEQ_CUDA
-void pair_dfieldgk(real r2, real xr, real yr, real zr,
+inline void pair_dfieldgk(real r2, real xr, real yr, real zr,
    real gkc, real fc, real fd, real fq,
    real ci, real dix, real diy, real diz, real qixx, real qixy, real qixz,
    real qiyy, real qiyz, real qizz, real rbi,
@@ -193,7 +195,7 @@ void pair_dfieldgk(real r2, real xr, real yr, real zr,
 
 #pragma acc routine seq
 SEQ_CUDA
-void pair_ufieldgk1(real r2, real xr, real yr, real zr, real uscale,
+inline void pair_ufieldgk1(real r2, real xr, real yr, real zr, real uscale,
    real uindsi0, real uindsi1, real uindsi2, real uinpsi0, real uinpsi1, real uinpsi2,
    real pdi,
    real pti, //
@@ -254,7 +256,7 @@ void pair_ufieldgk1(real r2, real xr, real yr, real zr, real uscale,
 
 #pragma acc routine seq
 SEQ_CUDA
-void pair_ufieldgk2(real r2, real xr, real yr, real zr,
+inline void pair_ufieldgk2(real r2, real xr, real yr, real zr,
    real gkc, real fd,
    real uidsx, real uidsy, real uidsz, real uipsx, real uipsy, real uipsz,
    real rbi, //

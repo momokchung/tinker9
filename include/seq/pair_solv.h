@@ -1,5 +1,6 @@
 #pragma once
 #include "ff/solv/solute.h"
+#include "seq/add.h"
 #include "seq/damp.h"
 #include "seq/seq.h"
 #include <algorithm>
@@ -8,7 +9,7 @@
 namespace tinker {
 #pragma acc routine seq
 template <class Ver>
-SEQ_ROUTINE
+SEQ_CUDA
 inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo7, real sk, real sk2, real aoi, real emixo, real& sum, real& de, bool ifo)
 {
    constexpr bool do_g = Ver::g;
@@ -109,24 +110,6 @@ inline void pair_ewca(real r, real r2, real r3, real rio, real rmixo, real rmixo
    sum *= scale;
    de *= scale;
 }
-
-template <class Ver>
-__global__
-static void ewcaFinal_cu1(int n, const real* restrict cdsp, CountBuffer restrict nes, EnergyBuffer restrict es)
-{
-   constexpr bool do_e = Ver::e;
-   constexpr bool do_a = Ver::a;
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      if CONSTEXPR (do_e) {
-         real cdspi = cdsp[i];
-         using ebuf_prec = EnergyBufferTraits::type;
-         ebuf_prec estl;
-         estl = floatTo<ebuf_prec>(cdspi);
-         atomic_add(estl, es, i);
-      }
-      if CONSTEXPR (do_a) atomic_add(2, nes, i);
-   }
-}
 }
 
 namespace tinker {
@@ -137,7 +120,7 @@ struct PairSolvGrad
    real ttqk[3];
 };
 
-SEQ_ROUTINE
+SEQ_CUDA
 inline void zero(PairSolvGrad& pgrad)
 {
    pgrad.frcx = 0;
@@ -153,16 +136,17 @@ inline void zero(PairSolvGrad& pgrad)
 
 #pragma acc routine seq
 template <class Ver>
-SEQ_ROUTINE
-inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, real zr2,
-                     real ci, real dix, real diy, real diz, real qixx, real qixy, real qixz,
-                     real qiyy, real qiyz, real qizz, real uidx, real uidy, real uidz, 
-                     real uipx, real uipy, real uipz, real rbi,
-                     real ck, real dkx, real dky, real dkz, real qkxx, real qkxy, real qkxz,
-                     real qkyy, real qkyz, real qkzz, real ukdx, real ukdy, real ukdz, 
-                     real ukpx, real ukpy, real ukpz, real rbk,
-                     real gkc, real fc, real fd, real fq,
-                     real& e, PairSolvGrad& pgrad, real& dedx, real& dedy, real& dedz, real& drbi, real& dpbi, real& drbk, real& dpbk)
+SEQ_CUDA
+inline void pair_egka(
+   real r2, real xr, real yr, real zr, real xr2, real yr2, real zr2,
+   real ci, real dix, real diy, real diz, real qixx, real qixy, real qixz,
+   real qiyy, real qiyz, real qizz, real uidx, real uidy, real uidz, 
+   real uipx, real uipy, real uipz, real rbi,
+   real ck, real dkx, real dky, real dkz, real qkxx, real qkxy, real qkxz,
+   real qkyy, real qkyz, real qkzz, real ukdx, real ukdy, real ukdz, 
+   real ukpx, real ukpy, real ukpz, real rbk,
+   real gkc, real fc, real fd, real fq,
+   real& e, PairSolvGrad& pgrad, real& drbi, real& dpbi, real& drbk, real& dpbk)
 {
    constexpr bool do_g = Ver::g;
 
@@ -776,7 +760,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
                 + qiyz * (qkxx * gqxx[14] + qkyy * gqyy[14] + qkzz * gqzz[14]
                  + 2 * (qkxy * gqxy[14] + qkxz * gqxz[14] + qkyz * gqyz[14])));
 
-      dedx = desymdx + 0.5f*(dewidx+dewkdx);
+      real dedx = desymdx + 0.5f*(dewidx+dewkdx);
 
       real desymdy = ci * ck * gc[2]
                -(dix * (dkx * gux[5] + dky * guy[5] + dkz * guz[5])
@@ -845,7 +829,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
                 + qiyz * (qkxx * gqxx[17] + qkyy * gqyy[17] + qkzz * gqzz[17]
                  + 2 * (qkxy * gqxy[17] + qkxz * gqxz[17] + qkyz * gqyz[17])));
 
-      dedy = desymdy + 0.5f*(dewidy+dewkdy);
+      real dedy = desymdy + 0.5f*(dewidy+dewkdy);
 
       real desymdz = ci * ck * gc[3]
                   -(dix * (dkx * gux[6] + dky * guy[6] + dkz * guz[6])
@@ -914,7 +898,7 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
                 + qiyz * (qkxx * gqxx[18] + qkyy * gqyy[18] + qkzz * gqzz[18]
                  + 2 * (qkxy * gqxy[18] + qkxz * gqxz[18] + qkyz * gqyz[18])));
                  
-      dedz = desymdz + 0.5f*(dewidz+dewkdz);
+      real dedz = desymdz + 0.5f*(dewidz+dewkdz);
 
       real desymdr = ci * ck * gc[20]
                    -(dix * (dkx * gux[21] + dky * guy[21] + dkz * guz[21])
@@ -1395,136 +1379,103 @@ inline void pair_egka(real r2, real xr, real yr, real zr, real xr2, real yr2, re
    }
 }
 
+#pragma acc routine seq
 template <class Ver>
-__global__
-static void egkaFinal_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict es, real* restrict drb, real* restrict drbp, real* restrict trqx, real* restrict trqy, real* restrict trqz,
-   const real* restrict rborn, const real (*restrict rpole)[10], const real (*restrict uinds)[3], const real (*restrict uinps)[3], real gkc, real fc, real fd, real fq)
+SEQ_CUDA
+inline void self_egka(
+   real ci, real dix, real diy, real diz, real qixx, real qixy, real qixz,
+   real qiyy, real qiyz, real qizz, real uidx, real uidy, real uidz,
+   real uipx, real uipy, real uipz, real rbi, real gkc, real fc, real fd, real fq,
+   real& e, real& txi, real& tyi, real& tzi, real& drbi, real& dpbi)
 {
-   constexpr bool do_e = Ver::e;
-   constexpr bool do_a = Ver::a;
    constexpr bool do_g = Ver::g;
 
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real ci = rpole[i][MPL_PME_0];
-      real dix = rpole[i][MPL_PME_X];
-      real diy = rpole[i][MPL_PME_Y];
-      real diz = rpole[i][MPL_PME_Z];
-      real qixx = rpole[i][MPL_PME_XX];
-      real qixy = rpole[i][MPL_PME_XY];
-      real qixz = rpole[i][MPL_PME_XZ];
-      real qiyy = rpole[i][MPL_PME_YY];
-      real qiyz = rpole[i][MPL_PME_YZ];
-      real qizz = rpole[i][MPL_PME_ZZ];
-      real uidx = uinds[i][0];
-      real uidy = uinds[i][1];
-      real uidz = uinds[i][2];
-      real rbi = rborn[i];
+   real rb2 = rbi * rbi;
+   real expc = 1 / gkc;
+   real gf2 = 1 / rb2;
+   real gf = REAL_SQRT(gf2);
+   real gf3 = gf2 * gf;
+   real gf5 = gf3 * gf2;
 
-      real rb2 = rbi * rbi;
-      real expc = 1 / gkc;
-      real gf2 = 1 / rb2;
-      real gf = REAL_SQRT(gf2);
-      real gf3 = gf2 * gf;
-      real gf5 = gf3 * gf2;
+   real expc1 = 1 - expc;
+   real a00 = fc * gf;
+   real a01 = -fc * expc1 * gf3;
+   real a10 = -fd * gf3;
+   real a20 = 3 * fq * gf5;
 
-      real expc1 = 1 - expc;
-      real a00 = fc * gf;
-      real a01 = -fc * expc1 * gf3;
-      real a10 = -fd * gf3;
-      real a20 = 3 * fq * gf5;
+   real gc1 = a00;
+   real gux2 = a10;
+   real guy3 = a10;
+   real guz4 = a10;
+   real gc5 = a01;
+   real gc8 = a01;
+   real gc10 = a01;
+   real gqxx5 = 2 * a20;
+   real gqyy8 = 2 * a20;
+   real gqzz10 = 2 * a20;
+   real gqxy6 = a20;
+   real gqxz7 = a20;
+   real gqyz9 = a20;
 
-      real gc1 = a00;
-      real gux2 = a10;
-      real guy3 = a10;
-      real guz4 = a10;
-      real gc5 = a01;
-      real gc8 = a01;
-      real gc10 = a01;
-      real gqxx5 = 2 * a20;
-      real gqyy8 = 2 * a20;
-      real gqzz10 = 2 * a20;
-      real gqxy6 = a20;
-      real gqxz7 = a20;
-      real gqyz9 = a20;
+   real esym = ci * ci * gc1 - dix * dix * gux2 - diy * diy * guy3 - diz * diz * guz4;
+   real ewi = ci * (qixx * gc5 + qiyy * gc8 + qizz * gc10)
+      + qixx * qixx * gqxx5 + qiyy * qiyy * gqyy8 + qizz * qizz * gqzz10
+      + 4 * (qixy * qixy * gqxy6 + qixz * qixz * gqxz7 + qiyz * qiyz * gqyz9);
+   e = esym + ewi;
 
-      real esym = ci * ci * gc1 - dix * dix * gux2 - diy * diy * guy3 - diz * diz * guz4;
-      real ewi = ci * (qixx * gc5 + qiyy * gc8 + qizz * gc10)
-         + qixx * qixx * gqxx5 + qiyy * qiyy * gqyy8 + qizz * qizz * gqzz10
-         + 4 * (qixy * qixy * gqxy6 + qixz * qixz * gqxz7 + qiyz * qiyz * gqyz9);
-      real e = esym + ewi;
+   real ei = -dix * uidx * gux2 - diy * uidy * guy3 - diz * uidz * guz4;
 
-      real ei = -dix * uidx * gux2 - diy * uidy * guy3 - diz * uidz * guz4;
+   e += ei;
+   e *= 0.5f;
 
-      e += ei;
-      e *= 0.5f;
+   if CONSTEXPR (do_g) {
+      real uix = uidx + uipx;
+      real uiy = uidy + uipy;
+      real uiz = uidz + uipz;
 
-      if CONSTEXPR (do_e) {
-         using ebuf_prec = EnergyBufferTraits::type;
-         ebuf_prec estl;
-         estl = floatTo<ebuf_prec>(e);
-         atomic_add(estl, es, i);
-      }
+      real gf7 = gf5 * gf2;
+      real dgfdr =  0.5f;
+      real b00 = -fc * dgfdr * gf3;
+      real b10 = 3 * dgfdr * gf5;
+      real b20 = -15 * fq *dgfdr * gf7;
+      real b01 = b10 - expc*b10;
+      b01 = fc * b01;
+      b10 = fd * b10;
 
-      if CONSTEXPR (do_a) atomic_add(1, nes, i);
+      real gc21 = b00;
+      real gc25 = b01;
+      real gc28 = b01;
+      real gc30 = b01;
+      real gux22 = b10;
+      real guy23 = b10;
+      real guz24 = b10;
+      real gqxx25 = 2*b20;
+      real gqxy26 = b20;
+      real gqxz27 = b20;
+      real gqyy28 = 2*b20;
+      real gqyz29 = b20;
+      real gqzz30 = 2*b20;
 
-      if CONSTEXPR (do_g) {
-         real uipx = uinps[i][0];
-         real uipy = uinps[i][1];
-         real uipz = uinps[i][2];
-         real uix = uidx + uipx;
-         real uiy = uidy + uipy;
-         real uiz = uidz + uipz;
+      real desymdr = ci*ci*gc21 - (dix*dix*gux22 + diy*diy*guy23 + diz*diz*guz24);
+      real dewidr = ci*(qixx*gc25 + qiyy*gc28 + qizz*gc30)
+                  + qixx*qixx*gqxx25 + qiyy*qiyy*gqyy28 + qizz*qizz*gqzz30
+                  + 4*(qixy*qixy*gqxy26 + qixz*qixz*gqxz27 + qiyz*qiyz*gqyz29);
+      real dsumdr = desymdr + dewidr;
+      drbi = rbi*dsumdr;
 
-         real gf7 = gf5 * gf2;
-         real dgfdr =  0.5f;
-         real b00 = -fc * dgfdr * gf3;
-         real b10 = 3 * dgfdr * gf5;
-         real b20 = -15 * fq *dgfdr * gf7;
-         real b01 = b10 - expc*b10;
-         b01 = fc * b01;
-         b10 = fd * b10;
+      real dsymdr = -dix*uix*gux22 - diy*uiy*guy23 - diz*uiz*guz24;
+      dpbi = rbi*dsymdr;
 
-         real gc21 = b00;
-         real gc25 = b01;
-         real gc28 = b01;
-         real gc30 = b01;
-         real gux22 = b10;
-         real guy23 = b10;
-         real guz24 = b10;
-         real gqxx25 = 2*b20;
-         real gqxy26 = b20;
-         real gqxz27 = b20;
-         real gqyy28 = 2*b20;
-         real gqyz29 = b20;
-         real gqzz30 = 2*b20;
+      real duvdr = uidx*uipx*gux22 + uidy*uipy*guy23 + uidz*uipz*guz24;
+      dpbi -= rbi*duvdr;
 
-         real desymdr = ci*ci*gc21 - (dix*dix*gux22 + diy*diy*guy23 + diz*diz*guz24);
-         real dewidr = ci*(qixx*gc25 + qiyy*gc28 + qizz*gc30)
-                     + qixx*qixx*gqxx25 + qiyy*qiyy*gqyy28 + qizz*qizz*gqzz30
-                     + 4*(qixy*qixy*gqxy26 + qixz*qixz*gqxz27 + qiyz*qiyz*gqyz29);
-         real dsumdr = desymdr + dewidr;
-         real drbi = rbi*dsumdr;
-
-         real dsymdr = -dix*uix*gux22 - diy*uiy*guy23 - diz*uiz*guz24;
-         real dpbi = rbi*dsymdr;
-
-         real duvdr = uidx*uipx*gux22 + uidy*uipy*guy23 + uidz*uipz*guz24;
-         dpbi -= rbi*duvdr;
-
-         real fid[3];
-         fid[0] = 0.5f * (uix * gux2);
-         fid[1] = 0.5f * (uiy * guy3);
-         fid[2] = 0.5f * (uiz * guz4);
-         real txi = diy * fid[2] - diz * fid[1];
-         real tyi = diz * fid[0] - dix * fid[2];
-         real tzi = dix * fid[1] - diy * fid[0];
-
-         atomic_add(txi, trqx, i);
-         atomic_add(tyi, trqy, i);
-         atomic_add(tzi, trqz, i);
-         atomic_add(drbi, drb, i);
-         atomic_add(dpbi, drbp, i);
-      }
+      real fid[3];
+      fid[0] = 0.5f * (uix * gux2);
+      fid[1] = 0.5f * (uiy * guy3);
+      fid[2] = 0.5f * (uiz * guz4);
+      txi = diy * fid[2] - diz * fid[1];
+      tyi = diz * fid[0] - dix * fid[2];
+      tzi = dix * fid[1] - diy * fid[0];
    }
 }
 }
@@ -1532,7 +1483,7 @@ static void egkaFinal_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict
 namespace tinker {
 #pragma acc routine seq
 template <class Ver>
-SEQ_ROUTINE
+SEQ_CUDA
 inline void pair_ediff(
    real r2, real xr, real yr, real zr, real dscale, real pscale, real uscale,
    real ci, real dix, real diy, real diz,
@@ -2018,22 +1969,6 @@ inline void pair_ediff(
       pgrad.ttqk[0] -= f * ttm3i[0];
       pgrad.ttqk[1] -= f * ttm3i[1];
       pgrad.ttqk[2] -= f * ttm3i[2];
-   }
-}
-
-__global__
-static void addToEnrgy_cu1(EnergyBuffer restrict es, const real cave)
-{
-   atomic_add(cave, es, ITHREAD);
-}
-
-__global__
-static void addToGrad_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const real* restrict gxi, const real* restrict gyi, const real* restrict gzi)
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      atomic_add(gxi[i], gx, i);
-      atomic_add(gyi[i], gy, i);
-      atomic_add(gzi[i], gz, i);
    }
 }
 }

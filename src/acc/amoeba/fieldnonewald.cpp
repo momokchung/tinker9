@@ -359,4 +359,15 @@ void ufieldNonEwald_acc(const real (*uind)[3], const real (*uinp)[3],
       }
    }
 }
+
+void dfieldNonEwaldN2_acc(real (*field)[3], real (*fieldp)[3])
+{
+   dfieldNonEwald_acc(field, fieldp);
+}
+
+void ufieldNonEwaldN2_acc(const real (*uind)[3], const real (*uinp)[3],
+   real (*field)[3], real (*fieldp)[3])
+{
+   ufieldNonEwald_acc(uind, uinp, field, fieldp);
+}
 }

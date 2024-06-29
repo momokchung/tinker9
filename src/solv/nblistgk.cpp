@@ -102,6 +102,7 @@ void nblistgkData(RcOp op)
    alloc_thrust_cache = false;
 #endif
    NblGK u = NblGK::UNDEFINED;
+   Nbl unb = Nbl::UNDEFINED;
    double cut = 0;
    double buf = 0;
    bool option1,option2,option3;
@@ -111,9 +112,12 @@ void nblistgkData(RcOp op)
    cut = switchOff(Switch::VDW);
    buf = neigh::lbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = ((pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP)) or
-             ((pltfm_config == Platform::ACC ) and (u == NblGK::DOUBLE_LOOP));
+   option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
+   option3 = (pltfm_config == Platform::ACC);
+   if (option3) {
+      if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
+      else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
+   }
    if (option1) {
       auto& un2 = vspatial_v2_unit;
       if (op & RcOp::ALLOC) {
@@ -124,8 +128,6 @@ void nblistgkData(RcOp op)
          spatialBuild(un2);
       }
    } else if (option2) {
-
-   } else if (option3) {
       auto& un2 = vdloop_unit;
       if (op & RcOp::ALLOC) {
          DLoop::dataAlloc(un2, n, 1, nvexclude, vexclude);
@@ -134,6 +136,15 @@ void nblistgkData(RcOp op)
          ehalReduceXyz();
          DLoop::dataInit(un2);
       }
+   } else if (option3) {
+      auto& unt = vlist_unit;
+      if (op & RcOp::ALLOC) {
+         nblistAlloc(unb, unt, 2500, cut, buf, xred, yred, zred);
+      }
+      if (op & RcOp::INIT) {
+         ehalReduceXyz();
+         nblistBuild(unt);
+      }
    }
 
    // mlist
@@ -141,9 +152,12 @@ void nblistgkData(RcOp op)
    cut = useEwald() ? switchOff(Switch::EWALD) : switchOff(Switch::MPOLE);
    buf = neigh::lbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = ((pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP)) or
-             ((pltfm_config == Platform::ACC ) and (u == NblGK::DOUBLE_LOOP));
+   option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
+   option3 = (pltfm_config == Platform::ACC);
+   if (option3) {
+      if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
+      else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
+   }
    if (option1) {
       auto& un2 = mspatial_v2_unit;
       if (op & RcOp::ALLOC) {
@@ -162,8 +176,6 @@ void nblistgkData(RcOp op)
          spatialBuild(un2);
       }
    } else if (option2) {
-
-   } else if (option3) {
       auto& un2 = mdloop_unit;
       if (op & RcOp::ALLOC) {
          if (mplpot::use_chgpen and not polpot::use_tholed) { // HIPPO
@@ -179,6 +191,14 @@ void nblistgkData(RcOp op)
       if (op & RcOp::INIT) {
          DLoop::dataInit(un2);
       }
+   } else if (option3) {
+      auto& unt = mlist_unit;
+      if (op & RcOp::ALLOC) {
+         nblistAlloc(unb, unt, 2500, cut, buf, x, y, z);
+      }
+      if (op & RcOp::INIT) {
+         nblistBuild(unt);
+      }
    }
 
    // ulist
@@ -186,9 +206,12 @@ void nblistgkData(RcOp op)
    cut = switchOff(Switch::USOLVE);
    buf = neigh::pbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = ((pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP)) or
-             ((pltfm_config == Platform::ACC ) and (u == NblGK::DOUBLE_LOOP));
+   option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
+   option3 = (pltfm_config == Platform::ACC);
+   if (option3) {
+      if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
+      else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
+   }
    if (option1) {
       auto& un2 = uspatial_v2_unit;
       if (op & RcOp::ALLOC) {
@@ -202,8 +225,6 @@ void nblistgkData(RcOp op)
          spatialBuild(un2);
       }
    } else if (option2) {
-
-   } else if (option3) {
       auto& un2 = udloop_unit;
       if (op & RcOp::ALLOC) {
          if (mplpot::use_chgpen and not polpot::use_tholed) { // HIPPO
@@ -214,6 +235,15 @@ void nblistgkData(RcOp op)
       }
       if (op & RcOp::INIT) {
          DLoop::dataInit(un2);
+      }
+   } else if (option3) {
+      auto& unt = ulist_unit;
+      if (op & RcOp::ALLOC) {
+         const int maxnlst = 500;
+         nblistAlloc(unb, unt, maxnlst, cut, buf, x, y, z);
+      }
+      if (op & RcOp::INIT) {
+         nblistBuild(unt);
       }
    }
 
@@ -226,27 +256,29 @@ void nblistgkData(RcOp op)
 void nblistgkRefresh()
 {
    NblGK u = NblGK::UNDEFINED;
+   Nbl unb = Nbl::UNDEFINED;
    bool option1,option2,option3;
    // vlist
    u = vlistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = ((pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP)) or
-             ((pltfm_config == Platform::ACC ) and (u == NblGK::DOUBLE_LOOP));
+   option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
+   option3 = (pltfm_config == Platform::ACC);
    if (option1) {
       auto& un2 = vspatial_v2_unit;
       ehalReduceXyz();
       spatialUpdate(un2);
    } else if (option2) {
-
-   } else if (option3) {
       ehalReduceXyz();
+   } else if (option3) {
+      auto& unt = vlist_unit;
+      ehalReduceXyz();
+      nblistUpdate(unt);
    }
 
    // mlist
    u = mlistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
+   option3 = (pltfm_config == Platform::ACC);
    if (option1) {
       auto& un2 = mspatial_v2_unit;
       if (rc_flag & calc::traj) {
@@ -255,14 +287,21 @@ void nblistgkRefresh()
          un2->z = z;
       }
       spatialUpdate(un2);
-   } else if (option2) {
-
+   } else if (option3) {
+      auto& unt = mlist_unit;
+      if (rc_flag & calc::traj) {
+         unt->x = x;
+         unt->y = y;
+         unt->z = z;
+         unt.deviceptrUpdate(*unt, g::q0);
+      }
+      nblistUpdate(unt);
    }
 
    // ulist
    u = ulistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option2 = (pltfm_config == Platform::ACC ) and (u == NblGK::NEIGHBOR_LIST);
+   option3 = (pltfm_config == Platform::ACC);
    if (option1) {
       auto& un2 = uspatial_v2_unit;
       if (rc_flag & calc::traj) {
@@ -271,8 +310,15 @@ void nblistgkRefresh()
          un2->z = z;
       }
       spatialUpdate(un2);
-   } else if (option2) {
-
+   } else if (option3) {
+      auto& unt = ulist_unit;
+      if (rc_flag & calc::traj) {
+         unt->x = x;
+         unt->y = y;
+         unt->z = z;
+         unt.deviceptrUpdate(*unt, g::q0);
+      }
+      nblistUpdate(unt);
    }
 }
 }

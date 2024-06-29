@@ -263,4 +263,9 @@ void ehal_acc(int vers)
    else if (vers == calc::v6)
       ehal_acc1<calc::V6>();
 }
+
+void ehalN2_acc(int vers)
+{
+   ehal_acc(vers);
+}
 }

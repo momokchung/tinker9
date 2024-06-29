@@ -37,7 +37,7 @@ void ebornData(RcOp);
 void esolvData(RcOp);
 /// \ingroup solv
 void eborn(int vers);
-void born(int vers);
+void born();
 void born1(int vers);
 void esolv(int vers);
 void esolvInit(int vers);

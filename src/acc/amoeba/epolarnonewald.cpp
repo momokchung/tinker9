@@ -388,4 +388,9 @@ void epolarNonEwald_acc(int vers, const real (*uind)[3], const real (*uinp)[3])
       epolarNonEwald_acc1<calc::V6>(uind, uinp);
    }
 }
+
+void epolarNonEwaldN2_acc(int vers, const real (*uind)[3], const real (*uinp)[3])
+{
+   epolarNonEwald_acc(vers, uind, uinp);
+}
 }

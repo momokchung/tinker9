@@ -552,7 +552,7 @@ static void epolarNonEwald(int vers)
       TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
 }
 
-TINKER_FVOID2(acc0, cu1, epolarNonEwaldN2, int, const real (*)[3],
+TINKER_FVOID2(acc1, cu1, epolarNonEwaldN2, int, const real (*)[3],
    const real (*)[3]);
 static void epolarNonEwaldgk(int vers)
 {
@@ -573,10 +573,10 @@ static void epolarNonEwaldgk(int vers)
 
    if (vers != calc::v0) {
       if (vers == calc::v3) { // if analyze
-         if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uind, uinp);
+         if (!limits::use_mlist) TINKER_FCALL2(acc1, cu1, epolarNonEwaldN2, ver2, uind, uinp);
          else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uind, uinp);
       } else {
-         if (!limits::use_mlist) TINKER_FCALL2(acc0, cu1, epolarNonEwaldN2, ver2, uinds, uinps);
+         if (!limits::use_mlist) TINKER_FCALL2(acc1, cu1, epolarNonEwaldN2, ver2, uinds, uinps);
          else TINKER_FCALL2(acc1, cu1, epolarNonEwald, ver2, uinds, uinps);
       }
    }
