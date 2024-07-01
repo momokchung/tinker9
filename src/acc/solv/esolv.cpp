@@ -502,7 +502,7 @@ static void ediff_acc1()
 
    #pragma acc parallel async\
                deviceptr(EDIFF_DPTRS,mdpuexclude,mdpuexclude_scale)
-   #pragma acc loop independent
+   #pragma acc loop independent private(pgrad)
    for (int ii = 0; ii < nmdpuexclude; ++ii) {
       int offset = ii & (bufsize - 1);
 

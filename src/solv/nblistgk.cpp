@@ -113,7 +113,7 @@ void nblistgkData(RcOp op)
    buf = neigh::lbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
    option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option3) {
       if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
       else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
@@ -153,7 +153,7 @@ void nblistgkData(RcOp op)
    buf = neigh::lbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
    option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option3) {
       if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
       else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
@@ -207,7 +207,7 @@ void nblistgkData(RcOp op)
    buf = neigh::pbuffer;
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
    option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option3) {
       if (u == NblGK::NEIGHBOR_LIST) unb = Nbl::VERLET;
       else if (u == NblGK::DOUBLE_LOOP) unb = Nbl::DOUBLE_LOOP;
@@ -262,7 +262,7 @@ void nblistgkRefresh()
    u = vlistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
    option2 = (pltfm_config == Platform::CUDA) and (u == NblGK::DOUBLE_LOOP);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option1) {
       auto& un2 = vspatial_v2_unit;
       ehalReduceXyz();
@@ -278,7 +278,7 @@ void nblistgkRefresh()
    // mlist
    u = mlistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option1) {
       auto& un2 = mspatial_v2_unit;
       if (rc_flag & calc::traj) {
@@ -301,7 +301,7 @@ void nblistgkRefresh()
    // ulist
    u = ulistVersiongk();
    option1 = (pltfm_config == Platform::CUDA) and (u == NblGK::NEIGHBOR_LIST);
-   option3 = (pltfm_config == Platform::ACC);
+   option3 = (pltfm_config == Platform::ACC) and (u != NblGK::UNDEFINED);
    if (option1) {
       auto& un2 = uspatial_v2_unit;
       if (rc_flag & calc::traj) {
