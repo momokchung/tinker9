@@ -130,14 +130,13 @@ void esolvData(RcOp op)
       alfdebug = false;
       alfdigit = 8;
       alfnthd = 8;
-      delcxeps = 1e-2;
+      delcxeps = 1;
       alfcxeps = 1e-5;
       for (int i = 0; i < n; ++i) {
          coefS[i] = solute::asolv[i];
          coefV[i] = 1.0;
-         double exclude = 1.4;
          if (!alfh and atomid::atomic[i] == 1) radii[i] = 0;
-         else radii[i] = nonpol::radcav[i] + exclude;
+         else radii[i] = nonpol::radcav[i];
       }
 
       if (alfmeth == AlfMethod::AlphaMol2) initHilbert(3);

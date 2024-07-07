@@ -147,6 +147,7 @@ add_library (tinkerObjF OBJECT
 ../source/rxnpot.f
 ../source/scales.f
 ../source/sequen.f
+../source/shapes.f
 ../source/shunt.f
 ../source/sizes.f
 ../source/socket.f
@@ -195,6 +196,7 @@ add_library (tinkerObjF OBJECT
 ../source/center.f
 ../source/chkpole.f
 ../source/chkring.f
+../source/chksymm.f
 ../source/chkxyz.f
 ../source/cholesky.f
 ../source/clock.f
@@ -424,6 +426,7 @@ add_library (tinkerObjF OBJECT
 ../source/kstrtor.f
 ../source/ktors.f
 ../source/ktortor.f
+../source/kundrot.f
 ../source/kurey.f
 ../source/kvdw.f
 ../source/lattice.f
@@ -490,6 +493,7 @@ add_library (tinkerObjF OBJECT
 ../source/readgau.f
 ../source/readgdma.f
 ../source/readint.f
+../source/readmbis.f
 ../source/readmol.f
 ../source/readmol2.f
 ../source/readpdb.f
@@ -499,6 +503,7 @@ add_library (tinkerObjF OBJECT
 ../source/replica.f
 ../source/respa.f
 ../source/rgdstep.f
+../source/richmond.f
 ../source/rings.f
 ../source/rmsfit.f
 ../source/rotlist.f
@@ -524,6 +529,7 @@ add_library (tinkerObjF OBJECT
 ../source/torque.f
 ../source/torsions.f
 ../source/trimtext.f
+../source/unionball.f
 ../source/unitcell.f
 ../source/verlet.f
 ../source/version.f
