@@ -5,7 +5,7 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
    real descoff, real pi43, real factor, bool useneck, bool usetanh, const real* restrict rsolv,
    const real* restrict rdescr, const real* restrict shct, const real* restrict rborn, const real* restrict drb,
    const real* restrict drbp, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck,
-   const real* restrict sneck, const real* restrict bornint, bool use_gk)
+   const real* restrict sneck, const real* restrict bornint, bool use_gk, const int* restrict mut, real elam)
 {
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
@@ -14,8 +14,10 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
 
    __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM],
       rbi[BLOCK_DIM], drbi[BLOCK_DIM], drbpi[BLOCK_DIM], snecki[BLOCK_DIM], borni[BLOCK_DIM];
+   __shared__ int imut[BLOCK_DIM];
    __shared__ real xk[BLOCK_DIM], yk[BLOCK_DIM], zk[BLOCK_DIM];
    real rsk, rdk, shctk, rbk, drbk, drbpk, sneckk, bornk;
+   int kmut;
    real gxi, gyi, gzi;
    real gxk, gyk, gzk;
 
@@ -46,6 +48,7 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
       drbpi[threadIdx.x] = drbp[i];
       snecki[threadIdx.x] = sneck[i];
       borni[threadIdx.x] = bornint[i];
+      imut[threadIdx.x] = mut[i];
       xk[threadIdx.x] = x[k];
       yk[threadIdx.x] = y[k];
       zk[threadIdx.x] = z[k];
@@ -57,6 +60,7 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
       drbpk = drbp[k];
       sneckk = sneck[k];
       bornk = bornint[k];
+      kmut = mut[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -69,6 +73,8 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
          real r2 = xr * xr + yr * yr + zr * zr;
          if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
+            real elambdai = (kmut ? elam : 1);
+            real elambdak = (imut[klane] ? elam : 1);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
             real rbir = rbi[klane];
@@ -94,12 +100,12 @@ void grycuk1N2_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_p
             real dei = 0;
             real dek = 0;
             if (computei) {
-               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi[klane], drbpi[klane], termi, use_gk, useneck, aneck,
-                  bneck, rneck, dei);
+               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, elambdai, pi43, drbi[klane], drbpi[klane], termi, use_gk,
+                  useneck, aneck, bneck, rneck, dei);
             }
             if (computek) {
-               pair_dgrycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck,
-                  rneck, dek);
+               pair_dgrycuk(r, r2, rk, rdi[klane], si, mixsn, elambdak, pi43, drbk, drbpk, termk, use_gk, useneck,
+                  aneck, bneck, rneck, dek);
             }
             real de = dei + dek;
             real dedx = de * xr;

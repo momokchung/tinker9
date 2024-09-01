@@ -1,3 +1,5 @@
+#include "ff/elec.h"
+#include "ff/evdw.h"
 #include "ff/solv/nblistgk.h"
 #include "ff/solv/solute.h"
 #include "ff/spatial.h"
@@ -56,11 +58,11 @@ static void grycuk_cu2()
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
       grycuk_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-         descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
+         descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck, mut, elam);
    } else {
       const auto& st = *mdloop_unit;
       grycukN2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, off, x, y, z, st.nakp, st.iakp,
-         descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck);
+         descoff, pi43, useneck, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck, mut, elam);
    }
 
    real maxbrad = 30;
@@ -97,11 +99,11 @@ static void born1_cu2()
    if (limits::use_mlist) {
       const auto& st = *mspatial_v2_unit;
       grycuk1_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(st.n, TINKER_IMAGE_ARGS, desx, desy, desz, off, st.x, st.y, st.z, st.sorted, st.nakpl, st.iakpl, st.niak, st.iak, st.lst,
-         descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
+         descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk, mut, elam);
    } else {
       const auto& st = *mdloop_unit;
       grycuk1N2_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(n, desx, desy, desz, off, x, y, z, st.nakp, st.iakp,
-         descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk);
+         descoff, pi43, factor, useneck, usetanh, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, use_gk, mut, elam);
    }
 }
 

@@ -13,16 +13,16 @@
 #include <tinker/detail/units.hh>
 
 namespace tinker {
-__global__
-static void pcg_Print_cu1(int n, real (*array)[3])
-{
-   for (int i = ITHREAD; i < n; i += STRIDE) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-   }
-}
+// __global__
+// static void pcg_Print_cu1(int n, real (*array)[3])
+// {
+//    for (int i = ITHREAD; i < n; i += STRIDE) {
+//       real arrayi0 = array[i][0];
+//       real arrayi1 = array[i][1];
+//       real arrayi2 = array[i][2];
+//       printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
+//    }
+// }
 
 __global__
 static void dfieldgkSum_cu1(int n, const real (*restrict field)[3], const real (*restrict fieldp)[3], real (*restrict fields)[3], real (*restrict fieldps)[3])
@@ -301,7 +301,6 @@ void induceMutualPcg5_cu(real (*uinds)[3], real (*uinps)[3])
    real fc = 1 * (1-dwater) / (1*dwater);
    real fd = 2 * (1-dwater) / (1+2*dwater);
    real fq = 3 * (1-dwater) / (2+3*dwater);
-
    dfieldgk(gkc, fc, fd, fq, fields, fieldps);
 
    // direct induced dipoles

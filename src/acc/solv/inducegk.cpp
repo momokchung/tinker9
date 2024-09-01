@@ -33,18 +33,6 @@ static void dfieldgkSum_acc1(int n, const real (*field)[3], const real (*fieldp)
    }
 }
 
-void inducegk_print(int n, real (*array)[3])
-{
-   #pragma acc parallel loop independent async\
-            deviceptr(array)
-   for (int i = 0; i < n; i++) {
-      real arrayi0 = array[i][0];
-      real arrayi1 = array[i][1];
-      real arrayi2 = array[i][2];
-      printf("d %d %15.6e %15.6e %15.6e \n", i, arrayi0, arrayi1, arrayi2);
-   }
-}
-
 void induceMutualPcg3_acc(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], real (*uinps)[3])
 {
    auto* field = work01_;
@@ -362,6 +350,267 @@ void induceMutualPcg3_acc(real (*uind)[3], real (*uinp)[3], real (*uinds)[3], re
       printError();
       TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged");
    }
-   // inducegk_print(n, uinds);
+}
+
+void induceMutualPcg5_acc(real (*uinds)[3], real (*uinps)[3])
+{
+   auto* fields = work01_;
+   auto* fieldps = work02_;
+   auto* rsds = work03_;
+   auto* rsdps = work04_;
+   auto* zrsds = work05_;
+   auto* zrsdps = work06_;
+   auto* conjs = work07_;
+   auto* conjps = work08_;
+   auto* vecs = work09_;
+   auto* vecps = work10_;
+
+   const bool sparse_prec = polpcg::pcgprec and (switchOff(Switch::USOLVE) > 0);
+   // bool dirguess = polpcg::pcgguess;
+   // bool predict = polpred != UPred::NONE;
+   // if (predict and nualt < maxualt) {
+   //    predict = false;
+   //    dirguess = true;
+   // }
+
+   // get the electrostatic field due to permanent multipoles
+   dfieldsolv(fields, fieldps);
+   #pragma acc parallel loop independent async\
+               deviceptr(polarity,udir,udirp,fields,fieldps)
+   for (int i = 0; i < n; ++i) {
+      real poli = polarity[i];
+      #pragma acc loop seq
+      for (int j = 0; j < 3; ++j) {
+         udir[i][j] = poli * fields[i][j];
+         udirp[i][j] = poli * fieldps[i][j];
+      }
+   }
+   real dwater = 78.3;
+   real fc = 1 * (1-dwater) / (1*dwater);
+   real fd = 2 * (1-dwater) / (1+2*dwater);
+   real fq = 3 * (1-dwater) / (2+3*dwater);
+   dfieldgk(gkc, fc, fd, fq, fields, fieldps);
+
+   // direct induced dipoles
+   #pragma acc parallel loop independent async\
+               deviceptr(polarity,udirs,udirps,fields,fieldps)
+   for (int i = 0; i < n; ++i) {
+      real poli = polarity[i];
+      #pragma acc loop seq
+      for (int j = 0; j < 3; ++j) {
+         udirs[i][j] = poli * fields[i][j];
+         udirps[i][j] = poli * fieldps[i][j];
+      }
+   }
+
+   // // initial induced dipole TODO_Moses
+   // if (predict) {
+   //    ulspredSum(uind, uinp);
+   // } else if (dirguess) {
+   //    darray::copy(g::q0, n, uind, udir);
+   //    darray::copy(g::q0, n, uinp, udirp);
+   //    darray::copy(g::q0, n, uinds, udirs);
+   //    darray::copy(g::q0, n, uinps, udirps);
+   // } else {
+   //    darray::zero(g::q0, n, uind, uinp, uinds, uinps);
+   // }
+   darray::copy(g::q0, n, uinds, udirs);  // Temporary
+   darray::copy(g::q0, n, uinps, udirps); // Temporary
+
+   // initial residual r(0) TODO_Moses
+   //
+   // if use pcgguess, r(0) = E - (inv_alpha + Tu) alpha E
+   //                       = E - E -Tu udir
+   //                       = -Tu udir
+   //
+   // in general, r(0) = E - (inv_alpha + Tu) u(0)
+   //                  = -Tu u(0) + E - inv_alpha u(0)
+   //                  = -Tu u(0) + inv_alpha (udir - u(0))
+   //
+   // if do not use pcgguess, r(0) = E - T Zero = E
+   // if (predict) {
+   //    ufield(uind, uinp, field, fieldp);
+   //    launch_k1s(g::s0, n, pcgRsd0V2, n, polarity_inv, rsd, rsdp, udir, udirp, uind, uinp, field, fieldp);
+   // } else if (dirguess) {
+   //    ufieldsolv(uind, uinp, rsd, rsdp);
+   //    ufieldgk(gkc, fd, uinds, uinps, rsds, rsdps);
+   // } else {
+   //    darray::copy(g::q0, n, rsd, field);
+   //    darray::copy(g::q0, n, rsdp, fieldp);
+   //    darray::copy(g::q0, n, rsd, fields);
+   //    darray::copy(g::q0, n, rsdp, fieldps);
+   // }
+   ufieldgk(gkc, fd, uinds, uinps, rsds, rsdps); // Temporary
+   #pragma acc parallel loop independent async deviceptr(polarity,rsds,rsdps)
+   for (int i = 0; i < n; ++i) {
+      if (polarity[i] == 0) {
+         rsds[i][0] = 0;
+         rsds[i][1] = 0;
+         rsds[i][2] = 0;
+         rsdps[i][0] = 0;
+         rsdps[i][1] = 0;
+         rsdps[i][2] = 0;
+      }
+   }
+
+   // // initial M r(0) and p(0) TODO_Moses
+   // if (sparse_prec) {
+   //    sparsePrecondBuild();
+   //    sparsePrecondApply(rsd, rsdp, zrsd, zrsdp);
+   // } else {
+   //    diagPrecond(rsd, rsdp, zrsd, zrsdp);
+   // }
+   diagPrecond(rsds, rsdps, zrsds, zrsdps); // Temporary
+   darray::copy(g::q0, n, conjs, zrsds);
+   darray::copy(g::q0, n, conjps, zrsdps);
+
+   // initial r(0) M r(0)
+   real sums,sumps;
+   sums = darray::dotThenReturn(g::q0, n, rsds, zrsds);
+   sumps = darray::dotThenReturn(g::q0, n, rsdps, zrsdps);
+
+   // conjugate gradient iteration of the mutual induced dipoles
+   const bool debug = inform::debug;
+   const int politer = polpot::politer;
+   const real poleps = polpot::poleps;
+   const real debye = units::debye;
+   const real pcgpeek = polpcg::pcgpeek;
+   const int maxiter = 100; // see also subroutine induce0a in induce.f
+   const int miniter = std::min(3, n);
+
+   bool done = false;
+   int iter = 0;
+   real eps = 100;
+   // real epsold;
+
+   while (not done) {
+      ++iter;
+
+      // T p and p
+      // vec = (inv_alpha + Tu) conj, field = -Tu conj
+      // vec = inv_alpha * conj - field
+      ufieldgk(gkc, fd, conjs, conjps, fields, fieldps);
+      #pragma acc parallel loop independent async\
+                  deviceptr(polarity_inv,vecs,vecps,conjs,conjps,fields,fieldps)
+      for (int i = 0; i < n; ++i) {
+         real poli_inv = polarity_inv[i];
+         #pragma acc loop seq
+         for (int j = 0; j < 3; ++j) {
+            vecs[i][j] = poli_inv * conjs[i][j] - fields[i][j];
+            vecps[i][j] = poli_inv * conjps[i][j] - fieldps[i][j];
+         }
+      }
+
+      // a <- p T p
+      real as,aps;
+      as = darray::dotThenReturn(g::q0, n, conjs, vecs);
+      aps = darray::dotThenReturn(g::q0, n, conjps, vecps);
+      // a <- r M r / p T p
+      if (as != 0) as = sums / as;
+      if (aps != 0) aps = sumps / aps;
+
+      // u <- u + a p
+      // r <- r - a T p
+      #pragma acc parallel loop independent async\
+                  deviceptr(polarity,uinds,uinps,conjs,conjps,rsds,rsdps,vecs,vecps)
+      for (int i = 0; i < n; ++i) {
+         #pragma acc loop seq
+         for (int j = 0; j < 3; ++j) {
+            uinds[i][j] += as * conjs[i][j];
+            uinps[i][j] += aps * conjps[i][j];
+            rsds[i][j] -= as * vecs[i][j];
+            rsdps[i][j] -= aps * vecps[i][j];
+         }
+         if (polarity[i] == 0) {
+            rsds[i][0] = 0;
+            rsds[i][1] = 0;
+            rsds[i][2] = 0;
+            rsdps[i][0] = 0;
+            rsdps[i][1] = 0;
+            rsdps[i][2] = 0;
+         }
+      }
+
+      // // calculate/update M r TODO_Moses
+      // if (sparse_prec)
+      //    sparsePrecondApply(rsd, rsdp, zrsd, zrsdp);
+      // else
+      //    diagPrecond(rsd, rsdp, zrsd, zrsdp);
+      diagPrecond(rsds, rsdps, zrsds, zrsdps); // Temporary
+
+      real bs,bps;
+      real sum1s,sump1s;
+      sum1s = darray::dotThenReturn(g::q0, n, rsds, zrsds);
+      sump1s = darray::dotThenReturn(g::q0, n, rsdps, zrsdps);
+      bs = 0;
+      bps = 0;
+      if (sums != 0) bs = sum1s / sums;
+      if (sumps != 0) bps = sump1s / sumps;
+
+      // calculate/update p
+      #pragma acc parallel loop independent async\
+                  deviceptr(conjs,conjps,zrsds,zrsdps)
+      for (int i = 0; i < n; ++i) {
+         #pragma acc loop seq
+         for (int j = 0; j < 3; ++j) {
+            conjs[i][j] = zrsds[i][j] + bs * conjs[i][j];
+            conjps[i][j] = zrsdps[i][j] + bps * conjps[i][j];
+         }
+      }
+
+      sums = sum1s;
+      sumps = sump1s;
+
+      real epsds;
+      real epsps;
+      epsds = darray::dotThenReturn(g::q0, n, rsds, rsds);
+      epsps = darray::dotThenReturn(g::q0, n, rsdps, rsdps);
+
+      // epsold = eps;
+      eps = REAL_MAX(epsds, epsps);
+      eps = debye * REAL_SQRT(eps / n);
+
+      if (debug) {
+         if (iter == 1) {
+            print(stdout,
+               "\n Determination of SCF Induced Dipole Moments\n\n"
+               "    Iter    RMS Residual (Debye)\n\n");
+         }
+         print(stdout, " %8d       %-16.10f\n", iter, eps);
+      }
+
+      if (eps < poleps) done = true;
+      // if (eps > epsold) done = true;
+      if (iter < miniter) done = false;
+      if (iter >= politer) done = true;
+
+      // apply a "peek" iteration to the mutual induced dipoles
+      if (done) {
+         #pragma acc parallel loop independent async\
+                     deviceptr(polarity,uinds,uinps,rsds,rsdps)
+         for (int i = 0; i < n; ++i) {
+            real term = pcgpeek * polarity[i];
+            #pragma acc loop seq
+            for (int j = 0; j < 3; ++j) {
+               uinds[i][j] += term * rsds[i][j];
+               uinps[i][j] += term * rsdps[i][j];
+            }
+         }
+      }
+   }
+
+   // print the results from the conjugate gradient iteration
+   if (debug) {
+      print(stdout,
+         " Induced Dipoles :    Iterations %4d      RMS "
+         "Residual %14.10f\n",
+         iter, eps);
+   }
+
+   // terminate the calculation if dipoles failed to converge
+   if (iter >= maxiter) {
+      printError();
+      TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged");
+   }
 }
 }

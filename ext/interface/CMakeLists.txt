@@ -5,6 +5,7 @@ project (TinkerInterface LANGUAGES NONE)
 enable_language (Fortran)
 add_library (tinkerObjF OBJECT
 ../source/action.f
+../source/alfmol.f
 ../source/align.f
 ../source/analyz.f
 ../source/angang.f

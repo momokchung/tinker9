@@ -5,7 +5,7 @@
  EngCnt  Van der Waals                          2465.9263            67145
  EngCnt  Atomic Multipoles                     -5243.3689            66908
  EngCnt  Polarization                          -1086.0865            66908
- EngCnt  Implicit Solvation                    -2524.3543           152691                 
+ EngCnt  Implicit Solvation                    -2524.3543           152691
 
  Cartesian Gradient Breakdown over Individual Atoms :
 

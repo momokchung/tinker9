@@ -9,7 +9,7 @@
 namespace tinker {
 #pragma acc routine seq
 SEQ_ROUTINE
-inline void pair_grycuk(real r, real r2, real ri, real rdk, real sk, real mixsn, real pi43, bool useneck, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, real& pairrborni)
+inline void pair_grycuk(real r, real r2, real ri, real rdk, real sk, real mixsn, real elambda, real pi43, bool useneck, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, real& pairrborni)
 {
    if (ri < r+sk) {
       real sk2 = sk * sk;
@@ -44,14 +44,14 @@ inline void pair_grycuk(real r, real r2, real ri, real rdk, real sk, real mixsn,
    }
    if (useneck) {
       real neckval = 0;
-      neck(r,ri,rdk,mixsn,pi43,neckval,aneck,bneck,rneck);
+      neck(r,ri,rdk,mixsn*elambda,pi43,neckval,aneck,bneck,rneck);
       pairrborni -= neckval;
    }
 }
 
 #pragma acc routine seq
 SEQ_ROUTINE
-inline void pair_dgrycuk(real r, real r2, real ri, real rdk, real sk, real mixsn, real pi43, real drbi, real drbpi, real term, bool use_gk, bool useneck, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, real& de)
+inline void pair_dgrycuk(real r, real r2, real ri, real rdk, real sk, real mixsn, real elambda, real pi43, real drbi, real drbpi, real term, bool use_gk, bool useneck, const real* restrict aneck, const real* restrict bneck, const real* restrict rneck, real& de)
 {
    if (ri < r+sk) {
       real sk2 = sk * sk;
@@ -76,7 +76,7 @@ inline void pair_dgrycuk(real r, real r2, real ri, real rdk, real sk, real mixsn
       de = de - (real)0.25*pi*(sk2+4*sk*r+r2) / (r2*REAL_POW(uik,4));
       if (useneck) {
          real neckderi;
-         neckder(r,ri,rdk,mixsn,pi43,neckderi,aneck,bneck,rneck);
+         neckder(r,ri,rdk,mixsn*elambda,pi43,neckderi,aneck,bneck,rneck);
          de += neckderi;
       }
       real dbr = term * de/r;

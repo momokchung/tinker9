@@ -1076,7 +1076,60 @@ TEST_CASE("ESolv-8-Implicit", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-9-Jacobi", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-9-FreeEnergy", "[ff][amoeba][esolv]")
+{
+   TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/cb8_g9.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/cb8_g9.key");
+   TestFile fp1(TINKER9_DIRSTR "/test/file/esolv/cb8_g9.prm");
+
+   const char* xn = "cb8_g9.xyz";
+   const char* kn = "cb8_g9.key";
+   const char* argv[] = {"dummy", xn, "-k", kn};
+   int argc = 4;
+
+   const double eps_e = testGetEps(0.0001, 0.0001);
+   const double eps_g = testGetEps(0.001, 0.001);
+
+   TestReference r(TINKER9_DIRSTR "/test/ref/esolv/esolv.9.txt");
+   auto ref_e = r.getEnergy();
+   auto ref_g = r.getGradient();
+
+   rc_flag = calc::xyz | calc::vmask;
+   testBeginWithArgs(argc, argv);
+   initialize();
+
+   energy(calc::v0);
+   COMPARE_REALS(esum, ref_e, eps_e);
+
+   energy(calc::v3);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   double eng;
+   int cnt;
+   r.getEnergyCountByName("Van der Waals", eng, cnt);
+   COMPARE_COUNT(nev, cnt);
+   COMPARE_ENERGY(ev, eng, eps_e);
+   r.getEnergyCountByName("Atomic Multipoles", eng, cnt);
+   COMPARE_COUNT(nem, cnt);
+   COMPARE_ENERGY(em, eng, eps_e);
+   r.getEnergyCountByName("Polarization", eng, cnt);
+   COMPARE_COUNT(nep, cnt);
+   COMPARE_ENERGY(ep, eng, eps_e);
+   r.getEnergyCountByName("Implicit Solvation", eng, cnt);
+   COMPARE_COUNT(nes, cnt);
+   COMPARE_ENERGY(es, eng, eps_e);
+
+   energy(calc::v4);
+   COMPARE_REALS(esum, ref_e, eps_e);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   energy(calc::v5);
+   COMPARE_GRADIENT(ref_g, eps_g);
+
+   finish();
+   testEnd();
+}
+
+TEST_CASE("ESolv-10-Jacobi", "[ff][amoeba][esolv]")
 {
    double tensor[9] = {
       4.2891378039728206e+03,
@@ -1115,7 +1168,7 @@ TEST_CASE("ESolv-9-Jacobi", "[ff][amoeba][esolv]")
    }
 }
 
-TEST_CASE("ESolv-10-Inertia", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-11-Inertia", "[ff][amoeba][esolv]")
 {
    TestFile fx1(TINKER9_DIRSTR "/test/file/esolv/alatet.xyz");
    TestFile fk1(TINKER9_DIRSTR "/test/file/esolv/alatet.key");
@@ -1197,7 +1250,7 @@ TEST_CASE("ESolv-10-Inertia", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-11-Chksymm", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-12-Chksymm", "[ff][amoeba][esolv]")
 {
    rc_flag = calc::xyz | calc::mass | calc::vmask;
    int n;
@@ -1375,7 +1428,7 @@ TEST_CASE("ESolv-11-Chksymm", "[ff][amoeba][esolv]")
    testEnd();
 }
 
-TEST_CASE("ESolv-12-NVE", "[ff][amoeba][esolv]")
+TEST_CASE("ESolv-13-NVE", "[ff][amoeba][esolv]")
 {
    const double eps = testGetEps(0.0001, 0.0001);
 

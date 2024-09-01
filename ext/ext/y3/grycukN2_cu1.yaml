@@ -19,6 +19,8 @@ EXTRA_PARAMS: |
   , const real* restrict aneck
   , const real* restrict bneck
   , const real* restrict rneck
+  , const int* restrict mut
+  , real elam
 
 I_VARIABLES:
   - shared real xi     from:x
@@ -28,6 +30,7 @@ I_VARIABLES:
   - shared real rdi    from:rdescr
   - shared real shcti  from:shct
   - shared real snecki from:sneck
+  - shared int  imut   from:mut
 K_VARIABLES:
   - shared real xk       from:x
   - shared real yk       from:y
@@ -36,6 +39,7 @@ K_VARIABLES:
   - register real rdk    from:rdescr
   - register real shctk  from:shct
   - register real sneckk from:sneck
+  - register int  kmut   from:mut
 I_FORCE:
   - register real rborni addto:rborn
 K_FORCE:
@@ -48,6 +52,8 @@ FULL_PAIRWISE_INTERACTION: |
   real r2 = xr*xr + yr*yr + zr*zr;
   if (r2 <= off * off and incl) {
     real r = REAL_SQRT(r2);
+    real elambdai = (@kmut@ ? elam : 1);
+    real elambdak = (@imut@ ? elam : 1);
     real ri = REAL_MAX(@rsi@,@rdi@) + descoff;
     real si = @rdi@ * @shcti@;
     real mixsn = (real)0.5 * (@snecki@ + @sneckk@);
@@ -58,10 +64,10 @@ FULL_PAIRWISE_INTERACTION: |
     real pairrborni = 0;
     real pairrbornk = 0;
     if (computei) {
-      pair_grycuk(r, r2, ri, @rdk@, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
+      pair_grycuk(r, r2, ri, @rdk@, sk, mixsn, elambdai, pi43, useneck, aneck, bneck, rneck, pairrborni);
     }
     if (computek) {
-      pair_grycuk(r, r2, rk, @rdi@, si, mixsn, pi43, useneck, aneck, bneck, rneck, pairrbornk);
+      pair_grycuk(r, r2, rk, @rdi@, si, mixsn, elambdak, pi43, useneck, aneck, bneck, rneck, pairrbornk);
     }
 
     @rborni@ += pairrborni;

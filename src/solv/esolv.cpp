@@ -114,7 +114,6 @@ void esolvData(RcOp op)
       awater = nonpol::awater;
       slevy = nonpol::slevy;
       shctd = nonpol::shctd;
-      cavoff = nonpol::cavoff;
       dspoff = nonpol::dspoff;
       surften = nonpol::surften;
       solvprs = nonpol::solvprs;

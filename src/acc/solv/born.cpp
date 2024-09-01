@@ -1,4 +1,6 @@
 #include "ff/atom.h"
+#include "ff/elec.h"
+#include "ff/evdw.h"
 #include "ff/nblist.h"
 #include "ff/solv/solute.h"
 #include "ff/switch.h"
@@ -8,8 +10,8 @@
 #include <cmath>
 
 namespace tinker {
-#define GRYCUK_DPTRS                                               \
-   x, y, z, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck
+#define GRYCUK_DPTRS                                                    \
+   x, y, z, rborn, rsolv, rdescr, shct, sneck, aneck, bneck, rneck, mut
 static void grycuk_acc1()
 {
    const real off = switchOff(Switch::MPOLE);
@@ -34,6 +36,8 @@ static void grycuk_acc1()
       real snecki = sneck[i];
       real ri = REAL_MAX(rsi, rdi) + descoff;
       real si = rdi * shcti;
+      int imut = mut[i];
+      real elambdak = (imut ? elam : 1);
       real rborni = 0;
 
       int nmlsti = mlst->nlst[i];
@@ -53,15 +57,17 @@ static void grycuk_acc1()
             real sneckk = sneck[k];
             real rk = REAL_MAX(rsk, rdk) + descoff;
             real sk = rdk * shctk;
+            int kmut = mut[k];
+            real elambdai = (kmut ? elam : 1);
             real mixsn = (real)0.5 * (snecki + sneckk);
             real r = REAL_SQRT(r2);
             bool computei = (rsi > 0) and (rdk > 0) and (sk > 0);
             bool computek = (rsk > 0) and (rdi > 0) and (si > 0);
             real rbi = 0, rbk = 0;
             if (computei)
-               pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, rbi);
+               pair_grycuk(r, r2, ri, rdk, sk, mixsn, elambdai, pi43, useneck, aneck, bneck, rneck, rbi);
             if (computek)
-               pair_grycuk(r, r2, rk, rdi, si, mixsn, pi43, useneck, aneck, bneck, rneck, rbk);
+               pair_grycuk(r, r2, rk, rdi, si, mixsn, elambdak, pi43, useneck, aneck, bneck, rneck, rbk);
 
             rborni += rbi;
 
@@ -113,8 +119,8 @@ void born_acc()
 }
 
 namespace tinker {
-#define BORN1_DPTRS                                                                                      \
-   x, y, z, desx, desy, desz, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint
+#define BORN1_DPTRS                                                                                           \
+   x, y, z, desx, desy, desz, rsolv, rdescr, shct, rborn, drb, drbp, aneck, bneck, rneck, sneck, bornint, mut
 static void born1_acc1()
 {
    const real off = switchOff(Switch::MPOLE);
@@ -144,6 +150,8 @@ static void born1_acc1()
       real drbpi = drbp[i];
       real snecki = sneck[i];
       real borni = bornint[i];
+      int imut = mut[i];
+      real elambdak = (imut ? elam : 1);
       MAYBE_UNUSED real gxi = 0, gyi = 0, gzi = 0;
 
       int nmlsti = mlst->nlst[i];
@@ -165,6 +173,8 @@ static void born1_acc1()
             real drbpk = drbp[k];
             real sneckk = sneck[k];
             real bornk = bornint[k];
+            int kmut = mut[k];
+            real elambdai = (kmut ? elam : 1);
             real r = REAL_SQRT(r2);
             real ri = REAL_MAX(rsi, rdi) + descoff;
             real si = rdi * shcti;
@@ -191,10 +201,10 @@ static void born1_acc1()
             real dei = 0;
             real dek = 0;
             if (computei) {
-               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, pi43, drbi, drbpi, termi, use_gk, useneck, aneck, bneck, rneck, dei);
+               pair_dgrycuk(r, r2, ri, rdk, sk, mixsn, elambdai, pi43, drbi, drbpi, termi, use_gk, useneck, aneck, bneck, rneck, dei);
             }
             if (computek) {
-               pair_dgrycuk(r, r2, rk, rdi, si, mixsn, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck, rneck, dek);
+               pair_dgrycuk(r, r2, rk, rdi, si, mixsn, elambdak, pi43, drbk, drbpk, termk, use_gk, useneck, aneck, bneck, rneck, dek);
             }
             real de = dei + dek;
             real dedx = de * xr;

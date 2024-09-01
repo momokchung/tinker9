@@ -3,7 +3,7 @@ __global__
 void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict y, const real* restrict z, int nakp,
    const int* restrict iakp, real descoff, real pi43, bool useneck, real* restrict rborn, const real* restrict rsolv,
    const real* restrict rdescr, const real* restrict shct, const real* restrict sneck, const real* restrict aneck,
-   const real* restrict bneck, const real* restrict rneck)
+   const real* restrict bneck, const real* restrict rneck, const int* restrict mut, real elam)
 {
    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
    const int iwarp = ithread / WARP_SIZE;
@@ -12,8 +12,10 @@ void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict 
 
    __shared__ real xi[BLOCK_DIM], yi[BLOCK_DIM], zi[BLOCK_DIM], rsi[BLOCK_DIM], rdi[BLOCK_DIM], shcti[BLOCK_DIM],
       snecki[BLOCK_DIM];
+   __shared__ int imut[BLOCK_DIM];
    __shared__ real xk[BLOCK_DIM], yk[BLOCK_DIM], zk[BLOCK_DIM];
    real rsk, rdk, shctk, sneckk;
+   int kmut;
    real rborni;
    real rbornk;
 
@@ -36,6 +38,7 @@ void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict 
       rdi[threadIdx.x] = rdescr[i];
       shcti[threadIdx.x] = shct[i];
       snecki[threadIdx.x] = sneck[i];
+      imut[threadIdx.x] = mut[i];
       xk[threadIdx.x] = x[k];
       yk[threadIdx.x] = y[k];
       zk[threadIdx.x] = z[k];
@@ -43,6 +46,7 @@ void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict 
       rdk = rdescr[k];
       shctk = shct[k];
       sneckk = sneck[k];
+      kmut = mut[k];
       __syncwarp();
 
       for (int j = 0; j < WARP_SIZE; ++j) {
@@ -55,6 +59,8 @@ void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict 
          real r2 = xr * xr + yr * yr + zr * zr;
          if (r2 <= off * off and incl) {
             real r = REAL_SQRT(r2);
+            real elambdai = (kmut ? elam : 1);
+            real elambdak = (imut[klane] ? elam : 1);
             real ri = REAL_MAX(rsi[klane], rdi[klane]) + descoff;
             real si = rdi[klane] * shcti[klane];
             real mixsn = (real)0.5 * (snecki[klane] + sneckk);
@@ -65,10 +71,10 @@ void grycukN2_cu1(int n, real off, const real* restrict x, const real* restrict 
             real pairrborni = 0;
             real pairrbornk = 0;
             if (computei) {
-               pair_grycuk(r, r2, ri, rdk, sk, mixsn, pi43, useneck, aneck, bneck, rneck, pairrborni);
+               pair_grycuk(r, r2, ri, rdk, sk, mixsn, elambdai, pi43, useneck, aneck, bneck, rneck, pairrborni);
             }
             if (computek) {
-               pair_grycuk(r, r2, rk, rdi[klane], si, mixsn, pi43, useneck, aneck, bneck, rneck, pairrbornk);
+               pair_grycuk(r, r2, rk, rdi[klane], si, mixsn, elambdak, pi43, useneck, aneck, bneck, rneck, pairrbornk);
             }
 
             rborni += pairrborni;
