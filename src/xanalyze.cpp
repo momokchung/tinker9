@@ -169,48 +169,52 @@ static void xAnalyzeMoments()
 
    // partial charges
    for (int i = 0; i < n and charge::nion > 0; ++i) {
-      double c = charge::pchg[i];
-      moment::netchg += c;
-      moment::xdpl += xcm[i] * c;
-      moment::ydpl += ycm[i] * c;
-      moment::zdpl += zcm[i] * c;
-      moment::xxqpl += xcm[i] * xcm[i] * c;
-      moment::xyqpl += xcm[i] * ycm[i] * c;
-      moment::xzqpl += xcm[i] * zcm[i] * c;
-      moment::yxqpl += ycm[i] * xcm[i] * c;
-      moment::yyqpl += ycm[i] * ycm[i] * c;
-      moment::yzqpl += ycm[i] * zcm[i] * c;
-      moment::zxqpl += zcm[i] * xcm[i] * c;
-      moment::zyqpl += zcm[i] * ycm[i] * c;
-      moment::zzqpl += zcm[i] * zcm[i] * c;
+      if (moment::momuse[i]) {
+         double c = charge::pchg[i];
+         moment::netchg += c;
+         moment::xdpl += xcm[i] * c;
+         moment::ydpl += ycm[i] * c;
+         moment::zdpl += zcm[i] * c;
+         moment::xxqpl += xcm[i] * xcm[i] * c;
+         moment::xyqpl += xcm[i] * ycm[i] * c;
+         moment::xzqpl += xcm[i] * zcm[i] * c;
+         moment::yxqpl += ycm[i] * xcm[i] * c;
+         moment::yyqpl += ycm[i] * ycm[i] * c;
+         moment::yzqpl += ycm[i] * zcm[i] * c;
+         moment::zxqpl += zcm[i] * xcm[i] * c;
+         moment::zyqpl += zcm[i] * ycm[i] * c;
+         moment::zzqpl += zcm[i] * zcm[i] * c;
+      }
    }
 
    // bond dipoles
    for (int i = 0; i < dipole::ndipole; ++i) {
       int j = dipole::idpl[2 * i + 0] - 1;
       int k = dipole::idpl[2 * i + 1] - 1;
-      double xi = atoms::x[j] - atoms::x[k];
-      double yi = atoms::y[j] - atoms::y[k];
-      double zi = atoms::z[j] - atoms::z[k];
-      double ri = std::sqrt(xi * xi + yi * yi + zi * zi);
-      double xbnd = dipole::bdpl[i] * (xi / ri) / units::debye;
-      double ybnd = dipole::bdpl[i] * (yi / ri) / units::debye;
-      double zbnd = dipole::bdpl[i] * (zi / ri) / units::debye;
-      double xc = atoms::x[j] - xi * dipole::sdpl[i];
-      double yc = atoms::y[j] - yi * dipole::sdpl[i];
-      double zc = atoms::z[j] - zi * dipole::sdpl[i];
-      moment::xdpl += xbnd;
-      moment::ydpl += ybnd;
-      moment::zdpl += zbnd;
-      moment::xxqpl += 2 * xc * xbnd;
-      moment::xyqpl += xc * ybnd + yc * xbnd;
-      moment::xzqpl += xc * zbnd + zc * xbnd;
-      moment::yxqpl += yc * xbnd + xc * ybnd;
-      moment::yyqpl += 2 * yc * ybnd;
-      moment::yzqpl += yc * zbnd + zc * ybnd;
-      moment::zxqpl += zc * xbnd + xc * zbnd;
-      moment::zyqpl += zc * ybnd + yc * zbnd;
-      moment::zzqpl += 2 * zc * zbnd;
+      if (moment::momuse[j] or moment::momuse[k]) {
+         double xi = atoms::x[j] - atoms::x[k];
+         double yi = atoms::y[j] - atoms::y[k];
+         double zi = atoms::z[j] - atoms::z[k];
+         double ri = std::sqrt(xi * xi + yi * yi + zi * zi);
+         double xbnd = dipole::bdpl[i] * (xi / ri) / units::debye;
+         double ybnd = dipole::bdpl[i] * (yi / ri) / units::debye;
+         double zbnd = dipole::bdpl[i] * (zi / ri) / units::debye;
+         double xc = atoms::x[j] - xi * dipole::sdpl[i];
+         double yc = atoms::y[j] - yi * dipole::sdpl[i];
+         double zc = atoms::z[j] - zi * dipole::sdpl[i];
+         moment::xdpl += xbnd;
+         moment::ydpl += ybnd;
+         moment::zdpl += zbnd;
+         moment::xxqpl += 2 * xc * xbnd;
+         moment::xyqpl += xc * ybnd + yc * xbnd;
+         moment::xzqpl += xc * zbnd + zc * xbnd;
+         moment::yxqpl += yc * xbnd + xc * ybnd;
+         moment::yyqpl += 2 * yc * ybnd;
+         moment::yzqpl += yc * zbnd + zc * ybnd;
+         moment::zxqpl += zc * xbnd + xc * zbnd;
+         moment::zyqpl += zc * ybnd + yc * zbnd;
+         moment::zzqpl += 2 * zc * zbnd;
+      }
    }
 
    // atomic multipoles
@@ -230,48 +234,50 @@ static void xAnalyzeMoments()
       }
       waitFor(g::q0);
       for (int i = 0; i < n and mpole::npole > 0; ++i) {
-         int t = 0;
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_0];
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_X];
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_Y];
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_Z];
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XX]; // xx
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XY]; // xy
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XZ]; // xz
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YX]; // yx
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YY]; // yy
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YZ]; // yz
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZX]; // zx
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZY]; // zy
-         mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZZ]; // zz
-         polar::uind[3 * i + 0] = uindv[3 * i + 0];
-         polar::uind[3 * i + 1] = uindv[3 * i + 1];
-         polar::uind[3 * i + 2] = uindv[3 * i + 2];
-         mpole::rpole[13 * i + 1] += uindv[3 * i + 0];
-         mpole::rpole[13 * i + 2] += uindv[3 * i + 1];
-         mpole::rpole[13 * i + 3] += uindv[3 * i + 2];
+         if (moment::momuse[i]) {
+            int t = 0;
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_0];
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_X];
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_Y];
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_Z];
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XX]; // xx
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XY]; // xy
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_XZ]; // xz
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YX]; // yx
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YY]; // yy
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_YZ]; // yz
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZX]; // zx
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZY]; // zy
+            mpole::rpole[13 * i + (t++)] = rpolev[10 * i + MPL_PME_ZZ]; // zz
+            polar::uind[3 * i + 0] = uindv[3 * i + 0];
+            polar::uind[3 * i + 1] = uindv[3 * i + 1];
+            polar::uind[3 * i + 2] = uindv[3 * i + 2];
+            mpole::rpole[13 * i + 1] += uindv[3 * i + 0];
+            mpole::rpole[13 * i + 2] += uindv[3 * i + 1];
+            mpole::rpole[13 * i + 3] += uindv[3 * i + 2];
 
 #define RPOLE(j, i) mpole::rpole[13 * (i) + (j)-1]
-         moment::netchg += RPOLE(1, i);
-         moment::xdpl += xcm[i] * RPOLE(1, i) + RPOLE(2, i);
-         moment::ydpl += ycm[i] * RPOLE(1, i) + RPOLE(3, i);
-         moment::zdpl += zcm[i] * RPOLE(1, i) + RPOLE(4, i);
-         moment::xxqpl += xcm[i] * xcm[i] * RPOLE(1, i) + 2 * xcm[i] * RPOLE(2, i);
-         moment::xyqpl +=
-            xcm[i] * ycm[i] * RPOLE(1, i) + xcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(2, i);
-         moment::xzqpl +=
-            xcm[i] * zcm[i] * RPOLE(1, i) + xcm[i] * RPOLE(4, i) + zcm[i] * RPOLE(2, i);
-         moment::yxqpl +=
-            +ycm[i] * xcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(2, i) + xcm[i] * RPOLE(3, i);
-         moment::yyqpl += ycm[i] * ycm[i] * RPOLE(1, i) + 2 * ycm[i] * RPOLE(3, i);
-         moment::yzqpl +=
-            ycm[i] * zcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(4, i) + zcm[i] * RPOLE(3, i);
-         moment::zxqpl +=
-            zcm[i] * xcm[i] * RPOLE(1, i) + zcm[i] * RPOLE(2, i) + xcm[i] * RPOLE(4, i);
-         moment::zyqpl +=
-            zcm[i] * ycm[i] * RPOLE(1, i) + zcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(4, i);
-         moment::zzqpl += zcm[i] * zcm[i] * RPOLE(1, i) + 2 * zcm[i] * RPOLE(4, i);
+            moment::netchg += RPOLE(1, i);
+            moment::xdpl += xcm[i] * RPOLE(1, i) + RPOLE(2, i);
+            moment::ydpl += ycm[i] * RPOLE(1, i) + RPOLE(3, i);
+            moment::zdpl += zcm[i] * RPOLE(1, i) + RPOLE(4, i);
+            moment::xxqpl += xcm[i] * xcm[i] * RPOLE(1, i) + 2 * xcm[i] * RPOLE(2, i);
+            moment::xyqpl +=
+               xcm[i] * ycm[i] * RPOLE(1, i) + xcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(2, i);
+            moment::xzqpl +=
+               xcm[i] * zcm[i] * RPOLE(1, i) + xcm[i] * RPOLE(4, i) + zcm[i] * RPOLE(2, i);
+            moment::yxqpl +=
+               +ycm[i] * xcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(2, i) + xcm[i] * RPOLE(3, i);
+            moment::yyqpl += ycm[i] * ycm[i] * RPOLE(1, i) + 2 * ycm[i] * RPOLE(3, i);
+            moment::yzqpl +=
+               ycm[i] * zcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(4, i) + zcm[i] * RPOLE(3, i);
+            moment::zxqpl +=
+               zcm[i] * xcm[i] * RPOLE(1, i) + zcm[i] * RPOLE(2, i) + xcm[i] * RPOLE(4, i);
+            moment::zyqpl +=
+               zcm[i] * ycm[i] * RPOLE(1, i) + zcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(4, i);
+            moment::zzqpl += zcm[i] * zcm[i] * RPOLE(1, i) + 2 * zcm[i] * RPOLE(4, i);
 #undef RPOLE
+         }
       }
    }
 
@@ -289,15 +295,17 @@ static void xAnalyzeMoments()
 
    // add the atomic quadrupoles
    for (int i = 0; i < n and mpole::npole > 0; ++i) {
-      moment::xxqpl += 3.0 * mpole::rpole[i * 13 + 4];
-      moment::xyqpl += 3.0 * mpole::rpole[i * 13 + 5];
-      moment::xzqpl += 3.0 * mpole::rpole[i * 13 + 6];
-      moment::yxqpl += 3.0 * mpole::rpole[i * 13 + 7];
-      moment::yyqpl += 3.0 * mpole::rpole[i * 13 + 8];
-      moment::yzqpl += 3.0 * mpole::rpole[i * 13 + 9];
-      moment::zxqpl += 3.0 * mpole::rpole[i * 13 + 10];
-      moment::zyqpl += 3.0 * mpole::rpole[i * 13 + 11];
-      moment::zzqpl += 3.0 * mpole::rpole[i * 13 + 12];
+      if (moment::momuse[i]) {
+         moment::xxqpl += 3.0 * mpole::rpole[i * 13 + 4];
+         moment::xyqpl += 3.0 * mpole::rpole[i * 13 + 5];
+         moment::xzqpl += 3.0 * mpole::rpole[i * 13 + 6];
+         moment::yxqpl += 3.0 * mpole::rpole[i * 13 + 7];
+         moment::yyqpl += 3.0 * mpole::rpole[i * 13 + 8];
+         moment::yzqpl += 3.0 * mpole::rpole[i * 13 + 9];
+         moment::zxqpl += 3.0 * mpole::rpole[i * 13 + 10];
+         moment::zyqpl += 3.0 * mpole::rpole[i * 13 + 11];
+         moment::zzqpl += 3.0 * mpole::rpole[i * 13 + 12];
+      }
    }
 
    // convert dipole to Debye and quadrupole to Buckingham
