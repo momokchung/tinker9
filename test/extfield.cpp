@@ -455,15 +455,16 @@ TEST_CASE("External-Fields-Dynamic-Freq", "[ff][extfield]")
    const double dt_ps = 0.002;
    const int nsteps = 10;
    VerletIntegrator vvi(ThermostatEnum::NONE, BarostatEnum::NONE);
-   for (int i = 1; i <= nsteps; ++i) {
+   for (int istep = 1; istep <= nsteps; ++istep) {
       if (extfld::use_exfld and extfld::use_exfreq) {
-         double phs = sin(extfld::exfreq * (i-1) * dt_ps);
-         for (int j = 0; j < 3; j++) {
-            extfld::texfld[j] = phs * extfld::exfld[j];
+         double phs = sin(extfld::exfreq * (istep-1) * dt_ps);
+         for (int i = 0; i < 3; i++) {
+            extfld::texfld[i] = phs * extfld::exfld[i];
          }
       }
-      vvi.dynamic(i, dt_ps);
+      vvi.dynamic(istep, dt_ps);
    }
+
    std::vector<pos_prec> cx(n), cy(n), cz(n);
    std::vector<vel_prec> px(n), py(n), pz(n);
    darray::copyout(g::q0, n, cx.data(), xpos);

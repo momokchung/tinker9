@@ -216,4 +216,15 @@ void testMdInit(double t, double atm)
    double dt = 0.001;
    tinker_f_mdinit(&dt);
 }
+
+bool fileExistsAndDelete(const std::string& fname)
+{
+   std::ifstream f(fname);
+   if (f.good()) {
+      f.close();
+      std::remove(fname.c_str());
+      return true;
+   }
+   return false;
+}
 }

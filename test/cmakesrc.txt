@@ -39,6 +39,7 @@ strbnd.cpp
 strtor.cpp
 testrt.cpp
 text.cpp
+tinkernist.cpp
 torsion.cpp
 tortor.cpp
 trimatexp.cpp

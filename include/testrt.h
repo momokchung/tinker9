@@ -71,6 +71,9 @@ void testMdInit(double t = 0,  ///< Temperature in Kelvin.
                 double atm = 0 ///< Atmosphere in atm.
 );
 
+/// \brief Determine whether file exists and deletes it.
+bool fileExistsAndDelete(const std::string& fname);
+
 /// \}
 }
 
