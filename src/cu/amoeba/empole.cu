@@ -131,7 +131,7 @@ void exfieldDipole_cu(int vers)
 {
    real f = electric / dielec;
    real ef1 = extfld::texfld[0], ef2 = extfld::texfld[1], ef3 = extfld::texfld[2];
-   launch_k1s(g::s0, n, exfieldDipole_cu1, nem, em, vir_em, demx, demy, demz, trqx, trqy, trqz, vers, n, f, ef1, ef2,
+   launch_k1b(g::s0, n, exfieldDipole_cu1, nem, em, vir_em, demx, demy, demz, trqx, trqy, trqz, vers, n, f, ef1, ef2,
       ef3, rpole, x, y, z);
 }
 
