@@ -20,15 +20,17 @@ static void ewcaFinal_cu1(int n, const real* restrict cdsp, CountBuffer restrict
 {
    constexpr bool do_e = Ver::e;
    constexpr bool do_a = Ver::a;
-   for (int i = ITHREAD; i < n; i += STRIDE) {
+
+   int ithread = ITHREAD;
+   for (int i = ithread; i < n; i += STRIDE) {
       if CONSTEXPR (do_e) {
          real cdspi = cdsp[i];
          using ebuf_prec = EnergyBufferTraits::type;
          ebuf_prec estl;
          estl = floatTo<ebuf_prec>(cdspi);
-         atomic_add(estl, es, i);
+         atomic_add(estl, es, ithread);
       }
-      if CONSTEXPR (do_a) atomic_add(2, nes, i);
+      if CONSTEXPR (do_a) atomic_add(2, nes, ithread);
    }
 }
 
@@ -59,7 +61,7 @@ static void ewca_cu2()
          epsdsp, raddsp, epso, epsosqrt, epsh, epshsqrt, rmino2, rmino3, rminh2, rminh3, shctd, dspoff, slwater);
    }
 
-   launch_k1s(g::s0, n, ewcaFinal_cu1<Ver>, n, cdsp, nes, es);
+   launch_k1b(g::s0, n, ewcaFinal_cu1<Ver>, n, cdsp, nes, es);
 }
 
 void ewca_cu(int vers)
@@ -85,7 +87,8 @@ static void egkaFinal_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict
    constexpr bool do_a = Ver::a;
    constexpr bool do_g = Ver::g;
 
-   for (int i = ITHREAD; i < n; i += STRIDE) {
+   int ithread = ITHREAD;
+   for (int i = ithread; i < n; i += STRIDE) {
       real ci = rpole[i][MPL_PME_0];
       real dix = rpole[i][MPL_PME_X];
       real diy = rpole[i][MPL_PME_Y];
@@ -115,10 +118,10 @@ static void egkaFinal_cu1(int n, CountBuffer restrict nes, EnergyBuffer restrict
          using ebuf_prec = EnergyBufferTraits::type;
          ebuf_prec estl;
          estl = floatTo<ebuf_prec>(e);
-         atomic_add(estl, es, i);
+         atomic_add(estl, es, ithread);
       }
 
-      if CONSTEXPR (do_a) atomic_add(1, nes, i);
+      if CONSTEXPR (do_a) atomic_add(1, nes, ithread);
 
       if CONSTEXPR (do_g) {
          atomic_add(txi, trqx, i);
@@ -155,7 +158,7 @@ static void egka_cu2()
          trqx, trqy, trqz, drb, drbp, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
    }
 
-   launch_k1s(g::s0, n, egkaFinal_cu1<Ver>, n, nes, es, drb, drbp, trqx, trqy, trqz, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
+   launch_k1b(g::s0, n, egkaFinal_cu1<Ver>, n, nes, es, drb, drbp, trqx, trqy, trqz, rborn, rpole, uinds, uinps, gkc, fc, fd, fq);
 }
 
 void egka_cu(int vers)
@@ -213,13 +216,15 @@ namespace tinker {
 __global__
 static void addToEnrgy_cu1(EnergyBuffer restrict es, const real cave)
 {
-   atomic_add(cave, es, ITHREAD);
+   int ithread = ITHREAD;
+   atomic_add(cave, es, ithread);
 }
 
 __global__
 static void addToGrad_cu1(int n, grad_prec* restrict gx, grad_prec* restrict gy, grad_prec* restrict gz, const real* restrict gxi, const real* restrict gyi, const real* restrict gzi)
 {
-   for (int i = ITHREAD; i < n; i += STRIDE) {
+   int ithread = ITHREAD;
+   for (int i = ithread; i < n; i += STRIDE) {
       atomic_add(gxi[i], gx, i);
       atomic_add(gyi[i], gy, i);
       atomic_add(gzi[i], gz, i);
