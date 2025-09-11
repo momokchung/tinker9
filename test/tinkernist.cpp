@@ -119,7 +119,7 @@ TEST_CASE("TinkerNIST-DCD", "[ff][tinkerNIST]")
 
    TestFile fx1(TINKER9_DIRSTR "/test/file/tinkernist/water30.xyz");
    TestFile fd1(TINKER9_DIRSTR "/test/file/tinkernist/water30.dyn");
-   static const std::string dcdkey = "save-ustatic\nsave-induced\nsave-velocity\ndcd-archive\n";
+   static const std::string dcdkey = "save-ucharge\nsave-ustatic\nsave-uinduce\nsave-velocity\ndcd-archive\n";
    TestFile fk1(TINKER9_DIRSTR "/test/file/tinkernist/water30.key", "", dcdkey);
    TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/amoeba09.prm");
    const char* xn = "water30.xyz";
@@ -157,13 +157,15 @@ TEST_CASE("TinkerNIST-DCD", "[ff][tinkerNIST]")
    inform::iwrite = old;
 
    bool dcdExists = fileExistsAndDelete(fn + ".dcd");
-   bool dcddExists = fileExistsAndDelete(fn + ".dcdd");
-   bool dcduExists = fileExistsAndDelete(fn + ".dcdu");
    bool dcdvExists = fileExistsAndDelete(fn + ".dcdv");
+   bool dcducExists = fileExistsAndDelete(fn + ".dcduc");
+   bool dcdusExists = fileExistsAndDelete(fn + ".dcdus");
+   bool dcduiExists = fileExistsAndDelete(fn + ".dcdui");
    REQUIRE(dcdExists == true);
-   REQUIRE(dcddExists == true);
-   REQUIRE(dcduExists == true);
    REQUIRE(dcdvExists == true);
+   REQUIRE(dcducExists == true);
+   REQUIRE(dcdusExists == true);
+   REQUIRE(dcduiExists == true);
 
    finish();
    testEnd();
@@ -175,7 +177,7 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
 
    TestFile fx1(TINKER9_DIRSTR "/test/file/tinkernist/water30.xyz");
    TestFile fd1(TINKER9_DIRSTR "/test/file/tinkernist/water30.dyn");
-   static const std::string savekey = "save-ustatic\nsave-induced\nsave-velocity\n";
+   static const std::string savekey = "save-ucharge\nsave-ustatic\nsave-uinduce\nsave-velocity\n";
    TestFile fk1(TINKER9_DIRSTR "/test/file/tinkernist/water30.key", "", savekey + nodyn);
    TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/amoeba09.prm");
    const char* xn = "water30.xyz";
@@ -183,10 +185,12 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
 
    auto arc_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.arc");
    auto vel_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.vel");
+   auto uchg_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.uchg");
    auto ustc_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.ustc");
    auto uind_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.uind");
    const double eps_arc  = 0.0001;
    const double eps_vel  = 0.0001;
+   const double eps_uchg = 0.0001;
    const double eps_ustc = 0.0001;
    const double eps_uind = 0.0001;
 
@@ -223,6 +227,7 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
 
    auto arc_tst  = readAmoebaCoordinateFile(fn + ".arc");
    auto vel_tst  = readAmoebaCoordinateFile(fn + ".vel");
+   auto uchg_tst = readAmoebaCoordinateFile(fn + ".uchg");
    auto ustc_tst = readAmoebaCoordinateFile(fn + ".ustc");
    auto uind_tst = readAmoebaCoordinateFile(fn + ".uind");
 
@@ -238,6 +243,12 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
          COMPARE_REALS(vel_tst[istep][i].x, vel_ref[istep][i].x, eps_vel);
          COMPARE_REALS(vel_tst[istep][i].y, vel_ref[istep][i].y, eps_vel);
          COMPARE_REALS(vel_tst[istep][i].z, vel_ref[istep][i].z, eps_vel);
+      };
+      /// uchg
+      auto compare_uchg = [&](int i) {
+         COMPARE_REALS(uchg_tst[istep][i].x, uchg_ref[istep][i].x, eps_uchg);
+         COMPARE_REALS(uchg_tst[istep][i].y, uchg_ref[istep][i].y, eps_uchg);
+         COMPARE_REALS(uchg_tst[istep][i].z, uchg_ref[istep][i].z, eps_uchg);
       };
       /// ustc
       auto compare_ustc = [&](int i) {
@@ -256,12 +267,14 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
       for (int i = 0; i < j; ++i) {
          compare_arc(i);
          compare_vel(i);
+         compare_uchg(i);
          compare_ustc(i);
          compare_uind(i);
       }
       for (int i = n-j; i < n; ++i) {
          compare_arc(i);
          compare_vel(i);
+         compare_uchg(i);
          compare_ustc(i);
          compare_uind(i);
       }
@@ -269,10 +282,12 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
 
    bool arcExists = fileExistsAndDelete(fn + ".arc");
    bool velExists = fileExistsAndDelete(fn + ".vel");
+   bool uchgExists = fileExistsAndDelete(fn + ".uchg");
    bool ustcExists = fileExistsAndDelete(fn + ".ustc");
    bool uindExists = fileExistsAndDelete(fn + ".uind");
    REQUIRE(arcExists == true);
    REQUIRE(velExists == true);
+   REQUIRE(uchgExists == true);
    REQUIRE(ustcExists == true);
    REQUIRE(uindExists == true);
 
