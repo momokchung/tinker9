@@ -8,6 +8,8 @@
 #include "test.h"
 #include "testrt.h"
 
+#include <unistd.h>
+
 using namespace tinker;
 
 static const std::string nodyn = "nodyn\n";
@@ -315,7 +317,7 @@ TEST_CASE("TinkerNIST-SAVE-ONLY", "[ff][tinkerNIST]")
 
    TestFile fx1(TINKER9_DIRSTR "/test/file/tinkernist/water30.xyz");
    TestFile fd1(TINKER9_DIRSTR "/test/file/tinkernist/water30.dyn");
-   static const std::string savekey = "SAVE-ONLY -1 99\nsave-ucharge\nsave-ustatic\nsave-uinduce\nsave-velocity\n";
+   static const std::string savekey = "save-only -1 99\nsave-ucharge\nsave-ustatic\nsave-uinduce\nsave-velocity\n";
    TestFile fk1(TINKER9_DIRSTR "/test/file/tinkernist/water30.key", "", savekey + nodyn);
    TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/amoeba09.prm");
    const char* xn = "water30.xyz";
@@ -379,4 +381,274 @@ TEST_CASE("TinkerNIST-SAVE-ONLY", "[ff][tinkerNIST]")
 
    finish();
    testEnd();
+}
+
+std::vector<std::array<double,3>>
+read_logfile_1(const std::string& filename, const std::string& label)
+{
+   std::vector<std::array<double,3>> vectors;
+   std::ifstream file(filename);
+   std::string line;
+   while (std::getline(file, line)) {
+      if (line.find(label) != std::string::npos) {
+         std::istringstream iss(line);
+         std::string tmp;
+         double x, y, z;
+         iss >> tmp >> tmp >> tmp >> x >> y >> z;
+         vectors.push_back({x, y, z});
+      }
+   }
+   return vectors;
+}
+
+std::vector<std::array<double,3>>
+read_logfile_2(const std::string& filename, const std::string& label)
+{
+   std::vector<std::array<double,3>> vectors;
+   std::ifstream file(filename);
+   std::string line;
+   while (std::getline(file, line)) {
+      if (line.find(label) != std::string::npos) {
+         // Skip the column header
+         std::getline(file, line);
+         for (int k = 0; k < 4; ++k) {
+            std::getline(file, line);
+            std::istringstream iss(line);
+            int tmp;
+            double x, y, z;
+            iss >> tmp >> x >> y >> z;
+            vectors.push_back({x, y, z});
+         }
+      }
+   }
+   return vectors;
+}
+
+TEST_CASE("TinkerNIST-SAVE-SYSTEM", "[ff][tinkerNIST]")
+{
+   int mask = calc::xyz | calc::vel | calc::mass | calc::energy | calc::grad | calc::md | calc::virial;
+
+   TestFile fx1(TINKER9_DIRSTR "/test/file/tinkernist/water30.xyz");
+   TestFile fd1(TINKER9_DIRSTR "/test/file/tinkernist/water30.dyn");
+   static const std::string savekey = "save-usystem\nsave-vsystem\n";
+   TestFile fk1(TINKER9_DIRSTR "/test/file/tinkernist/water30.key", "", savekey + nocoord + nodyn);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/amoeba09.prm");
+   const char* xn = "water30.xyz";
+   static const std::string fn = "water30";
+
+   const double eps_u = 0.0001;
+   const double eps_v = 0.001;
+
+   const char* argv[] = {"dummy", xn};
+   int argc = 2;
+   testBeginWithArgs(argc, argv);
+   testMdInit(0.0, 0.0);
+
+   rc_flag = mask;
+   initialize();
+
+   int saved_stdout_fd = dup(fileno(stdout));
+   if (saved_stdout_fd == -1) {
+      throw std::runtime_error("Failed to duplicate stdout");
+   }
+   static const std::string outputfn = "output.log";
+   FILE* out = freopen(outputfn.c_str(), "w", stdout);
+   if (!out) {
+      close(saved_stdout_fd);
+      throw std::runtime_error("Failed to redirect stdout to " + outputfn);
+   }
+
+   // NVE
+   const double dt_ps = 0.001;
+   const int nsteps = 2;
+   int old = inform::iwrite;
+   inform::iwrite = 1;
+   VerletIntegrator vvi(ThermostatEnum::NONE, BarostatEnum::NONE);
+   for (int istep = 1; istep <= nsteps; ++istep) {
+      vvi.dynamic(istep, dt_ps);
+
+      // mdstat
+      bool save = (istep % inform::iwrite == 0);
+      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0)
+         bounds();
+      if (save) {
+         T_prec temp;
+         kinetic(temp);
+         mdsaveAsync(istep, dt_ps);
+      }
+      mdrest(istep);
+   }
+   mdsaveSynchronize();
+   inform::iwrite = old;
+
+   finish();
+   testEnd();
+
+   // run after testEnd(); to flush fortran buffer
+   fflush(stdout);
+   dup2(saved_stdout_fd, fileno(stdout));
+   close(saved_stdout_fd);
+
+   std::vector<std::array<double,3>> uchg_ref;
+   std::vector<std::array<double,3>> ustc_ref;
+   std::vector<std::array<double,3>> uind_ref;
+   std::vector<std::array<double,3>> auchg_ref;
+   std::vector<std::array<double,3>> austc_ref;
+   std::vector<std::array<double,3>> auind_ref;
+   std::vector<std::array<double,3>> avelo_ref;
+   uchg_ref.push_back({6.892510,-27.773255,75.057906});
+   uchg_ref.push_back({6.828811,-27.794699,74.920880});
+   ustc_ref.push_back({-7.366166,-7.871300,6.450486});
+   ustc_ref.push_back({-7.348372,-7.888462,6.419733});
+   uind_ref.push_back({-26.743482,-16.250646,4.786944});
+   uind_ref.push_back({-26.846484,-16.328934,4.642692});
+   auchg_ref.push_back({ 303.701119, 230.038309, 292.209284});
+   auchg_ref.push_back({-331.940017,-259.883598,-267.693160});
+   auchg_ref.push_back({ 203.333866, 139.690946, 202.363634});
+   auchg_ref.push_back({-168.202458,-137.618912,-151.821853});
+   auchg_ref.push_back({ 303.710240, 230.037088, 292.181659});
+   auchg_ref.push_back({-331.966875,-259.926399,-267.830151});
+   auchg_ref.push_back({ 203.312572, 139.706841, 202.374912});
+   auchg_ref.push_back({-168.227126,-137.612229,-151.805540});
+   austc_ref.push_back({-6.783206,-7.362798, 6.004690});
+   austc_ref.push_back({-0.582960,-0.508502, 0.445796});
+   austc_ref.push_back({ 0.000000, 0.000000, 0.000000});
+   austc_ref.push_back({ 0.000000, 0.000000, 0.000000});
+   austc_ref.push_back({-6.766177,-7.383621, 5.971236});
+   austc_ref.push_back({-0.582195,-0.504841, 0.448497});
+   austc_ref.push_back({ 0.000000, 0.000000, 0.000000});
+   austc_ref.push_back({ 0.000000, 0.000000, 0.000000});
+   auind_ref.push_back({-13.626743,-10.888829, 4.352743});
+   auind_ref.push_back({-11.936671, -7.998449, 2.410177});
+   auind_ref.push_back({  0.049248, -0.011254,-0.005858});
+   auind_ref.push_back({ -1.229316,  2.647885,-1.970117});
+   auind_ref.push_back({-13.665637,-10.910517, 4.225972});
+   auind_ref.push_back({-11.981849, -8.039010, 2.342266});
+   auind_ref.push_back({  0.048904, -0.010808,-0.005464});
+   auind_ref.push_back({ -1.247902,  2.631401,-1.920081});
+   avelo_ref.push_back({-0.245765,  3.852261,  13.515902});
+   avelo_ref.push_back({-9.901128,-29.294194, -93.776943});
+   avelo_ref.push_back({-4.357503,  3.194936,   2.389992});
+   avelo_ref.push_back({ 5.175468, -1.274002,  -3.399699});
+   avelo_ref.push_back({-0.326293,  3.941636,  14.252432});
+   avelo_ref.push_back({-4.246289,-28.927602,-104.687128});
+   avelo_ref.push_back({-4.468945,  3.446065,   2.327113});
+   avelo_ref.push_back({ 5.131407, -1.477522,  -3.369982});
+
+   auto uchg_tst = read_logfile_1(outputfn, " System Charge Dipole");
+   auto ustc_tst = read_logfile_1(outputfn, " System Static Dipole");
+   auto uind_tst = read_logfile_1(outputfn, " System Induced Dipole");
+   auto auchg_tst = read_logfile_2(outputfn, " Charge Dipole by Atom Type:");
+   auto austc_tst = read_logfile_2(outputfn, " Static Dipole by Atom Type:");
+   auto auind_tst = read_logfile_2(outputfn, " Induced Dipole by Atom Type:");
+   auto avelo_tst = read_logfile_2(outputfn, " Velocity by Atom Type:");
+
+   fileExistsAndDelete(outputfn);
+
+   for (int istep = 0; istep < nsteps; ++istep) {
+      for (int i = 0; i < 3; ++i) {
+         COMPARE_REALS(uchg_ref[istep][i], uchg_tst[istep][i], eps_u);
+         COMPARE_REALS(ustc_ref[istep][i], ustc_tst[istep][i], eps_u);
+         COMPARE_REALS(uind_ref[istep][i], uind_tst[istep][i], eps_u);
+      }
+   }
+
+   for (int istep = 0; istep < nsteps*4; ++istep) {
+      for (int i = 0; i < 3; ++i) {
+         COMPARE_REALS(auchg_ref[istep][i], auchg_tst[istep][i], eps_u);
+         COMPARE_REALS(austc_ref[istep][i], austc_tst[istep][i], eps_u);
+         COMPARE_REALS(auind_ref[istep][i], auind_tst[istep][i], eps_u);
+         COMPARE_REALS(avelo_ref[istep][i], avelo_tst[istep][i], eps_v);
+      }
+   }
+}
+
+TEST_CASE("TinkerNIST-EXC-MOMENT", "[ff][tinkerNIST]")
+{
+   int mask = calc::xyz | calc::vel | calc::mass | calc::energy | calc::grad | calc::md | calc::virial;
+
+   TestFile fx1(TINKER9_DIRSTR "/test/file/tinkernist/water30.xyz");
+   TestFile fd1(TINKER9_DIRSTR "/test/file/tinkernist/water30.dyn");
+   static const std::string savekey = "exc-moment -2677 2684\nsave-usystem\n";
+   TestFile fk1(TINKER9_DIRSTR "/test/file/tinkernist/water30.key", "", savekey + nocoord + nodyn);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/amoeba09.prm");
+   const char* xn = "water30.xyz";
+   static const std::string fn = "water30";
+
+   const double eps_u = 0.0001;
+   const double eps_v = 0.001;
+
+   const char* argv[] = {"dummy", xn};
+   int argc = 2;
+   testBeginWithArgs(argc, argv);
+   testMdInit(0.0, 0.0);
+
+   rc_flag = mask;
+   initialize();
+
+   int saved_stdout_fd = dup(fileno(stdout));
+   if (saved_stdout_fd == -1) {
+      throw std::runtime_error("Failed to duplicate stdout");
+   }
+   static const std::string outputfn = "output.log";
+   FILE* out = freopen(outputfn.c_str(), "w", stdout);
+   if (!out) {
+      close(saved_stdout_fd);
+      throw std::runtime_error("Failed to redirect stdout to " + outputfn);
+   }
+
+   // NVE
+   const double dt_ps = 0.001;
+   const int nsteps = 2;
+   int old = inform::iwrite;
+   inform::iwrite = 1;
+   VerletIntegrator vvi(ThermostatEnum::NONE, BarostatEnum::NONE);
+   for (int istep = 1; istep <= nsteps; ++istep) {
+      vvi.dynamic(istep, dt_ps);
+
+      // mdstat
+      bool save = (istep % inform::iwrite == 0);
+      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0)
+         bounds();
+      if (save) {
+         T_prec temp;
+         kinetic(temp);
+         mdsaveAsync(istep, dt_ps);
+      }
+      mdrest(istep);
+   }
+   mdsaveSynchronize();
+   inform::iwrite = old;
+
+   finish();
+   testEnd();
+
+   // run after testEnd(); to flush fortran buffer
+   fflush(stdout);
+   dup2(saved_stdout_fd, fileno(stdout));
+   close(saved_stdout_fd);
+
+   std::vector<std::array<double,3>> uchg_ref;
+   std::vector<std::array<double,3>> ustc_ref;
+   std::vector<std::array<double,3>> uind_ref;
+   uchg_ref.push_back({-28.238899,-29.845290, 24.516125});
+   uchg_ref.push_back({-28.256635,-29.889311, 24.351508});
+   ustc_ref.push_back({-7.366166,-7.871300,6.450486});
+   ustc_ref.push_back({-7.348372,-7.888462,6.419733});
+   uind_ref.push_back({-25.563414,-18.887278, 6.762920});
+   uind_ref.push_back({-25.647485,-18.949528, 6.568238});
+      
+   auto uchg_tst = read_logfile_1(outputfn, " System Charge Dipole");
+   auto ustc_tst = read_logfile_1(outputfn, " System Static Dipole");
+   auto uind_tst = read_logfile_1(outputfn, " System Induced Dipole");
+
+   fileExistsAndDelete(outputfn);
+
+   for (int istep = 0; istep < nsteps; ++istep) {
+      for (int i = 0; i < 3; ++i) {
+         COMPARE_REALS(uchg_ref[istep][i], uchg_tst[istep][i], eps_u);
+         COMPARE_REALS(ustc_ref[istep][i], ustc_tst[istep][i], eps_u);
+         COMPARE_REALS(uind_ref[istep][i], uind_tst[istep][i], eps_u);
+      }
+   }
 }
