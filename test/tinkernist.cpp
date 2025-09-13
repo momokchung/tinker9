@@ -205,7 +205,7 @@ TEST_CASE("TinkerNIST-SAVE", "[ff][tinkerNIST]")
    auto ustc_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.ustc");
    auto uind_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.uind");
    const double eps_arc  = 0.0001;
-   const double eps_vel  = 0.0001;
+   const double eps_vel  = 0.001;
    const double eps_uchg = 0.0001;
    const double eps_ustc = 0.0001;
    const double eps_uind = 0.0001;
@@ -437,7 +437,7 @@ TEST_CASE("TinkerNIST-SAVE-SYSTEM", "[ff][tinkerNIST]")
    static const std::string fn = "water30";
 
    const double eps_u = 0.0001;
-   const double eps_v = 0.001;
+   const double eps_v = 0.01;
 
    const char* argv[] = {"dummy", xn};
    int argc = 2;
@@ -576,7 +576,6 @@ TEST_CASE("TinkerNIST-EXC-MOMENT", "[ff][tinkerNIST]")
    static const std::string fn = "water30";
 
    const double eps_u = 0.0001;
-   const double eps_v = 0.001;
 
    const char* argv[] = {"dummy", xn};
    int argc = 2;

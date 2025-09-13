@@ -36,11 +36,12 @@ void epolarPairwiseExtfield_acc(const real (*uind)[3]) {
    real ex2 = extfld::texfld[1];
    real ex3 = extfld::texfld[2];
 
-   #pragma acc parallel loop independent async deviceptr(ep,uind)
+   #pragma acc parallel loop independent async deviceptr(ep,nep,uind)
    for (int i = 0; i < n; ++i) {
       int offset = i & (bufsize - 1);
       real e = uind[i][0] * ex1 + uind[i][1] * ex2 + uind[i][2] * ex3;
       atomic_add(f * e, ep, offset);
+      if (e != 0) atomic_add(1, nep, offset);
    }
 }
 }

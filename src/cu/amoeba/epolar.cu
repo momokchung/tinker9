@@ -30,13 +30,14 @@ void epolar0DotProd_cu(const real (*gpu_uind)[3], const real (*gpu_udirp)[3])
 }
 
 __global__
-static void epolarPairwiseExtfield_cu1(EnergyBuffer restrict ep, const real (*uind)[3], int n, real f, real ex1,
+static void epolarPairwiseExtfield_cu1(CountBuffer restrict nep, EnergyBuffer restrict ep, const real (*uind)[3], int n, real f, real ex1,
    real ex2, real ex3)
 {
    int ithread = ITHREAD;
    for (int i = ithread; i < n; i += STRIDE) {
       real e = uind[i][0] * ex1 + uind[i][1] * ex2 + uind[i][2] * ex3;
       atomic_add(f * e, ep, ithread);
+      if (e != 0) atomic_add(1, nep, ithread);
    }
 }
 
@@ -46,7 +47,7 @@ void epolarPairwiseExtfield_cu(const real (*uind)[3])
    real ex1 = extfld::texfld[0];
    real ex2 = extfld::texfld[1];
    real ex3 = extfld::texfld[2];
-   launch_k1b(g::s0, n, epolarPairwiseExtfield_cu1, ep, uind, n, f, ex1, ex2, ex3);
+   launch_k1b(g::s0, n, epolarPairwiseExtfield_cu1, nep, ep, uind, n, f, ex1, ex2, ex3);
 }
 }
 
