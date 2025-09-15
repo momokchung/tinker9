@@ -120,6 +120,7 @@ void empoleChgpen(int vers)
       else if (pentyp == Chgpen::GORDON2)
          empoleAplusNonEwald(vers, use_cfgrad);
    }
+   exfield(vers, 1);
    torque(vers, demx, demy, demz);
    if (use_cfgrad)
       dcflux(vers, demx, demy, demz, vir_em);
