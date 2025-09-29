@@ -1,4 +1,5 @@
 #include "ff/modamoeba.h"
+#include "ff/modhippo.h"
 #include "ff/energy.h"
 #include "ff/potent.h"
 #include "md/misc.h"
@@ -12,11 +13,13 @@
 #include <tinker/detail/atoms.hh>
 #include <tinker/detail/couple.hh>
 #include <tinker/detail/deriv.hh>
+#include <tinker/detail/expol.hh>
 #include <tinker/detail/files.hh>
 #include <tinker/detail/moldyn.hh>
 #include <tinker/detail/mpole.hh>
 #include <tinker/detail/output.hh>
 #include <tinker/detail/polar.hh>
+#include <tinker/detail/polpot.hh>
 #include <tinker/detail/titles.hh>
 #include <tinker/detail/units.hh>
 #include <tinker/routines.h>
@@ -35,19 +38,37 @@ static std::future<void> fut_dup_then_write;
 
 static bool mdsaveUseUind()
 {
-   return (static_cast<bool>(output::uindsave) or static_cast<bool>(output::usyssave)) and use(Potent::POLAR);
+   return (static_cast<bool>(output::uindsave) or static_cast<bool>(output::tefsave) or static_cast<bool>(output::usyssave)) and use(Potent::POLAR);
 }
 
 static bool mdsaveUseUstc()
 {
-   return static_cast<bool>(output::ustcsave) or static_cast<bool>(output::usyssave);
+   return static_cast<bool>(output::ustcsave) or static_cast<bool>(output::uchgsave) or static_cast<bool>(output::usyssave);
+}
+
+static bool mdsaveUseUdir()
+{
+   return (static_cast<bool>(output::udirsave) or static_cast<bool>(output::defsave)) and use(Potent::POLAR);
+}
+
+static bool mdsaveUseExpolUdir()
+{
+   return static_cast<bool>(polpot::use_expol) and static_cast<bool>(output::udirsave) and use(Potent::POLAR);
+}
+
+static bool mdsaveUseExpolTef()
+{
+   return static_cast<bool>(polpot::use_expol) and static_cast<bool>(output::tefsave) and use(Potent::POLAR);
 }
 
 #if TINKER_CUDART
 static cudaEvent_t mdsave_begin_event, mdsave_end_event;
 #endif
 static real (*dup_buf_uind)[3];
+static real (*dup_buf_udir)[3];
 static real (*dup_buf_rpole)[MPL_TOTAL];
+static real (*dup_buf_polinv)[3][3];
+static real (*dup_buf_polscale)[3][3];
 static energy_prec dup_buf_esum;
 static Box dup_buf_box;
 static pos_prec *dup_buf_x, *dup_buf_y, *dup_buf_z;
@@ -86,6 +107,15 @@ static void mdsaveDupThenWrite(int istep, time_prec dt)
 
    if (mdsaveUseUstc())
       darray::copy(g::q0, MPL_TOTAL * n, &dup_buf_rpole[0][0], &rpole[0][0]);
+
+   if (mdsaveUseUdir())
+      darray::copy(g::q0, 3 * n, &dup_buf_udir[0][0], &udir[0][0]);
+
+   if (mdsaveUseExpolUdir())
+      darray::copy(g::q0, 9 * n, &dup_buf_polinv[0][0][0], &polinv[0][0][0]);
+
+   if (mdsaveUseExpolTef())
+      darray::copy(g::q0, 9 * n, &dup_buf_polscale[0][0][0], &polscale[0][0][0]);
 
       // Record mdsave_begin_event when g::s0 is available.
       // g::s1 will wait until mdsave_begin_event is recorded.
@@ -175,6 +205,21 @@ static void mdsaveDupThenWrite(int istep, time_prec dt)
       }
    }
 
+   if (mdsaveUseUdir()) {
+      darray::copyout(g::q1, n, polar::udir, dup_buf_udir);
+      waitFor(g::q1);
+   }
+
+   if (mdsaveUseExpolUdir()) {
+      darray::copyout(g::q1, 9 * n, &expol::polinv[0], &dup_buf_polinv[0][0][0]);
+      waitFor(g::q1);
+   }
+
+   if (mdsaveUseExpolTef()) {
+      darray::copyout(g::q1, 9 * n, &expol::polscale[0], &dup_buf_polscale[0][0][0]);
+      waitFor(g::q1);
+   }
+
    // Record mdsave_end_event when g::s1 is available.
    // g::s0 will wait until mdsave_end_event is recorded, so that the dup_
    // arrays are idle and ready to be written.
@@ -227,6 +272,12 @@ void mdsaveData(RcOp op)
 
       if (mdsaveUseUstc()) darray::deallocate(dup_buf_rpole);
 
+      if (mdsaveUseUdir()) darray::deallocate(dup_buf_udir);
+
+      if (mdsaveUseExpolUdir()) darray::deallocate(dup_buf_polinv);
+
+      if (mdsaveUseExpolTef()) darray::deallocate(dup_buf_polscale);
+
       darray::deallocate(dup_buf_x, dup_buf_y, dup_buf_z);
       darray::deallocate(dup_buf_vx, dup_buf_vy, dup_buf_vz);
       darray::deallocate(dup_buf_gx, dup_buf_gy, dup_buf_gz);
@@ -250,6 +301,24 @@ void mdsaveData(RcOp op)
          darray::allocate(n, &dup_buf_rpole);
       } else {
          dup_buf_rpole = nullptr;
+      }
+
+      if (mdsaveUseUdir()) {
+         darray::allocate(n, &dup_buf_udir);
+      } else {
+         dup_buf_udir = nullptr;
+      }
+
+      if (mdsaveUseExpolUdir()) {
+         darray::allocate(n, &dup_buf_polinv);
+      } else {
+         dup_buf_polinv = nullptr;
+      }
+
+      if (mdsaveUseExpolTef()) {
+         darray::allocate(n, &dup_buf_polscale);
+      } else {
+         dup_buf_polscale = nullptr;
       }
 
       darray::allocate(n, &dup_buf_x, &dup_buf_y, &dup_buf_z);
