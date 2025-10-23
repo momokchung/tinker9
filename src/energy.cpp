@@ -172,6 +172,48 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
    ecore_vdw = false;
    ecore_ele = false;
 
+   // non-bonded terms
+
+   if (amoeba_epolar(vers))
+      if (tscfg("epolar", ecore_ele))
+         epolar(vers);
+   if (amoeba_emplar(vers))
+      if (tscfg("emplar", ecore_ele))
+         emplar(vers);
+   if (hippo_epolar(vers))
+      if (tscfg("epolarChgpen", ecore_ele))
+         epolarChgpen(vers);
+
+   if (amoeba_evdw(vers))
+      if (tscfg("evdw", ecore_vdw))
+         evdw(vers);
+
+   if (amoeba_echarge(vers))
+      if (tscfg("echarge", ecore_ele))
+         echarge(vers);
+   if (amoeba_echglj(vers))
+      if (tscfg("echglj", ecore_ele)) {
+         ecore_vdw = true;
+         echglj(vers);
+      }
+
+   if (amoeba_empole(vers))
+      if (tscfg("empole", ecore_ele))
+         empole(vers);
+
+   if (hippo_empole(vers))
+      if (tscfg("empoleChgpen", ecore_ele))
+         empoleChgpen(vers);
+   if (use(Potent::CHGTRN))
+      if (tscfg("echgtrn", ecore_ele))
+         echgtrn(vers);
+   if (use(Potent::DISP))
+      if (tscfg("edisp", ecore_vdw))
+         edisp(vers);
+   if (use(Potent::REPULS))
+      if (tscfg("erepel", ecore_vdw))
+         erepel(vers);
+
    if (pltfm_config & Platform::CUDA) {
       bool calc_val = use(Potent::BOND) or use(Potent::ANGLE) or use(Potent::STRBND) or use(Potent::UREY)
          or use(Potent::OPBEND) or use(Potent::IMPROP) or use(Potent::IMPTORS) or use(Potent::TORSION)
@@ -225,47 +267,6 @@ void energy_core(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
          if (tscfg("egeom", ecore_val))
             egeom(vers);
    }
-
-   // non-bonded terms
-
-   if (amoeba_evdw(vers))
-      if (tscfg("evdw", ecore_vdw))
-         evdw(vers);
-
-   if (amoeba_echarge(vers))
-      if (tscfg("echarge", ecore_ele))
-         echarge(vers);
-   if (amoeba_echglj(vers))
-      if (tscfg("echglj", ecore_ele)) {
-         ecore_vdw = true;
-         echglj(vers);
-      }
-
-   if (amoeba_empole(vers))
-      if (tscfg("empole", ecore_ele))
-         empole(vers);
-   if (amoeba_epolar(vers))
-      if (tscfg("epolar", ecore_ele))
-         epolar(vers);
-   if (amoeba_emplar(vers))
-      if (tscfg("emplar", ecore_ele))
-         emplar(vers);
-
-   if (hippo_empole(vers))
-      if (tscfg("empoleChgpen", ecore_ele))
-         empoleChgpen(vers);
-   if (hippo_epolar(vers))
-      if (tscfg("epolarChgpen", ecore_ele))
-         epolarChgpen(vers);
-   if (use(Potent::CHGTRN))
-      if (tscfg("echgtrn", ecore_ele))
-         echgtrn(vers);
-   if (use(Potent::DISP))
-      if (tscfg("edisp", ecore_vdw))
-         edisp(vers);
-   if (use(Potent::REPULS))
-      if (tscfg("erepel", ecore_vdw))
-         erepel(vers);
 
    pmeStreamFinishWait(use_pme_stream and not static_cast<bool>(vers & calc::analyz));
 

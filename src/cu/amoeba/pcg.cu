@@ -5,12 +5,38 @@
 #include "seq/launch.h"
 #include "tool/error.h"
 #include "tool/ioprint.h"
+#include <tinker/detail/atoms.hh>
 #include <tinker/detail/inform.hh>
 #include <tinker/detail/polpcg.hh>
 #include <tinker/detail/polpot.hh>
 #include <tinker/detail/units.hh>
+#include <random>
 
 namespace tinker {
+int nwiggle = 0;
+std::array<double, 3> ranvec()
+{
+   static thread_local std::mt19937_64 rng(std::random_device{}());
+   static thread_local std::uniform_real_distribution<double> dist(-1.0, 1.0);
+
+   double x, y, s;
+
+   // Step 1: Choose (x, y) uniformly in the unit circle
+   do {
+      x = dist(rng);
+      y = dist(rng);
+      s = x*x + y*y;
+   } while (s >= 1.0 || s == 0.0);
+
+   // Step 2: Map to unit sphere
+   double z = 1.0 - 2.0*s;
+   double scale = 2.0 * std::sqrt(1.0 - s);
+
+   std::array<double, 3> v { scale * x, scale * y, z };
+
+   return v;
+}
+
 void induceMutualPcg1_cu(real (*uind)[3], real (*uinp)[3])
 {
    auto* field = work01_;
@@ -180,7 +206,26 @@ void induceMutualPcg1_cu(real (*uind)[3], real (*uinp)[3])
    // terminate the calculation if dipoles failed to converge
    if (iter >= maxiter) {
       printError();
-      TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged");
+      print(stdout, "INDUCE  --  Warning, Induced Dipoles are not Converged. Trying wiggle.\n");
+      print(stdout, "First atom position: %12.6f%12.6f%12.6f\n", atoms::x[0], atoms::y[0], atoms::z[0]);
+      real delta = 1.0e-6;
+      for (int i = 0; i < n; ++i) {
+         auto v = ranvec();
+         atoms::x[i] = atoms::x[i] + delta*v[0];
+         atoms::y[i] = atoms::y[i] + delta*v[1];
+         atoms::z[i] = atoms::z[i] + delta*v[2];
+      }
+      print(stdout, "First atom position: %12.6f%12.6f%12.6f\n", atoms::x[0], atoms::y[0], atoms::z[0]);
+      darray::copyin(g::q0, n, xpos, atoms::x);
+      darray::copyin(g::q0, n, ypos, atoms::y);
+      darray::copyin(g::q0, n, zpos, atoms::z);
+      copyPosToXyz(true);
+      nwiggle++;
+      if (nwiggle>=3) {
+         TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged. Tried wiggle 3 times.");
+      }
+      induceMutualPcg1_cu(uind, uinp);
    }
+   nwiggle = 0;
 }
 }
