@@ -208,7 +208,7 @@ void induceMutualPcg1_cu(real (*uind)[3], real (*uinp)[3])
       printError();
       print(stdout, "INDUCE  --  Warning, Induced Dipoles are not Converged. Trying wiggle.\n");
       print(stdout, "First atom position: %12.6f%12.6f%12.6f\n", atoms::x[0], atoms::y[0], atoms::z[0]);
-      real delta = 1.0e-6;
+      real delta = 5.0e-5;
       for (int i = 0; i < n; ++i) {
          auto v = ranvec();
          atoms::x[i] = atoms::x[i] + delta*v[0];
