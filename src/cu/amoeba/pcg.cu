@@ -10,6 +10,7 @@
 #include <tinker/detail/polpcg.hh>
 #include <tinker/detail/polpot.hh>
 #include <tinker/detail/units.hh>
+#include <algorithm>
 #include <random>
 
 namespace tinker {
@@ -206,23 +207,46 @@ void induceMutualPcg1_cu(real (*uind)[3], real (*uinp)[3])
    // terminate the calculation if dipoles failed to converge
    if (iter >= maxiter) {
       printError();
-      print(stdout, "INDUCE  --  Warning, Induced Dipoles are not Converged. Trying wiggle.\n");
-      print(stdout, "First atom position: %12.6f%12.6f%12.6f\n", atoms::x[0], atoms::y[0], atoms::z[0]);
-      real delta = 5.0e-5;
+      real delta;
+      if (nwiggle==0) delta = 1.0e-5;
+      else if (nwiggle==1) delta = 5.0e-5;
+      else if (nwiggle==2) delta = 1.0e-4;
+      else if (nwiggle==3) delta = 5.0e-4;
+      else if (nwiggle==4) delta = 1.0e-3;
+      std::vector<int> idx(n);
+      std::vector<real> rsd_cpu(3*n), rsdp_cpu(3*n), rsd_sq(n);
+      darray::copyout(g::q0, 3*n, rsd_cpu.data(), &rsd[0][0]);
+      darray::copyout(g::q0, 3*n, rsdp_cpu.data(), &rsdp[0][0]);
+      for (int i = 0; i < n; ++i) {
+         idx[i] = i;
+         real _sq = 0.;
+         real _psq = 0.;
+         for (int j = 0; j < 3; ++j) {
+            _sq += rsd_cpu[3*i+j]*rsd_cpu[3*i+j];
+            _psq += rsdp_cpu[3*i+j]*rsdp_cpu[3*i+j];
+         }
+         rsd_sq[i] = std::max(_sq, _psq);
+      }
+      std::sort(idx.begin(), idx.end(), [&](int i1, int i2) {return rsd_sq[i1]>rsd_sq[i2];});
+      print(stdout, "INDUCE  --  Warning, Induced Dipoles are not Converged.\n");
+      print(stdout, "Top %i largest residual values:\n", std::min(n, 5));
+      for (int i = 0; i < std::min(n, 5); ++i) {
+         print(stdout, "Index: %6i, Residual: %.2e.\n", idx[i], rsd_sq[idx[i]]);
+      }
+      print(stdout, "Trying wiggle by %.2e.\n", delta);
       for (int i = 0; i < n; ++i) {
          auto v = ranvec();
          atoms::x[i] = atoms::x[i] + delta*v[0];
          atoms::y[i] = atoms::y[i] + delta*v[1];
          atoms::z[i] = atoms::z[i] + delta*v[2];
       }
-      print(stdout, "First atom position: %12.6f%12.6f%12.6f\n", atoms::x[0], atoms::y[0], atoms::z[0]);
       darray::copyin(g::q0, n, xpos, atoms::x);
       darray::copyin(g::q0, n, ypos, atoms::y);
       darray::copyin(g::q0, n, zpos, atoms::z);
       copyPosToXyz(true);
       nwiggle++;
-      if (nwiggle>=3) {
-         TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged. Tried wiggle 3 times.");
+      if (nwiggle>=5) {
+         TINKER_THROW("INDUCE  --  Warning, Induced Dipoles are not Converged. Tried wiggle 5 times.");
       }
       induceMutualPcg1_cu(uind, uinp);
    }
