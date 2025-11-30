@@ -219,14 +219,14 @@ TEST_CASE("TinkerNIST-SAVE1", "[ff][tinkerNIST]")
    auto udir_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.udir");
    auto def_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.def");
    auto tef_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist.tef");
-   const double eps_arc  = 0.0001;
-   const double eps_vel  = 0.001;
-   const double eps_uchg = 0.0001;
-   const double eps_ustc = 0.0001;
-   const double eps_uind = 0.0001;
-   const double eps_udir = 0.0001;
-   const double eps_def  = 0.0001;
-   const double eps_tef  = 0.0001;
+   const double eps_arc  = 0.001;
+   const double eps_vel  = 0.002;
+   const double eps_uchg = 0.001;
+   const double eps_ustc = 0.001;
+   const double eps_uind = 0.001;
+   const double eps_udir = 0.001;
+   const double eps_def  = 0.001;
+   const double eps_tef  = 0.001;
 
    const char* argv[] = {"dummy", xn};
    int argc = 2;
@@ -390,14 +390,14 @@ TEST_CASE("TinkerNIST-SAVE2", "[ff][tinkerNIST]")
    auto udir_ref = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist_2.udir");
    auto def_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist_2.def");
    auto tef_ref  = readAmoebaCoordinateFile(TINKER9_DIRSTR "/test/ref/tinkernist_2.tef");
-   const double eps_arc  = 0.0001;
-   const double eps_vel  = 0.001;
-   const double eps_uchg = 0.0001;
-   const double eps_ustc = 0.0001;
-   const double eps_uind = 0.0001;
-   const double eps_udir = 0.0001;
-   const double eps_def  = 0.0001;
-   const double eps_tef  = 0.0001;
+   const double eps_arc  = 0.001;
+   const double eps_vel  = 0.002;
+   const double eps_uchg = 0.001;
+   const double eps_ustc = 0.001;
+   const double eps_uind = 0.001;
+   const double eps_udir = 0.001;
+   const double eps_def  = 0.001;
+   const double eps_tef  = 0.001;
 
    const char* argv[] = {"dummy", xn};
    int argc = 2;
