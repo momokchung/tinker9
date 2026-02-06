@@ -112,14 +112,6 @@ void mdIntegrateData(RcOp op)
          }
       }
 
-      // only allow Montecarlo or anisotropic barostat
-      // for NPT + extfield simulation
-      if (bath::isothermal and bath::isobaric and extfld::use_exfld) {
-         if (barostat!=BarostatEnum::MONTECARLO and bath::anisotrop==false) {
-            TINKER_THROW("NPT with External Field Should Use MonteCarlo or Anisotropic Barostat.");
-         }
-      }
-
       intg = nullptr;
       if (integrator == IntegratorEnum::RESPA)
          intg = new RespaIntegrator(thermostat, barostat);
