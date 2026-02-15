@@ -4,8 +4,6 @@
 #include <vector>
 
 namespace tinker {
-/// Total energy of the intermolecular neural network terms.
-TINKER_EXTERN energy_prec energy_nnintermol;
 void ennintermol_cu(int vers);
 
 /// Computes the neural network correction to metal ions

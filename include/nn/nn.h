@@ -6,6 +6,7 @@
 #include "ff/molecule.h"
 #include "ff/energybuffer.h"
 #include "ff/spatial.h"
+#include "ff/image.h"
 #include <memory>
 #include <vector>
 
@@ -39,7 +40,7 @@ class AtomicEnvironmentVectorLayer
 {
 private:
     int max_atomic = 128;
-    int max_nb = 512;
+    int max_nb;
     // AEV parameters
     // radial term, 
     // R_m_* for radial bins.
@@ -194,6 +195,18 @@ TINKER_EXTERN grad_prec* gz_tmp;
 void nnData(RcOp);
 // int getNGrpsNN(const std::string &potential_type);
 
+// options to forcefully use float3 or double3 from cuda runtime
+#if TINKER_REAL_SIZE == 8
+using cuda_real3 = ::double3;
+#elif TINKER_REAL_SIZE == 4
+using cuda_real3 = ::float3;
+#endif
+#define TINKER_IMAGE_LVEC_ARGS_CU    reinterpret_cast<cuda_real3&>(lvec1), reinterpret_cast<cuda_real3&>(lvec2), reinterpret_cast<cuda_real3&>(lvec3)
+#define TINKER_IMAGE_RECIP_ARGS_CU   reinterpret_cast<cuda_real3&>(recipa), reinterpret_cast<cuda_real3&>(recipb), reinterpret_cast<cuda_real3&>(recipc)
+#define TINKER_IMAGE_ARGS_CU         box_shape, TINKER_IMAGE_LVEC_ARGS_CU, TINKER_IMAGE_RECIP_ARGS_CU
+#define TINKER_IMAGE_LVEC_PARAMS_CU  cuda_real3 lvec1, cuda_real3 lvec2, cuda_real3 lvec3
+#define TINKER_IMAGE_RECIP_PARAMS_CU cuda_real3 recipa, cuda_real3 recipb, cuda_real3 recipc
+#define TINKER_IMAGE_PARAMS_CU       BoxShape box_shape, TINKER_IMAGE_LVEC_PARAMS_CU, TINKER_IMAGE_RECIP_PARAMS_CU
 
 #define AEV_PARAMS                                                                       \
     /* basic atom info */                                                                \
@@ -203,6 +216,7 @@ void nnData(RcOp);
     int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,             \
     const int* restrict lst, const Spatial::SortedAtom* restrict sorted,                 \
     int max_nb,                                                                          \
+    /* box info */ TINKER_IMAGE_PARAMS_CU,                                                  \
     /* nn parameters */ int ngrps_nn, const int* restrict grps_nn,                       \
     /* aev parameters */                                                                 \
     int naev, real* restrict iaev, int laev, int natomic_covered,                        \
@@ -213,13 +227,14 @@ void nnData(RcOp);
     /* gradient data */ const real* dZp, grad_prec* restrict denn_x,                     \
     grad_prec* restrict denn_y, grad_prec* restrict denn_z,                              \
     const int* restrict nblist_rad, const int* restrict nblist_ang,                      \
-    const int* restrict atomid_local2global, \
+    const int* restrict atomid_local2global,                                             \
     EnergyBuffer restrict ebuf
     // /* gradient data */ real** dZx, real** dZy, real** dZz
 
 #define AEV_ARGS                                                                    \
     /* basic atom info */ n, x, y, z, grplist, atomic,                              \
     /* neighbor list */ nakpl, iakpl, niak, iak, lst, sorted, max_nb,               \
+    /* box info */ TINKER_IMAGE_ARGS,                                               \
     /* nn parameters */ ngrps_nn, grps_nn,                                          \
     /* aev parameters */ naev, iaev, laev, natomic_covered,                         \
     atomic2species, atomid_global2local,                                            \
@@ -238,20 +253,22 @@ void aev_cu(int vers, AEV_PARAMS);
     /* neighbor list */                                                                  \
     int nakpl, const int* restrict iakpl, int niak, const int* restrict iak,             \
     const int* restrict lst, const Spatial::SortedAtom* restrict sorted,                 \
+    /* box info */ TINKER_IMAGE_PARAMS_CU,                                                  \
     /* nn parameters */ int ngrps_nn, const int* restrict grps_nn,                       \
     /* aev parameters */                                                                 \
     int naev, int max_nb, const int* restrict atomid_global2local,                       \
     real R_m_c, real R_q_c, int* nblist_rad, int* nblist_ang,                            \
     int* nblist_rad_count, int* nblist_ang_count, int topo_cutoff,                       \
-    const int* restrict topo_flags
+    const int* restrict topo_flags, const int* restrict atomic2species
 
 #define NBLIST_ARGS                                                                    \
     /* basic atom info */ n, x, y, z, grplist, atomic,                              \
     /* neighbor list */ nakpl, iakpl, niak, iak, lst, sorted,                       \
+    /* box info */ TINKER_IMAGE_ARGS,                                               \
     /* nn parameters */ ngrps_nn, grps_nn,                                          \
     /* aev parameters */ naev, max_nb, atomid_global2local, R_m_c, R_q_c,           \
     nblist_rad, nblist_ang, nblist_rad_count, nblist_ang_count, topo_cutoff,        \
-    topo_flags
+    topo_flags, atomic2species
 
 void ref_nblist_cu(NBLIST_PARAMS);
 

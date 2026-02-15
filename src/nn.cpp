@@ -169,6 +169,12 @@ AtomicEnvironmentVectorLayer::AtomicEnvironmentVectorLayer(const std::vector<rea
    }
    natomic_covered = atomic_covered.size();
    laev = natomic_covered * R_m_d + natomic_covered * (natomic_covered + 1) / 2 * R_q_d * theta_p_d;
+   // calculate max_nb based on cutoff radii
+   if (R_m_c > R_q_c) {
+      max_nb = (int) ((1.5 * R_m_c * R_m_c * R_m_c) + 31) / 32 * 32;
+   } else {
+      max_nb = (int) ((1.5 * R_q_c * R_q_c * R_q_c) + 31) / 32 * 32;
+   }
 }
 
 void AtomicEnvironmentVectorLayer::allocate(const std::vector<int> &nnatoms)
@@ -201,39 +207,12 @@ void AtomicEnvironmentVectorLayer::allocate(const std::vector<int> &nnatoms)
       darray::allocate(topo_flags_size, &topo_flags);
    }
 
-   // darray::allocate(n * naev * laev, &dZx, &dZy, &dZz);
-
-   // darray::allocate(n, &dZx, &dZy, &dZz);
-   // for (int i = 0; i < n; ++i) {
-   //    real *dZx_i, *dZy_i, *dZz_i;
-   //    darray::allocate(naev * laev, &dZx_i, &dZy_i, &dZz_i);
-   //    dZx_host.push_back(dZx_i);
-   //    dZy_host.push_back(dZy_i);
-   //    dZz_host.push_back(dZz_i);
-   // }
-   // darray::copyin(g::q0, n, dZx, dZx_host.data());
-   // darray::copyin(g::q0, n, dZy, dZy_host.data());
-   // darray::copyin(g::q0, n, dZz, dZz_host.data());
-   // waitFor(g::q0);
-
-   // darray::allocate(n * naev * laev, &dZy);
-   // darray::allocate(n * naev * laev, &dZz);
-   // darray::allocate(naev * naev * laev, &dZx);
-   // darray::allocate(naev * naev * laev, &dZy);
-   // darray::allocate(naev * naev * laev, &dZz);
-   // darray::allocate(naev * laev, &dZx);
-   // darray::allocate(naev * laev, &dZy);
-   // darray::allocate(naev * laev, &dZz);
 }
 
 void AtomicEnvironmentVectorLayer::deallocate()
 {
    darray::deallocate(R_m, R_q, theta_p, iaev, atomid_global2local, 
       atomid_local2global, atomic2species);
-   // for (int i = 0; i < n; ++i) {
-   //    darray::deallocate(dZx_host[i], dZy_host[i], dZz_host[i]);
-   // }
-   // darray::deallocate(dZx, dZy, dZz);
    darray::deallocate(dZp);
    darray::deallocate(nblist_rad, nblist_ang, nblist_ang_count, nblist_rad_count);
    if (topo_cutoff > 0) {
@@ -353,35 +332,24 @@ void AtomicEnvironmentVectorLayer::forward(int vers, const int ngrps_nn, const i
    darray::zero(g::q0, naev, nblist_rad_count, nblist_ang_count);
    darray::copyin(g::q0, nblist_init.size(), nblist_rad, nblist_init.data());
    darray::copyin(g::q0, nblist_init.size(), nblist_ang, nblist_init.data());
-   // if (vers & calc::grad) {
-   //    for (int i = 0; i < n; ++i) {
-   //       darray::zero(g::q0, naev * laev, dZx_host[i]);
-   //       darray::zero(g::q0, naev * laev, dZy_host[i]);
-   //       darray::zero(g::q0, naev * laev, dZz_host[i]);
-   //    }
-      // darray::zero(g::q0, naev * naev * laev, dZx);
-      // darray::zero(g::q0, naev * naev * laev, dZy);
-      // darray::zero(g::q0, naev * naev * laev, dZz);
-      // darray::zero(g::q0, naev * laev, dZx);
-      // darray::zero(g::q0, naev * laev, dZy);
-      // darray::zero(g::q0, naev * laev, dZz);
-   // }
+
    ref_nblist_cu(n, x, y, z, grp.grplist, atomic,
    (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
    (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted,
+   TINKER_IMAGE_ARGS_CU,
    ngrps_nn, grps_nn, 
    naev, max_nb, atomid_global2local, R_m_c, R_q_c, nblist_rad, nblist_ang,
-   nblist_rad_count, nblist_ang_count, topo_cutoff, topo_flags);
+   nblist_rad_count, nblist_ang_count, topo_cutoff, topo_flags, atomic2species);
 
    aev_cu(vers, n, x, y, z, grp.grplist, atomic, 
    (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
    (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted, 
    max_nb,
+   TINKER_IMAGE_ARGS_CU,
    ngrps_nn, grps_nn, 
    naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
    R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,
    nullptr, nullptr, nullptr, nullptr, nblist_rad, nblist_ang, atomid_local2global, enn);
-   // dZx, dZy, dZz);
 
 }
 
@@ -393,6 +361,7 @@ void AtomicEnvironmentVectorLayer::gradient(int vers,
    (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
    (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted, 
    max_nb,
+   TINKER_IMAGE_ARGS_CU,
    ngrps_nn, grps_nn, 
    naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
    R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,

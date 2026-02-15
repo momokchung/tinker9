@@ -76,11 +76,11 @@ void ennmetalData(RcOp op)
       }
 
       // test if rc_a, whether eng_buf is always null.
-      ennmet = eng_buf;
-      vir_ennmet = vir_buf;
-      dennmet_x = gx;
-      dennmet_y = gy;
-      dennmet_z = gz;
+      ennmet = eng_buf_nnintermol;
+      vir_ennmet = vir_buf_nnintermol;
+      dennmet_x = gx_nnintermol;
+      dennmet_y = gy_nnintermol;
+      dennmet_z = gz_nnintermol;
       if (rc_a)
          bufferAllocate(rc_flag, &ennmet, &vir_ennmet, &dennmet_x, &dennmet_y, &dennmet_z);
       darray::allocate(n, &gx_tmp, &gy_tmp, &gz_tmp);
@@ -162,8 +162,9 @@ void ennintermol_cu(int vers)
          // for (int iv = 0; iv < 9; ++iv)
          //    virial_valence[iv] += virial_eb[iv];
       }
-      if (do_g)
-         sumGradient(gx, gy, gz, dennmet_x, dennmet_y, dennmet_z);
+      if (do_g) {
+         sumGradient(gx_nnintermol, gy_nnintermol, gz_nnintermol, dennmet_x, dennmet_y, dennmet_z);
+      }
    }
 }
 

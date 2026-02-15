@@ -25,7 +25,6 @@ void ref_nblist_cu1(NBLIST_PARAMS)
     __shared__ real xj[BLOCK_DIM], yj[BLOCK_DIM], zj[BLOCK_DIM];
     __shared__ int aj[BLOCK_DIM], gj[BLOCK_DIM];
     __shared__ int incl_block[BLOCK_DIM / WARP_SIZE];
-    // TODO use shared memory to store the atomic species and aevid and lst. use registrar to store aev constants
 
     for (int task_num = 0; task_num < 2; task_num++){
         // task_num = 0: self-self , 
@@ -88,20 +87,6 @@ void ref_nblist_cu1(NBLIST_PARAMS)
             zj[threadIdx.x] = z[j];
             __syncwarp();
 
-            // int nbcount_rad, nbcount_ang;
-            // for (int nb = 0; nb < max_nb; nb++){
-            //     if (nblist_rad[atomid_global2local[i] * max_nb + nb] == -1){
-            //         nbcount_rad = nb;
-            //         break;
-            //     }
-            // }
-            // for (int nb = 0; nb < max_nb; nb++){
-            //     if (nblist_ang[atomid_global2local[i] * max_nb + nb] == -1){
-            //         nbcount_ang = nb;
-            //         break;
-            //     }
-            // }
-
             // iterate over neighbors, which are denoted by jj; jj is shorten to j in variable names for simplicity if there is no confusion. 
             for (int jj = 0; jj < WARP_SIZE; ++jj) {
                 // first, compute radial terms for i-j,
@@ -118,6 +103,9 @@ void ref_nblist_cu1(NBLIST_PARAMS)
                     incl_ij = incl_ij and j_sorted >= 0;
                 }
                 j = sorted[j_sorted].unsorted;  // set j to the unsorted atom index for the current jj
+                if (atomic2species[atomic[j]] == -1) {   // remove the atoms not in atomic_covered
+                    incl_ij = false;
+                }
                 int x = atomid_global2local[i], y = atomid_global2local[j];
                 int tri = xy_to_tri(max(x, y), min(x, y));
                 // only use topo flags when topo_cutoff is set to > 0.
@@ -133,8 +121,8 @@ void ref_nblist_cu1(NBLIST_PARAMS)
                 real xrj = xj[gjjlane] - xi;
                 real yrj = yj[gjjlane] - yi;
                 real zrj = zj[gjjlane] - zi;
-                // real rj2 = image2(xrj, yrj, zrj);
-                real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;  
+                real rj2 = image2(xrj, yrj, zrj);
+                // real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;  
 
                 if (R_m_c >= R_q_c) {
                     if (rj2 < R_q_c * R_q_c) {
@@ -210,8 +198,8 @@ void aev_cu1(AEV_PARAMS)
         real xrj = xj - xi;
         real yrj = yj - yi;
         real zrj = zj - zi;
-        // real rj2 = image2(xrj, yrj, zrj);
-        real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;
+        real rj2 = image2(xrj, yrj, zrj);
+        // real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;
 
         real rj = REAL_SQRT(rj2);
         real inv_rj = REAL_RECIP(rj);
@@ -258,8 +246,8 @@ void aev_cu1(AEV_PARAMS)
             real xrk = x[k] - xi;
             real yrk = y[k] - yi;
             real zrk = z[k] - zi;
-            // real rk2 = image2(xrk, yrk, zrk);
-            real rk2 = xrk * xrk + yrk * yrk + zrk * zrk;
+            real rk2 = image2(xrk, yrk, zrk);
+            // real rk2 = xrk * xrk + yrk * yrk + zrk * zrk;
 
             // a b c -> j i k
             real xp = yrk * zrj - zrk * yrj;
@@ -399,8 +387,8 @@ void aev_cu1(AEV_PARAMS)
         real xrj = xj - xi;
         real yrj = yj - yi;
         real zrj = zj - zi;
-        // real rj2 = image2(xrj, yrj, zrj);
-        real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;
+        real rj2 = image2(xrj, yrj, zrj);
+        // real rj2 = xrj * xrj + yrj * yrj + zrj * zrj;
 
         real rj = REAL_SQRT(rj2);
         real inv_rj = REAL_RECIP(rj);
