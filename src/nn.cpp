@@ -96,6 +96,9 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
 void nnData(RcOp op)
 {
    if (op & RcOp::INIT) {
+      // clear the nnps and nnterms first, in case of re-initialization
+      nnps.clear();
+      nnterms.clear();
       // read in the prms from prm file and key file
       nnReadPrm(params::prmline, params::nprm);
       nnReadPrm(keys::keyline, keys::nkey);
