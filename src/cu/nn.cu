@@ -346,6 +346,10 @@ void aev_cu1(AEV_PARAMS)
                         dxj += dGA_ijkpq_dxj;
                         dyj += dGA_ijkpq_dyj;
                         dzj += dGA_ijkpq_dzj;
+
+                        dGA_ijkpq_dxk *= nnlambda;
+                        dGA_ijkpq_dyk *= nnlambda;
+                        dGA_ijkpq_dzk *= nnlambda;
                         atomic_add(dGA_ijkpq_dxk, denn_x, k);
                         atomic_add(dGA_ijkpq_dyk, denn_y, k);
                         atomic_add(dGA_ijkpq_dzk, denn_z, k);
@@ -354,6 +358,12 @@ void aev_cu1(AEV_PARAMS)
             }
         }
         if (do_g) {
+            dxi *= nnlambda;
+            dyi *= nnlambda;
+            dzi *= nnlambda;
+            dxj *= nnlambda;
+            dyj *= nnlambda;
+            dzj *= nnlambda;
             atomic_add(dxi, denn_x, i);
             atomic_add(dyi, denn_y, i);
             atomic_add(dzi, denn_z, i);
@@ -423,6 +433,12 @@ void aev_cu1(AEV_PARAMS)
             }
         }
         if (do_g) {
+            dxi *= nnlambda;
+            dyi *= nnlambda;
+            dzi *= nnlambda;
+            dxj *= nnlambda;
+            dyj *= nnlambda;
+            dzj *= nnlambda;
             atomic_add(dxi, denn_x, i);
             atomic_add(dyi, denn_y, i);
             atomic_add(dzi, denn_z, i);
@@ -519,49 +535,20 @@ void elem_add_cu(ELEM_ADD_PARAMS)
     elem_add_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(ELEM_ADD_ARGS);
 }
 
-
-__global__ void aev_grad_cu1(AEV_GRAD_PARAMS)
-{
-    const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
-    const int stride = blockDim.x * gridDim.x;
-
-    for (int i = ithread; i < n; i += stride) {
-        real grad_x = 0, grad_y = 0, grad_z = 0;
-        real* dZxi = dZx[i] + offset;
-        real* dZyi = dZy[i] + offset;
-        real* dZzi = dZz[i] + offset;
-        for (int ii = 0; ii < in_dim0 * laev; ii++) {
-            grad_x += dZxi[ii] * dZp[ii];
-            grad_y += dZyi[ii] * dZp[ii];
-            grad_z += dZzi[ii] * dZp[ii];
-        }
-        atomic_add(grad_x, denn_x, i);
-        atomic_add(grad_y, denn_y, i);
-        atomic_add(grad_z, denn_z, i);
-    }
-}
-
-
-void aev_grad_cu(AEV_GRAD_PARAMS)
-{
-    int ngrid = gpuGridSize(BLOCK_DIM);
-    aev_grad_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(AEV_GRAD_ARGS);
-}
-
-__global__ void addToEneBuf_cu1(EnergyBuffer restrict ebuf, const real* restrict Z, int length)
+__global__ void addToEneBuf_cu1(EnergyBuffer restrict ebuf, const real* restrict Z, int length, real nnlambda)
 { // make it universal for ene, grad, and virial, and simplify it.
     const int ithread = threadIdx.x + blockIdx.x * blockDim.x;
     const int stride = blockDim.x * gridDim.x;
     for (int i = ithread; i < length; i += stride) {
-        atomic_add(Z[i], ebuf, ithread);
+        atomic_add(Z[i] * nnlambda, ebuf, ithread);
     }
 }
 
 
-void addToEneBuf_cu(int vers, EnergyBuffer restrict enn, const real* restrict Z, int length)
+void addToEneBuf_cu(int vers, EnergyBuffer restrict enn, const real* restrict Z, int length, real nnlambda)
 {
     int ngrid = gpuGridSize(BLOCK_DIM);
-    addToEneBuf_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(enn, Z, length);
+    addToEneBuf_cu1<<<ngrid, BLOCK_DIM, 0, g::s0>>>(enn, Z, length, nnlambda);
 }
 
 

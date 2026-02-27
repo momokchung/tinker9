@@ -187,6 +187,7 @@ TINKER_EXTERN std::vector<NeuralNetworkPotential> nnps;  // array of neural netw
 TINKER_EXTERN std::vector<std::vector<std::string>> nnterms;  // array of nnterms defined in the prm/key file, `nnterm` is a keyword for assigning which nnp to use for which group of atoms.
 TINKER_EXTERN bool use_nnvalence;
 TINKER_EXTERN bool use_nnmetal;
+TINKER_EXTERN real nnlambda;  // lambda value for all nn terms
 // grad data arrays for temp use
 TINKER_EXTERN grad_prec* gx_tmp;
 TINKER_EXTERN grad_prec* gy_tmp;
@@ -228,7 +229,7 @@ using cuda_real3 = ::float3;
     grad_prec* restrict denn_y, grad_prec* restrict denn_z,                              \
     const int* restrict nblist_rad, const int* restrict nblist_ang,                      \
     const int* restrict atomid_local2global,                                             \
-    EnergyBuffer restrict ebuf
+    EnergyBuffer restrict ebuf, real nnlambda
     // /* gradient data */ real** dZx, real** dZy, real** dZz
 
 #define AEV_ARGS                                                                    \
@@ -241,7 +242,7 @@ using cuda_real3 = ::float3;
     R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p, \
     /* gradient data */ dZp, denn_x, denn_y, denn_z, nblist_rad, nblist_ang,        \
     atomid_local2global,  \
-    ebuf
+    ebuf, nnlambda
     // /* gradient data */ dZx, dZy, dZz
 
 void aev_cu(int vers, AEV_PARAMS);
@@ -294,18 +295,7 @@ void elem_mul_cu(ELEM_MUL_PARAMS);
 
 void elem_add_cu(ELEM_ADD_PARAMS);
 
-#define AEV_GRAD_PARAMS   \
-    real* restrict denn_x, real* restrict denn_y, real* restrict denn_z,            \
-    real** dZx, real** dZy, real** dZz,   \
-    const real* restrict dZp, int in_dim0, const int* restrict atomid_local2global, \
-    int offset, int laev, int naev, int n
-
-#define AEV_GRAD_ARGS   denn_x, denn_y, denn_z, dZx, dZy, dZz, dZp, in_dim0,        \
-    atomid_local2global, offset, laev, naev, n
-
-void aev_grad_cu(AEV_GRAD_PARAMS);
-
-void addToEneBuf_cu(int vers, EnergyBuffer restrict ebuf, const real* restrict Z, int length);
+void addToEneBuf_cu(int vers, EnergyBuffer restrict ebuf, const real* restrict Z, int length, real nnlambda);
 
 }
 

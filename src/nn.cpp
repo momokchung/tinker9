@@ -48,6 +48,10 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
          if (words[0] == "nnterm") {
             nnterms.push_back(std::vector<std::string>(words.begin() + 1, words.end()));
          }
+         if (words[0] == "nn-lambda") {
+            nnlambda = std::stod(words[1]);
+            printf(" Free Energy Perturbation :          %.3f Lambda for NN Terms\n", nnlambda);
+         }
       }
 
       if (new_layer) {
@@ -99,6 +103,8 @@ void nnData(RcOp op)
       // clear the nnps and nnterms first, in case of re-initialization
       nnps.clear();
       nnterms.clear();
+      // initialize nnlambda to default value 1.0
+      nnlambda = 1.0;
       // read in the prms from prm file and key file
       nnReadPrm(params::prmline, params::nprm);
       nnReadPrm(keys::keyline, keys::nkey);
@@ -352,7 +358,8 @@ void AtomicEnvironmentVectorLayer::forward(int vers, const int ngrps_nn, const i
    ngrps_nn, grps_nn, 
    naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
    R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,
-   nullptr, nullptr, nullptr, nullptr, nblist_rad, nblist_ang, atomid_local2global, enn);
+   nullptr, nullptr, nullptr, nullptr, nblist_rad, nblist_ang, atomid_local2global, enn,
+   nnlambda);
 
 }
 
@@ -368,7 +375,8 @@ void AtomicEnvironmentVectorLayer::gradient(int vers,
    ngrps_nn, grps_nn, 
    naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
    R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,
-   dZp, denn_x, denn_y, denn_z, nblist_rad, nblist_ang, atomid_local2global, nullptr);
+   dZp, denn_x, denn_y, denn_z, nblist_rad, nblist_ang, atomid_local2global, nullptr,
+   nnlambda);
 }
 
 LinearLayer::LinearLayer(const std::vector<real> &prms)
@@ -640,7 +648,7 @@ void NeuralNetworkPotential::forward(int vers, const int ngrps_nn, const int* re
       networks[i]->forward(vers, aev->iaev);
 
       if (vers & calc::energy)  // forward is not always called for energy but also for when only gradient needed
-         addToEneBuf_cu(vers, enn, networks[i]->layers.back()->Z, networks[i]->layers.back()->in_dim0);  // any in_dim0 is ok, since all layers have the same in_dim0, which is number of atoms
+         addToEneBuf_cu(vers, enn, networks[i]->layers.back()->Z, networks[i]->layers.back()->in_dim0, nnlambda);  // any in_dim0 is ok, since all layers have the same in_dim0, which is number of atoms
    }
 }
 
