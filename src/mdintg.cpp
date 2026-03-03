@@ -111,6 +111,12 @@ void mdIntegrateData(RcOp op)
             thermostat = ThermostatEnum::m_NHC2006;
          }
       }
+      // only allow Montecarlo barostat for NPT + extfield simulation
+      if (bath::isothermal and bath::isobaric and extfld::use_exfld) {
+         if (barostat!=BarostatEnum::MONTECARLO) {
+            TINKER_THROW("NPT with External Field Should Use MonteCarlo Barostat.");
+         }
+      }
 
       intg = nullptr;
       if (integrator == IntegratorEnum::RESPA)
@@ -166,7 +172,7 @@ void mdPropagate(int nsteps, time_prec dt_ps)
 
       // mdstat
       bool save = (istep % inform::iwrite == 0);
-      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0)
+      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0 || extfld::use_exfld)
          bounds();
       if (save) {
          T_prec temp;
