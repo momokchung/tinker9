@@ -172,7 +172,7 @@ void mdPropagate(int nsteps, time_prec dt_ps)
 
       // mdstat
       bool save = (istep % inform::iwrite == 0);
-      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0 || extfld::use_exfld)
+      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0)
          bounds();
       if (save) {
          T_prec temp;

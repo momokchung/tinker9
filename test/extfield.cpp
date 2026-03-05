@@ -14,10 +14,10 @@ static const std::string polarOnly = "polarizeterm only\n";
 
 TEST_CASE("External-Fields-MPole-Analyze", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField + mpoleOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField + mpoleOnly);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -31,7 +31,7 @@ TEST_CASE("External-Fields-MPole-Analyze", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial | calc::analyz;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -68,10 +68,10 @@ TEST_CASE("External-Fields-MPole-Analyze", "[ff][extfield]")
 
 TEST_CASE("External-Fields-Polarize-Analyze", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField + polarOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField + polarOnly);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -85,7 +85,7 @@ TEST_CASE("External-Fields-Polarize-Analyze", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial | calc::analyz;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -122,10 +122,10 @@ TEST_CASE("External-Fields-Polarize-Analyze", "[ff][extfield]")
 
 TEST_CASE("External-Fields-MPolar-Analyze", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -138,7 +138,7 @@ TEST_CASE("External-Fields-MPolar-Analyze", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial | calc::analyz;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -190,7 +190,7 @@ TEST_CASE("External-Fields-VdwPchg-Analyze", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial | calc::analyz;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -226,10 +226,10 @@ TEST_CASE("External-Fields-VdwPchg-Analyze", "[ff][extfield]")
 
 TEST_CASE("External-Fields-MPole", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField + mpoleOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField + mpoleOnly);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -242,7 +242,7 @@ TEST_CASE("External-Fields-MPole", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -275,10 +275,10 @@ TEST_CASE("External-Fields-MPole", "[ff][extfield]")
 
 TEST_CASE("External-Fields-Polarize", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField + polarOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField + polarOnly);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -291,7 +291,7 @@ TEST_CASE("External-Fields-Polarize", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -324,10 +324,10 @@ TEST_CASE("External-Fields-Polarize", "[ff][extfield]")
 
 TEST_CASE("External-Fields-MPolar", "[ff][extfield]")
 {
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4.key", "", externalField);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_6fe8e913/water03.prm");
-   const char* xn = "water4.xyz";
+   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.xyz");
+   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/water4_Na_shifted.key", "", externalField);
+   TestFile fp1(TINKER9_DIRSTR "/test/file/commit_92528f7d/amoebabio18.prm");
+   const char* xn = "water4_Na_shifted.xyz";
    const char* argv[] = {"dummy", xn};
    int argc = 2;
 
@@ -340,7 +340,7 @@ TEST_CASE("External-Fields-MPolar", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial;
    testBeginWithArgs(argc, argv);
    initialize();
 
@@ -389,320 +389,7 @@ TEST_CASE("External-Fields-VdwPchg", "[ff][extfield]")
    auto ref_v = r.getVirial();
    auto ref_g = r.getGradient();
 
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-MPole-Analyze-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField + mpoleOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.6.txt");
-   auto ref_c = r.getCount();
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v3);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_INTS(countReduce(nem), ref_c);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-Polarize-Analyze-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField + polarOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.7.txt");
-   auto ref_c = r.getCount();
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v3);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_INTS(countReduce(nep), ref_c);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-MPolar-Analyze-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.8.txt");
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial | calc::analyz;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v3);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-MPole-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField + mpoleOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.6.txt");
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-Polarize-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField + polarOnly);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.7.txt");
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
-   testBeginWithArgs(argc, argv);
-   initialize();
-
-   energy(calc::v0);
-   COMPARE_REALS(esum, ref_e, eps_e);
-
-   energy(calc::v1);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   energy(calc::v4);
-   COMPARE_REALS(esum, ref_e, eps_e);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v5);
-   COMPARE_GRADIENT(ref_g, eps_g);
-
-   energy(calc::v6);
-   COMPARE_GRADIENT(ref_g, eps_g);
-   for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j)
-         COMPARE_REALS(vir[i * 3 + j], ref_v[i][j], eps_v);
-
-   finish();
-   testEnd();
-}
-
-TEST_CASE("External-Fields-MPolar-HIPPO", "[ff][extfield]")
-{
-   TestFile fx1(TINKER9_DIRSTR "/test/file/extfield/water4.xyz");
-   TestFile fk1(TINKER9_DIRSTR "/test/file/extfield/hippowater.key", "", externalField);
-   TestFile fp1(TINKER9_DIRSTR "/test/file/extfield/hippowater.prm");
-   const char* xn = "water4.xyz";
-   const char* kn = "hippowater.key";
-   const char* argv[] = {"dummy", xn, "-k", kn};
-   int argc = 4;
-
-   const double eps_e = testGetEps(0.0001, 0.0001);
-   const double eps_g = testGetEps(0.0002, 0.0001);
-   const double eps_v = testGetEps(0.001, 0.001);
-
-   TestReference r(TINKER9_DIRSTR "/test/ref/extfield.8.txt");
-   auto ref_e = r.getEnergy();
-   auto ref_v = r.getVirial();
-   auto ref_g = r.getGradient();
-
-   rc_flag = calc::xyz | calc::energy | calc::grad | calc::virial;
+   rc_flag = calc::xyz | calc::mass | calc::energy | calc::grad | calc::virial;
    testBeginWithArgs(argc, argv);
    initialize();
 
