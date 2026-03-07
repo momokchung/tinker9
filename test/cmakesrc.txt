@@ -27,6 +27,7 @@ main.cpp
 mathfunc.cpp
 nacl.cpp
 nblist.cpp
+nh.cpp
 opbend.cpp
 osrw.cpp
 partialcharge.cpp
@@ -35,6 +36,7 @@ polpair.cpp
 rattle.cpp
 reduce.cpp
 rephippo.cpp
+respa.cpp
 strbnd.cpp
 strtor.cpp
 testrt.cpp
