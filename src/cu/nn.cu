@@ -102,16 +102,22 @@ void ref_nblist_cu1(NBLIST_PARAMS)
                     j_sorted = lst[jjid];
                     incl_ij = incl_ij and j_sorted >= 0;
                 }
-                j = sorted[j_sorted].unsorted;  // set j to the unsorted atom index for the current jj
-                if (atomic2species[atomic[j]] == -1) {   // remove the atoms not in atomic_covered
-                    incl_ij = false;
-                }
-                int x = atomid_global2local[i], y = atomid_global2local[j];
-                int tri = xy_to_tri(max(x, y), min(x, y));
-                // only use topo flags when topo_cutoff is set to > 0.
-                if (topo_cutoff > 0) {
-                    int incl_topo = topo_flags[tri / WARP_SIZE] & (1 << (tri & (WARP_SIZE - 1)));
-                    incl_ij = incl_ij and incl_topo;
+                // j_sorted has to be within 0 to n-1 to be valid not matter what task_num is. 
+                // check incl_ij here to make sure j_sorted is still valid (no out-of-bounds) for the additional checks.
+                int x, y, tri;
+                if (incl_ij) {
+                    j = sorted[j_sorted].unsorted;  // set j to the unsorted atom index for the current jj. 
+                    if (atomic2species[atomic[j]] == -1) {   // remove the atoms not in atomic_covered
+                        incl_ij = false;
+                    }
+                    x = atomid_global2local[i];
+                    y = atomid_global2local[j];
+                    tri = xy_to_tri(max(x, y), min(x, y));
+                    // only use topo flags when topo_cutoff is set to > 0.
+                    if (topo_cutoff > 0) {
+                        int incl_topo = topo_flags[tri / WARP_SIZE] & (1 << (tri & (WARP_SIZE - 1)));
+                        incl_ij = incl_ij and incl_topo;
+                    }
                 }
 
                 if (not incl_ij) {

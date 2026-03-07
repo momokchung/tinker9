@@ -99,10 +99,14 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
 
 void nnData(RcOp op)
 {
+   // note: initialize() will call both RcOp::ALLOC and RcOp::INIT, not just RcOp:INIT.
    if (op & RcOp::INIT) {
       // clear the nnps and nnterms first, in case of re-initialization
       nnps.clear();
       nnterms.clear();
+      // reset term enable flags for each new mechanic/init cycle
+      use_nnvalence = false;
+      use_nnmetal = false;
       // initialize nnlambda to default value 1.0
       nnlambda = 1.0;
       // read in the prms from prm file and key file
@@ -246,6 +250,9 @@ inline void tri2xy(int f, int& x, int& y)
 }
 
 inline void bitOn(int x0, int y0, std::vector<int> &flags){
+   if (x0 < 0 or y0 < 0) {
+      return;
+   }
    int x = std::max(x0, y0);
    int y = std::min(x0, y0);
    int f = xy2tri(x, y);

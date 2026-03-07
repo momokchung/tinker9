@@ -49,6 +49,7 @@ void calc_nskipped(int& nskipped,
 
 void ennvalenceData(RcOp op)
 {
+   // note: initialize() will call both RcOp::ALLOC and RcOp::INIT, not just RcOp:INIT.
    if (not use(Potent::NNVAL))
       return;
 
@@ -56,6 +57,7 @@ void ennvalenceData(RcOp op)
 
    if (op & RcOp::DEALLOC) {
       darray::deallocate(grps_nnvalence);
+      grps_nnvalence_host.clear();
 
       for (int i=0; i < nnps.size(); i++) {
          if (nnps[i].type == "valence") {
@@ -74,6 +76,7 @@ void ennvalenceData(RcOp op)
    }
 
    if (op & RcOp::ALLOC) {
+      grps_nnvalence_host.clear();
       for (int i=0; i < nnterms.size(); i++) {
          if (nnterms[i][0] == "valence") {
             for (int j=1; j < nnterms[i].size(); j++) {
