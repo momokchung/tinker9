@@ -8,6 +8,7 @@
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
 #include "tool/tinkersuppl.h"
+#include <tinker/detail/bound.hh>
 #include <tinker/detail/extfld.hh>
 #include <tinker/detail/files.hh>
 #include <tinker/detail/inform.hh>
@@ -172,7 +173,7 @@ void mdPropagate(int nsteps, time_prec dt_ps)
 
       // mdstat
       bool save = (istep % inform::iwrite == 0);
-      if (save || (istep % BOUNDS_EVERY_X_STEPS) == 0)
+      if ((save || (istep % BOUNDS_EVERY_X_STEPS) == 0) and bound::use_wrap)
          bounds();
       if (save) {
          T_prec temp;

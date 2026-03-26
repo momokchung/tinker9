@@ -17,7 +17,7 @@ directly from the Tinker GitHub repository. Use one of the following procedures 
    Alternatively, remove the directory *tinker-gpu/tinker* and clone
    `Tinker from GitHub <https://github.com/tinkertools/tinker>`_
    to replace the deleted directory, then checkout the
-   required version, currently Tinker commit 6138902c.
+   required version, currently Tinker commit b5fa76f5.
 
    .. code-block:: bash
 
