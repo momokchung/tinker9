@@ -103,7 +103,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
    double step = volmove * (2 * random<double>() - 1);
 
    if (isotropic) {
-      printf("isotropic move\n");
       volnew = volold + step;
       double scale = std::pow(volnew / volold, third);
 
@@ -119,7 +118,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
       copyPosToXyz();
 
    } else if (semiiso) {
-      printf("semiiso move\n");
       double ascale[3][3] = {};
       ascale[0][0] = 1;
       ascale[1][1] = 1;
