@@ -69,7 +69,8 @@ void bussiThermostat(time_prec dt_prec, T_prec temp_prec)
 }
 
 TINKER_FVOID2(acc1, cu1, monteCarloMolMove, double);
-void monteCarloBarostat(energy_prec epot, T_prec temp)
+TINKER_FVOID2(acc1, cu1, monteCarloMolMoveAniso, const double (*)[3]);
+void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
 {
    if (not bound::use_bounds)
       return;
@@ -83,9 +84,12 @@ void monteCarloBarostat(energy_prec epot, T_prec temp)
    if (bath::isothermal)
       kt = units::gasconst * bath::kelvin;
    bool isotropic = true;
-   // double aniso_rdm = random<double>();
-   // if (bath::anisotrop && aniso_rdm > 0.5)
-   //    isotropic = false;
+   if ((aniso || semiiso) and random<double>() > bath::isoprob)
+      isotropic = false;
+
+   bool semixy = true;
+   if (semiiso and not isotropic and random<double>() > 0.5)
+      semixy = false;
 
    // save the system state prior to trial box size change
    Box boxold;
@@ -96,10 +100,10 @@ void monteCarloBarostat(energy_prec epot, T_prec temp)
    darray::copy(g::q0, n, x_pmonte, xpos);
    darray::copy(g::q0, n, y_pmonte, ypos);
    darray::copy(g::q0, n, z_pmonte, zpos);
+   double step = volmove * (2 * random<double>() - 1);
 
    if (isotropic) {
-      double step_rdm = 2 * random<double>() - 1;
-      double step = volmove * step_rdm;
+      printf("isotropic move\n");
       volnew = volold + step;
       double scale = std::pow(volnew / volold, third);
 
@@ -113,6 +117,139 @@ void monteCarloBarostat(energy_prec epot, T_prec temp)
       }
 
       copyPosToXyz();
+
+   } else if (semiiso) {
+      printf("semiiso move\n");
+      double ascale[3][3] = {};
+      ascale[0][0] = 1;
+      ascale[1][1] = 1;
+      ascale[2][2] = 1;
+
+      volnew = volold + step;
+
+      if (semixy) {
+         double scale = std::sqrt(volnew / volold);
+         lvec1 *= scale;
+         lvec2 *= scale;
+         ascale[0][0] = scale;
+         ascale[1][1] = scale;
+      } else {
+         double scale = volnew / volold;
+         lvec3 *= scale;
+         ascale[2][2] = scale;
+      }
+      boxSetCurrentRecip();
+
+      if (volscale == "MOLECULAR") {
+         TINKER_FCALL2(acc1, cu1, monteCarloMolMoveAniso, ascale);
+      }
+
+      copyPosToXyz();
+
+   } else if (aniso) {
+      double rnd6 = 6 * random<double>();
+      double voltarget = volold + step;
+      bool offdiag = false;
+
+      double ascale[3][3] = {};
+      ascale[0][0] = 1;
+      ascale[1][1] = 1;
+      ascale[2][2] = 1;
+
+      double scale = voltarget / volold;
+
+      if (box_shape == BoxShape::MONO || box_shape == BoxShape::TRI) {
+         if (rnd6 < 1) {
+            ascale[0][0] = scale;
+         } else if (rnd6 < 2) {
+            ascale[1][1] = scale;
+         } else if (rnd6 < 3) {
+            ascale[2][2] = scale;
+         } else if (rnd6 < 4) {
+            offdiag = true;
+            scale = std::pow(1 + step / volold, third);
+            ascale[0][1] = scale - 1;
+            ascale[1][0] = scale - 1;
+         } else if (rnd6 < 5) {
+            offdiag = true;
+            scale = std::pow(1 + step / volold, third);
+            ascale[0][2] = scale - 1;
+            ascale[2][0] = scale - 1;
+         } else {
+            offdiag = true;
+            scale = std::pow(1 + step / volold, third);
+            ascale[1][2] = scale - 1;
+            ascale[2][1] = scale - 1;
+         }
+
+         double h0[3][3] = {
+            {lvec1.x, lvec1.y, lvec1.z},
+            {lvec2.x, lvec2.y, lvec2.z},
+            {lvec3.x, lvec3.y, lvec3.z},
+         };
+         double h1[3][3] = {};
+
+         for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+               for (int k = 0; k < 3; ++k) {
+                  h1[j][i] += ascale[j][k] * h0[i][k];
+               }
+            }
+         }
+
+         lvec1.x = h1[0][0];
+         lvec1.y = h1[0][1];
+         lvec1.z = h1[0][2];
+         lvec2.x = h1[1][0];
+         lvec2.y = h1[1][1];
+         lvec2.z = h1[1][2];
+         lvec3.x = h1[2][0];
+         lvec3.y = h1[2][1];
+         lvec3.z = h1[2][2];
+         boxSetCurrentRecip();
+
+         if (offdiag) {
+            double volmid = boxVolume();
+            double scale2 = std::pow(voltarget / volmid, third);
+
+            lvec1 *= scale2;
+            lvec2 *= scale2;
+            lvec3 *= scale2;
+            boxSetCurrentRecip();
+
+            for (int i = 0; i < 3; ++i) {
+               for (int j = 0; j < 3; ++j) {
+                  ascale[i][j] *= scale2;
+               }
+            }
+         }
+
+         volnew = boxVolume();
+
+      } else {
+         if (rnd6 < 2) {
+            ascale[0][0] = scale;
+         } else if (rnd6 < 4) {
+            ascale[1][1] = scale;
+         } else {
+            ascale[2][2] = scale;
+         }
+
+         lvec1 *= ascale[0][0];
+         lvec2 *= ascale[1][1];
+         lvec3 *= ascale[2][2];
+         boxSetCurrentRecip();
+
+         volnew = boxVolume();
+
+      }
+
+      if (volscale == "MOLECULAR") {
+         TINKER_FCALL2(acc1, cu1, monteCarloMolMoveAniso, ascale);
+      }
+
+      copyPosToXyz();
+
    }
 
    // get the potential energy and PV work changes for trial move

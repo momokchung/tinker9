@@ -33,7 +33,7 @@ BasicPropagator::BasicPropagator(int nrspa)
    std::string pressure_mode;
    getKV("PRESSURE", pressure_mode, "ISOTROPIC");
 
-   semiiso = (pressure_mode == "SEMIISO");
+   semiiso = (pressure_mode == "SEMI") or (pressure_mode == "SEMIISO");
    aniso = semiiso || (pressure_mode == "ANISO");
 
    if (aniso) {

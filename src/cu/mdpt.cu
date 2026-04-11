@@ -127,4 +127,60 @@ void monteCarloMolMove_cu(double scale)
       xpos, ypos, zpos,                           //
       imol, kmol, mass, molmass);
 }
+
+__global__
+void monteCarloMolMoveAniso_cu1(pos_prec a00, pos_prec a01, pos_prec a02, //
+   pos_prec a10, pos_prec a11, pos_prec a12,                               //
+   pos_prec a20, pos_prec a21, pos_prec a22, int nmol,                     //
+   pos_prec* restrict xpos, pos_prec* restrict ypos, pos_prec* restrict zpos,
+   const int (*restrict imol)[2], const int* restrict kmol,                //
+   const double* restrict mass, const double* restrict molmass)
+{
+   for (int i = ITHREAD; i < nmol; i += STRIDE) {
+      pos_prec xcm = 0, ycm = 0, zcm = 0;
+      int start = imol[i][0];
+      int stop = imol[i][1];
+      for (int j = start; j < stop; ++j) {
+         int k = kmol[j];
+         auto weigh = mass[k];
+         xcm += xpos[k] * weigh;
+         ycm += ypos[k] * weigh;
+         zcm += zpos[k] * weigh;
+      }
+      pos_prec inv_mass = 1 / molmass[i];
+      xcm *= inv_mass;
+      ycm *= inv_mass;
+      zcm *= inv_mass;
+      pos_prec xmove = xcm * a00 + ycm * a01 + zcm * a02;
+      pos_prec ymove = xcm * a10 + ycm * a11 + zcm * a12;
+      pos_prec zmove = xcm * a20 + ycm * a21 + zcm * a22;
+      for (int j = start; j < stop; ++j) {
+         int k = kmol[j];
+         xpos[k] += xmove;
+         ypos[k] += ymove;
+         zpos[k] += zmove;
+      }
+   }
+}
+
+void monteCarloMolMoveAniso_cu(const double ascale[3][3])
+{
+   auto nmol = molecule.nmol;
+   const auto* imol = molecule.imol;
+   const auto* kmol = molecule.kmol;
+   const auto* molmass = molecule.molmass;
+   pos_prec a00 = ascale[0][0] - 1;
+   pos_prec a01 = ascale[0][1];
+   pos_prec a02 = ascale[0][2];
+   pos_prec a10 = ascale[1][0];
+   pos_prec a11 = ascale[1][1] - 1;
+   pos_prec a12 = ascale[1][2];
+   pos_prec a20 = ascale[2][0];
+   pos_prec a21 = ascale[2][1];
+   pos_prec a22 = ascale[2][2] - 1;
+
+   launch_k1s(g::s0, nmol, monteCarloMolMoveAniso_cu1, //
+      a00, a01, a02, a10, a11, a12, a20, a21, a22, nmol, //
+      xpos, ypos, zpos, imol, kmol, mass, molmass);
+}
 }

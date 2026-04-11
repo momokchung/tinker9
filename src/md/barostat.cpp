@@ -120,7 +120,7 @@ void MonteCarloBarostat::control4(time_prec)
    T_prec temp = bath::kelvin;
    if (not bath::isothermal)
       kinetic(temp);
-   monteCarloBarostat(esum, temp);
+   monteCarloBarostat(esum, temp, semiiso, aniso);
 }
 
 bool MonteCarloBarostat::ifApply(int)

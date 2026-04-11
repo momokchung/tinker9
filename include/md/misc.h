@@ -30,7 +30,7 @@ void bussiThermostat(time_prec dt, T_prec temp);
 ///    "NpT-ensemble Monte Carlo calculations for binary liquid mixtures",
 ///    Molecular Physics, 23, 41-58 (1972).
 ///    </a>
-void monteCarloBarostat(energy_prec epot, T_prec temp);
+void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso);
 
 /// \ingroup mdpt
 /// \brief Berendsen barostat by scaling the coordinates and box dimensions via

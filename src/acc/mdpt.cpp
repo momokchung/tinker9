@@ -178,4 +178,50 @@ void monteCarloMolMove_acc(double scale)
       }
    }
 }
+
+void monteCarloMolMoveAniso_acc(const double ascale[3][3])
+{
+   int nmol = molecule.nmol;
+   const auto* imol = molecule.imol;
+   const auto* kmol = molecule.kmol;
+   const auto* molmass = molecule.molmass;
+   pos_prec a00 = ascale[0][0] - 1;
+   pos_prec a01 = ascale[0][1];
+   pos_prec a02 = ascale[0][2];
+   pos_prec a10 = ascale[1][0];
+   pos_prec a11 = ascale[1][1] - 1;
+   pos_prec a12 = ascale[1][2];
+   pos_prec a20 = ascale[2][0];
+   pos_prec a21 = ascale[2][1];
+   pos_prec a22 = ascale[2][2] - 1;
+   #pragma acc parallel loop independent async\
+               deviceptr(imol,kmol,mass,molmass,xpos,ypos,zpos)
+   for (int i = 0; i < nmol; ++i) {
+      pos_prec xcm = 0, ycm = 0, zcm = 0;
+      int start = imol[i][0];
+      int stop = imol[i][1];
+      #pragma acc loop seq
+      for (int j = start; j < stop; ++j) {
+         int k = kmol[j];
+         auto weigh = mass[k];
+         xcm += xpos[k] * weigh;
+         ycm += ypos[k] * weigh;
+         zcm += zpos[k] * weigh;
+      }
+      pos_prec inv_mass = 1 / molmass[i];
+      xcm *= inv_mass;
+      ycm *= inv_mass;
+      zcm *= inv_mass;
+      pos_prec xmove = xcm * a00 + ycm * a01 + zcm * a02;
+      pos_prec ymove = xcm * a10 + ycm * a11 + zcm * a12;
+      pos_prec zmove = xcm * a20 + ycm * a21 + zcm * a22;
+      #pragma acc loop seq
+      for (int j = start; j < stop; ++j) {
+         int k = kmol[j];
+         xpos[k] += xmove;
+         ypos[k] += ymove;
+         zpos[k] += zmove;
+      }
+   }
+}
 }
