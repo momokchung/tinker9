@@ -69,6 +69,9 @@ BasicBarostat* BasicBarostat::create(BarostatEnum be)
    case BarostatEnum::BERENDSEN:
       b = new BerendsenBarostat;
       break;
+   case BarostatEnum::BUSSI:
+      b = new BussiBarostat;
+      break;
    case BarostatEnum::LP2022:
       b = new LP22Barostat;
       break;
@@ -157,7 +160,29 @@ void BerendsenBarostat::control2(time_prec dt)
    if (not applyBaro)
       return;
 
-   berendsenBarostat(dt, aniso);
+   scaleBarostat(dt, semiiso, aniso, ScaleBaroEnum::BERENDSEN);
+}
+}
+
+namespace tinker {
+void BussiBarostat::printDetail(FILE* o)
+{
+   print(o, "\n");
+   print(o, " Bussi Barostat\n");
+   printBasic(o);
+}
+
+BarostatEnum BussiBarostat::getBarostatEnum() const
+{
+   return BarostatEnum::BUSSI;
+}
+
+void BussiBarostat::control2(time_prec dt)
+{
+   if (not applyBaro)
+      return;
+
+   scaleBarostat(dt, semiiso, aniso, ScaleBaroEnum::BUSSI);
 }
 }
 

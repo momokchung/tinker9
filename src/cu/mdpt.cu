@@ -1,4 +1,5 @@
 #include "ff/molecule.h"
+#include "md/pq.h"
 #include "seq/launch.h"
 #include "seq/reduce.h"
 #include "tool/error.h"
@@ -79,6 +80,91 @@ void kineticEnergy_cu(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int
    ekin_out[2][1] = eyz;
    ekin_out[2][2] = ezz;
    eksum_out = exx + eyy + ezz;
+}
+}
+
+namespace tinker {
+__global__
+void scaleBarostatAtomMove_cu1(int n, pos_prec scalex, pos_prec scaley, pos_prec scalez, //
+   pos_prec* restrict xpos, pos_prec* restrict ypos, pos_prec* restrict zpos)
+{
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      xpos[i] *= scalex;
+      ypos[i] *= scaley;
+      zpos[i] *= scalez;
+   }
+}
+
+__global__
+void scaleBarostatAtomMoveAniso_cu1(pos_prec a00, pos_prec a01, pos_prec a02, //
+   pos_prec a10, pos_prec a11, pos_prec a12,                              //
+   pos_prec a20, pos_prec a21, pos_prec a22, int n,                       //
+   pos_prec* restrict xpos, pos_prec* restrict ypos, pos_prec* restrict zpos)
+{
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      pos_prec xk = xpos[i];
+      pos_prec yk = ypos[i];
+      pos_prec zk = zpos[i];
+      xpos[i] = xk * a00 + yk * a01 + zk * a02;
+      ypos[i] = xk * a10 + yk * a11 + zk * a12;
+      zpos[i] = xk * a20 + yk * a21 + zk * a22;
+   }
+}
+
+void scaleBarostatAtomMove_cu(double scalex, double scaley, double scalez)
+{
+   launch_k1s(g::s0, n, scaleBarostatAtomMove_cu1, //
+      n, scalex, scaley, scalez, xpos, ypos, zpos);
+}
+
+void scaleBarostatAtomMoveAniso_cu(const double ascale[3][3])
+{
+   launch_k1s(g::s0, n, scaleBarostatAtomMoveAniso_cu1, //
+      ascale[0][0], ascale[0][1], ascale[0][2],     //
+      ascale[1][0], ascale[1][1], ascale[1][2],     //
+      ascale[2][0], ascale[2][1], ascale[2][2], n,  //
+      xpos, ypos, zpos);
+}
+
+__global__
+void scaleVelocity_cu1(int n, vel_prec scalex, vel_prec scaley, vel_prec scalez, //
+   vel_prec* restrict vx, vel_prec* restrict vy, vel_prec* restrict vz)
+{
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      vx[i] *= scalex;
+      vy[i] *= scaley;
+      vz[i] *= scalez;
+   }
+}
+
+__global__
+void scaleVelocityAniso_cu1(vel_prec a00, vel_prec a01, vel_prec a02, //
+   vel_prec a10, vel_prec a11, vel_prec a12,                          //
+   vel_prec a20, vel_prec a21, vel_prec a22, int n,                   //
+   vel_prec* restrict vx, vel_prec* restrict vy, vel_prec* restrict vz)
+{
+   for (int i = ITHREAD; i < n; i += STRIDE) {
+      vel_prec xk = vx[i];
+      vel_prec yk = vy[i];
+      vel_prec zk = vz[i];
+      vx[i] = xk * a00 + yk * a01 + zk * a02;
+      vy[i] = xk * a10 + yk * a11 + zk * a12;
+      vz[i] = xk * a20 + yk * a21 + zk * a22;
+   }
+}
+
+void scaleVelocity_cu(double scalex, double scaley, double scalez)
+{
+   launch_k1s(g::s0, n, scaleVelocity_cu1, //
+      n, scalex, scaley, scalez, vx, vy, vz);
+}
+
+void scaleVelocityAniso_cu(const double ascale[3][3])
+{
+   launch_k1s(g::s0, n, scaleVelocityAniso_cu1, //
+      ascale[0][0], ascale[0][1], ascale[0][2], //
+      ascale[1][0], ascale[1][1], ascale[1][2], //
+      ascale[2][0], ascale[2][1], ascale[2][2], n, vx, vy, vz);
 }
 }
 
