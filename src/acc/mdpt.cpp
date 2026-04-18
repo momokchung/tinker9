@@ -43,51 +43,73 @@ void kineticEnergy_acc(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], in
 
 void scaleBarostatAtomMove_acc(double scalex, double scaley, double scalez)
 {
+   pos_prec sx = scalex;
+   pos_prec sy = scaley;
+   pos_prec sz = scalez;
    #pragma acc parallel loop independent async deviceptr(xpos,ypos,zpos)
    for (int i = 0; i < n; ++i) {
-      xpos[i] *= scalex;
-      ypos[i] *= scaley;
-      zpos[i] *= scalez;
+      xpos[i] *= sx;
+      ypos[i] *= sy;
+      zpos[i] *= sz;
    }
 }
 
 void scaleBarostatAtomMoveAniso_acc(const double ascale[3][3])
 {
+   pos_prec a00 = ascale[0][0];
+   pos_prec a01 = ascale[0][1];
+   pos_prec a02 = ascale[0][2];
+   pos_prec a10 = ascale[1][0];
+   pos_prec a11 = ascale[1][1];
+   pos_prec a12 = ascale[1][2];
+   pos_prec a20 = ascale[2][0];
+   pos_prec a21 = ascale[2][1];
+   pos_prec a22 = ascale[2][2];
    #pragma acc parallel loop independent async\
-               deviceptr(xpos,ypos,zpos)\
-               firstprivate(ascale[0:3][0:3])
+               deviceptr(xpos,ypos,zpos)
    for (int i = 0; i < n; ++i) {
       pos_prec xk = xpos[i];
       pos_prec yk = ypos[i];
       pos_prec zk = zpos[i];
-      xpos[i] = xk * ascale[0][0] + yk * ascale[0][1] + zk * ascale[0][2];
-      ypos[i] = xk * ascale[1][0] + yk * ascale[1][1] + zk * ascale[1][2];
-      zpos[i] = xk * ascale[2][0] + yk * ascale[2][1] + zk * ascale[2][2];
+      xpos[i] = xk * a00 + yk * a01 + zk * a02;
+      ypos[i] = xk * a10 + yk * a11 + zk * a12;
+      zpos[i] = xk * a20 + yk * a21 + zk * a22;
    }
 }
 
 void scaleVelocity_acc(double scalex, double scaley, double scalez)
 {
+   vel_prec sx = scalex;
+   vel_prec sy = scaley;
+   vel_prec sz = scalez;
    #pragma acc parallel loop independent async deviceptr(vx,vy,vz)
    for (int i = 0; i < n; ++i) {
-      vx[i] *= scalex;
-      vy[i] *= scaley;
-      vz[i] *= scalez;
+      vx[i] *= sx;
+      vy[i] *= sy;
+      vz[i] *= sz;
    }
 }
 
 void scaleVelocityAniso_acc(const double ascale[3][3])
 {
+   vel_prec a00 = ascale[0][0];
+   vel_prec a01 = ascale[0][1];
+   vel_prec a02 = ascale[0][2];
+   vel_prec a10 = ascale[1][0];
+   vel_prec a11 = ascale[1][1];
+   vel_prec a12 = ascale[1][2];
+   vel_prec a20 = ascale[2][0];
+   vel_prec a21 = ascale[2][1];
+   vel_prec a22 = ascale[2][2];
    #pragma acc parallel loop independent async\
-               deviceptr(vx,vy,vz)\
-               firstprivate(ascale[0:3][0:3])
+               deviceptr(vx,vy,vz)
    for (int i = 0; i < n; ++i) {
       vel_prec xk = vx[i];
       vel_prec yk = vy[i];
       vel_prec zk = vz[i];
-      vx[i] = xk * ascale[0][0] + yk * ascale[0][1] + zk * ascale[0][2];
-      vy[i] = xk * ascale[1][0] + yk * ascale[1][1] + zk * ascale[1][2];
-      vz[i] = xk * ascale[2][0] + yk * ascale[2][1] + zk * ascale[2][2];
+      vx[i] = xk * a00 + yk * a01 + zk * a02;
+      vy[i] = xk * a10 + yk * a11 + zk * a12;
+      vz[i] = xk * a20 + yk * a21 + zk * a22;
    }
 }
 

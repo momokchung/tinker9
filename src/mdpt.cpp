@@ -69,6 +69,24 @@ void bussiThermostat(time_prec dt_prec, T_prec temp_prec)
    }
 }
 
+static void invert3(double dst[3][3], const double src[3][3])
+{
+   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1]) -
+      src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0]) +
+      src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
+   double invdet = 1 / det;
+
+   dst[0][0] = (src[1][1] * src[2][2] - src[1][2] * src[2][1]) * invdet;
+   dst[0][1] = (src[0][2] * src[2][1] - src[0][1] * src[2][2]) * invdet;
+   dst[0][2] = (src[0][1] * src[1][2] - src[0][2] * src[1][1]) * invdet;
+   dst[1][0] = (src[1][2] * src[2][0] - src[1][0] * src[2][2]) * invdet;
+   dst[1][1] = (src[0][0] * src[2][2] - src[0][2] * src[2][0]) * invdet;
+   dst[1][2] = (src[0][2] * src[1][0] - src[0][0] * src[1][2]) * invdet;
+   dst[2][0] = (src[1][0] * src[2][1] - src[1][1] * src[2][0]) * invdet;
+   dst[2][1] = (src[0][1] * src[2][0] - src[0][0] * src[2][1]) * invdet;
+   dst[2][2] = (src[0][0] * src[1][1] - src[0][1] * src[1][0]) * invdet;
+}
+
 TINKER_FVOID2(acc1, cu1, monteCarloMolMove, double);
 TINKER_FVOID2(acc1, cu1, monteCarloMolMoveAniso, const double (*)[3]);
 void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
@@ -118,7 +136,7 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
 
       copyPosToXyz();
 
-   } else if (semiiso) {\
+   } else if (semiiso) {
       double ascale[3][3] = {};
       ascale[0][0] = 1;
       ascale[1][1] = 1;
@@ -181,38 +199,38 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
             ascale[2][1] = scale - 1;
          }
 
-         double temp[3][3], hbox[3][3];
-         temp[0][0] = lvec1.x;
-         temp[0][1] = 0;
-         temp[0][2] = 0;
-         temp[1][0] = lvec1.y;
-         temp[1][1] = lvec2.y;
-         temp[1][2] = 0;
-         temp[2][0] = lvec1.z;
-         temp[2][1] = lvec2.z;
-         temp[2][2] = lvec3.z;
+         double hbox0[3][3], hbox1[3][3];
+         hbox0[0][0] = lvec1.x;
+         hbox0[1][0] = 0;
+         hbox0[2][0] = 0;
+         hbox0[0][1] = lvec1.y;
+         hbox0[1][1] = lvec2.y;
+         hbox0[2][1] = 0;
+         hbox0[0][2] = lvec1.z;
+         hbox0[1][2] = lvec2.z;
+         hbox0[2][2] = lvec3.z;
          for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
-               hbox[i][j] = 0;
+               hbox1[i][j] = 0;
                for (int k = 0; k < 3; ++k) {
-                  hbox[i][j] += ascale[j][k] * temp[i][k];
+                  hbox1[i][j] += ascale[i][k] * hbox0[k][j];
                }
             }
          }
          double l0, l1, l2, a0 = 90, a1 = 90, a2 = 90;
-         l0 = std::sqrt(hbox[0][0] * hbox[0][0] + hbox[0][1] * hbox[0][1] + hbox[0][2] * hbox[0][2]);
-         l1 = std::sqrt(hbox[1][0] * hbox[1][0] + hbox[1][1] * hbox[1][1] + hbox[1][2] * hbox[1][2]);
-         l2 = std::sqrt(hbox[2][0] * hbox[2][0] + hbox[2][1] * hbox[2][1] + hbox[2][2] * hbox[2][2]);
+         l0 = std::sqrt(hbox1[0][0] * hbox1[0][0] + hbox1[1][0] * hbox1[1][0] + hbox1[2][0] * hbox1[2][0]);
+         l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
+         l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
          if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-            a1 = (hbox[0][0] * hbox[2][0] + hbox[0][1] * hbox[2][1] + hbox[0][2] * hbox[2][2]) /
+            a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
                (l0 * l2);
             a1 = radian * std::acos(a1);
          }
          if (box_shape == BoxShape::TRI) {
-            a0 = (hbox[1][0] * hbox[2][0] + hbox[1][1] * hbox[2][1] + hbox[1][2] * hbox[2][2]) /
+            a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
                (l1 * l2);
             a0 = radian * std::acos(a0);
-            a2 = (hbox[0][0] * hbox[1][0] + hbox[0][1] * hbox[1][1] + hbox[0][2] * hbox[1][2]) /
+            a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
                (l0 * l1);
             a2 = radian * std::acos(a2);
          }
@@ -229,9 +247,24 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
             lvec3 *= scale2;
             boxSetCurrentRecip();
 
+            hbox1[0][0] = lvec1.x;
+            hbox1[1][0] = 0;
+            hbox1[2][0] = 0;
+            hbox1[0][1] = lvec1.y;
+            hbox1[1][1] = lvec2.y;
+            hbox1[2][1] = 0;
+            hbox1[0][2] = lvec1.z;
+            hbox1[1][2] = lvec2.z;
+            hbox1[2][2] = lvec3.z;
+
+            double h0inv[3][3];
+            invert3(h0inv, hbox0);
             for (int i = 0; i < 3; ++i) {
                for (int j = 0; j < 3; ++j) {
-                  ascale[i][j] *= scale2;
+                  ascale[i][j] = 0;
+                  for (int k = 0; k < 3; ++k) {
+                     ascale[i][j] += hbox1[i][k] * h0inv[k][j];
+                  }
                }
             }
          }
@@ -300,24 +333,6 @@ TINKER_FVOID2(acc1, cu1, scaleBarostatAtomMoveAniso, const double (*)[3]);
 TINKER_FVOID2(acc1, cu1, scaleVelocity, double, double, double);
 TINKER_FVOID2(acc1, cu1, scaleVelocityAniso, const double (*)[3]);
 
-static void invert3(double dst[3][3], const double src[3][3])
-{
-   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1]) -
-      src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0]) +
-      src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
-   double invdet = 1 / det;
-
-   dst[0][0] = (src[1][1] * src[2][2] - src[1][2] * src[2][1]) * invdet;
-   dst[0][1] = (src[0][2] * src[2][1] - src[0][1] * src[2][2]) * invdet;
-   dst[0][2] = (src[0][1] * src[1][2] - src[0][2] * src[1][1]) * invdet;
-   dst[1][0] = (src[1][2] * src[2][0] - src[1][0] * src[2][2]) * invdet;
-   dst[1][1] = (src[0][0] * src[2][2] - src[0][2] * src[2][0]) * invdet;
-   dst[1][2] = (src[0][2] * src[1][0] - src[0][0] * src[1][2]) * invdet;
-   dst[2][0] = (src[1][0] * src[2][1] - src[1][1] * src[2][0]) * invdet;
-   dst[2][1] = (src[0][1] * src[2][0] - src[0][0] * src[2][1]) * invdet;
-   dst[2][2] = (src[0][0] * src[1][1] - src[0][1] * src[1][0]) * invdet;
-}
-
 void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
 {
    if (not bound::use_bounds)
@@ -376,13 +391,14 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
          double kt = units::gasconst * bath::kelvin;
          double betat = units::prescon * bath::compress;
          double eps = bath::compress * dt / bath::taupres;
-         double deps = std::sqrt(2 * kt * betat * dt / (vol * bath::taupres));
+         double depsxy = std::sqrt(kt * betat * dt / (3 * vol * bath::taupres));
+         double depsz = std::sqrt(2 * kt * betat * dt / (3 * vol * bath::taupres));
          double dw = normal<double>();
          double term = 0.5 * (stress[0][0] + stress[1][1]) + (tension / lvec3.z) - bath::atmsph;
-         scalexy = std::exp(third * (eps * term + deps * dw));
+         scalexy = std::exp(third * eps * term + depsxy * dw);
          dw = normal<double>();
          term = stress[2][2] - bath::atmsph;
-         scalez = std::exp(third * (eps * term + deps * dw));
+         scalez = std::exp(third * eps * term + depsz * dw);
       }
 
       lvec1 *= scalexy;
@@ -417,50 +433,47 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
                double dw = normal<double>();
                if (j == i) {
                   double term = stress[i][j] - bath::atmsph;
-                  term += units::prescon * units::gasconst * bath::kelvin / vol;
+                  term += units::prescon * kt / vol;
                   ascale[i][j] = 1 + eps * term + deps * dw;
                } else {
-                  ascale[i][j] = eps * stress[i][j];
+                  ascale[i][j] = eps * stress[i][j] + deps * dw;
                }
             }
          }
       }
 
-      double temp[3][3], hbox[3][3];
-      temp[0][0] = lvec1.x;
-      temp[0][1] = 0;
-      temp[0][2] = 0;
-      temp[1][0] = lvec1.y;
-      temp[1][1] = lvec2.y;
-      temp[1][2] = 0;
-      temp[2][0] = lvec1.z;
-      temp[2][1] = lvec2.z;
-      temp[2][2] = lvec3.z;
+      double hbox0[3][3], hbox1[3][3];
+      hbox0[0][0] = lvec1.x;
+      hbox0[1][0] = 0;
+      hbox0[2][0] = 0;
+      hbox0[0][1] = lvec1.y;
+      hbox0[1][1] = lvec2.y;
+      hbox0[2][1] = 0;
+      hbox0[0][2] = lvec1.z;
+      hbox0[1][2] = lvec2.z;
+      hbox0[2][2] = lvec3.z;
       for (int i = 0; i < 3; ++i) {
          for (int j = 0; j < 3; ++j) {
-            hbox[i][j] = 0;
+            hbox1[i][j] = 0;
             for (int k = 0; k < 3; ++k) {
-               hbox[i][j] += ascale[j][k] * temp[i][k];
+               hbox1[i][j] += ascale[i][k] * hbox0[k][j];
             }
          }
       }
       double l0, l1, l2, a0 = 90, a1 = 90, a2 = 90;
-      l0 = std::sqrt(hbox[0][0] * hbox[0][0] + hbox[0][1] * hbox[0][1] + hbox[0][2] * hbox[0][2]);
-      l1 = std::sqrt(hbox[1][0] * hbox[1][0] + hbox[1][1] * hbox[1][1] + hbox[1][2] * hbox[1][2]);
-      l2 = std::sqrt(hbox[2][0] * hbox[2][0] + hbox[2][1] * hbox[2][1] + hbox[2][2] * hbox[2][2]);
+      l0 = std::sqrt(hbox1[0][0] * hbox1[0][0] + hbox1[1][0] * hbox1[1][0] + hbox1[2][0] * hbox1[2][0]);
+      l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
+      l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
       if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-         // beta
-         a1 = (hbox[0][0] * hbox[2][0] + hbox[0][1] * hbox[2][1] + hbox[0][2] * hbox[2][2]) /
+         a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
             (l0 * l2);
          a1 = radian * std::acos(a1);
       }
       if (box_shape == BoxShape::TRI) {
-         // alpha
-         a0 = (hbox[1][0] * hbox[2][0] + hbox[1][1] * hbox[2][1] + hbox[1][2] * hbox[2][2]) /
+         a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
             (l1 * l2);
          a0 = radian * std::acos(a0);
-         // gamma
-         a2 = (hbox[0][0] * hbox[1][0] + hbox[0][1] * hbox[1][1] + hbox[0][2] * hbox[1][2]) /
+         a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
             (l0 * l1);
          a2 = radian * std::acos(a2);
       }
@@ -468,11 +481,36 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
       boxLattice(newbox, box_shape, l0, l1, l2, a0, a1, a2);
       boxSetCurrent(newbox);
 
+      hbox1[0][0] = lvec1.x;
+      hbox1[1][0] = 0;
+      hbox1[2][0] = 0;
+      hbox1[0][1] = lvec1.y;
+      hbox1[1][1] = lvec2.y;
+      hbox1[2][1] = 0;
+      hbox1[0][2] = lvec1.z;
+      hbox1[1][2] = lvec2.z;
+      hbox1[2][2] = lvec3.z;
+
+      double h0inv[3][3];
+      invert3(h0inv, hbox0);
+      for (int i = 0; i < 3; ++i) {
+         for (int j = 0; j < 3; ++j) {
+            ascale[i][j] = 0;
+            for (int k = 0; k < 3; ++k) {
+               ascale[i][j] += hbox1[i][k] * h0inv[k][j];
+            }
+         }
+      }
+
       TINKER_FCALL2(acc1, cu1, scaleBarostatAtomMoveAniso, ascale);
       if (use_bussi) {
          double ainv[3][3];
          invert3(ainv, ascale);
-         TINKER_FCALL2(acc1, cu1, scaleVelocityAniso, ainv);
+         double ainvT[3][3];
+         for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+               ainvT[i][j] = ainv[j][i];
+         TINKER_FCALL2(acc1, cu1, scaleVelocityAniso, ainvT);
       }
       copyPosToXyz();
    }
