@@ -246,6 +246,13 @@ enum class BarostatEnum
 };
 
 /// \ingroup mdpt
+enum class ScaleBaroEnum
+{
+   BERENDSEN,
+   BUSSI,
+};
+
+/// \ingroup mdpt
 class BasicBarostat : virtual public IntegratorStaticData
 {
 protected:
@@ -286,6 +293,15 @@ public:
 
 /// \ingroup mdpt
 class BerendsenBarostat : public BasicBarostat
+{
+public:
+   void printDetail(FILE*) override;
+   BarostatEnum getBarostatEnum() const override;
+   void control2(time_prec timeStep) override;
+};
+
+/// \ingroup mdpt
+class BussiBarostat : public BasicBarostat
 {
 public:
    void printDetail(FILE*) override;

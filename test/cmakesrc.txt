@@ -5,6 +5,7 @@ aplusgas.cpp
 aplusliquid.cpp
 argkey.cpp
 async.cpp
+barostat.cpp
 bond.cpp
 bounds.cpp
 box.cpp
@@ -24,6 +25,7 @@ localframe2.cpp
 localframe3.cpp
 main.cpp
 mathfunc.cpp
+matexp.cpp
 nacl.cpp
 nblist.cpp
 nh.cpp

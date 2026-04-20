@@ -48,6 +48,7 @@ iofortstr.cpp
 iotext.cpp
 mathlu.cpp
 mathrandom.cpp
+mathmatexp.cpp
 mathtrimatexp.cpp
 md/barostat.cpp
 md/integrator.cpp
