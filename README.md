@@ -26,6 +26,8 @@ The HTML version is hosted on [readthedocs](https://tinker9-manual.readthedocs.i
 and the [PDF](https://tinker9-manual.readthedocs.io/_/downloads/en/latest/pdf/)
 version is accessible from the same webpage.
 
+***NEW*** : The AMOEBA+NN hybrid model is now available and supports molecular dynamics simulations. See the [Neural Network Potential](https://tinker9-manual.readthedocs.io/en/latest/m/key/nn.html) section of the manual for details.
+
 We are working to merge this documentation into [tinkerdoc.](https://tinkerdoc.readthedocs.io)
 
 [C++ and CUDA Code Documentation (Doxygen)](https://tinkertools.github.io/tinker-gpu/)
