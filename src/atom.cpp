@@ -70,48 +70,6 @@ void massData(RcOp op)
    }
 }
 
-// void tagData(RcOp op)
-// {
-//    // TODO define calc::xxx
-//    // the if statement below is copied from massData
-//    // if (not(calc::mass & rc_flag))
-//    //    return;
-
-//    if (op & RcOp::DEALLOC) {
-//       darray::deallocate(tag);
-//    }
-
-//    if (op & RcOp::ALLOC) {
-//       darray::allocate(n, &tag);
-//    }
-
-//    if (op & RcOp::INIT) {
-//       darray::copyin(g::q0, n, tag, atomid::tag);
-//       waitFor(g::q0);
-//    }
-// }
-
-// void classData(RcOp op)
-// {
-//    // TODO define calc::xxx
-//    // the if statement below is copied from massData
-//    // if (not(calc::mass & rc_flag))
-//    //    return;
-
-//    if (op & RcOp::DEALLOC) {
-//       darray::deallocate(class_);
-//    }
-
-//    if (op & RcOp::ALLOC) {
-//       darray::allocate(n, &class_);
-//    }
-
-//    if (op & RcOp::INIT) {
-//       darray::copyin(g::q0, n, class_, atomid::class_);
-//       waitFor(g::q0);
-//    }
-// }
-
 void atomicData(RcOp op)
 {
    if (not (use(Potent::CHGFLX) | use(Potent::NNVAL) | use(Potent::NNMET)))

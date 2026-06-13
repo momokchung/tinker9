@@ -8,26 +8,20 @@ void zeroEGV(int vers)
    size_t bsize = bufferSize();
    if (vers & calc::energy) {
       zeroOnHost(esum, energy_valence, energy_vdw, energy_elec, energy_nnintermol);
-      zeroOnDevice3Async(bsize, eng_buf, eng_buf_vdw, eng_buf_elec);
-      // this only supports 3 energy buffers, the code below is a temporary workaround.
-      // elegant solution is to implement zeroOnDeviceNAsync and use it here.
-      zeroOnDevice3Async(bsize, eng_buf, eng_buf_vdw, eng_buf_nnintermol); 
+      // zeroOnDevice3Async(bsize, eng_buf, eng_buf_vdw, eng_buf_elec);
+      zeroOnDevice4Async(bsize, eng_buf, eng_buf_vdw, eng_buf_elec, eng_buf_nnintermol);
    }
 
    if (vers & calc::virial) {
       zeroOnHost(vir, virial_valence, virial_vdw, virial_elec, virial_nnintermol);
-      zeroOnDevice3Async(bsize, vir_buf, vir_buf_vdw, vir_buf_elec);
-      // this only supports 3 virial buffers, the code below is a temporary workaround.
-      // elegant solution is to implement zeroOnDeviceNAsync and use it here.
-      zeroOnDevice3Async(bsize, vir_buf, vir_buf_vdw, vir_buf_nnintermol); 
+      // zeroOnDevice3Async(bsize, vir_buf, vir_buf_vdw, vir_buf_elec);
+      zeroOnDevice4Async(bsize, vir_buf, vir_buf_vdw, vir_buf_elec, vir_buf_nnintermol);
    }
 
    if (vers & calc::grad) {
-      zeroOnDevice9Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec);
-      // this only supports 9 gradient buffers, the code below is a temporary workaround.
-      // elegant solution is to implement zeroOnDeviceNAsync and use it here.
-      zeroOnDevice9Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, 
-                              gx_nnintermol, gy_nnintermol, gz_nnintermol);   
+      // zeroOnDevice9Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec);
+      zeroOnDevice12Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec,
+         gx_nnintermol, gy_nnintermol, gz_nnintermol);
    }
 }
 }

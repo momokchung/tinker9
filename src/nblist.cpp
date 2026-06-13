@@ -291,11 +291,12 @@ static void spatialAlloc( //
    int ns1 = 0, int (*js1)[2] = nullptr, //
    int ns2 = 0, int (*js2)[2] = nullptr, //
    int ns3 = 0, int (*js3)[2] = nullptr, //
-   int ns4 = 0, int (*js4)[2] = nullptr)
+   int ns4 = 0, int (*js4)[2] = nullptr, //
+   bool nblist4nn = false)
 {
 #if TINKER_CUDART
    Spatial::dataAlloc(unt, n, cut, buf, x, y, z, nstype, //
-      ns1, js1, ns2, js2, ns3, js3, ns4, js4);
+      ns1, js1, ns2, js2, ns3, js3, ns4, js4, nblist4nn);
    alloc_thrust_cache = true;
 #endif
 }
@@ -495,15 +496,12 @@ void nblistData(RcOp op)
    if (u & Nbl::SPATIAL) { 
       auto& un2 = nnspatial_v2_unit;
       if (op & RcOp::ALLOC) {
-         spatialAlloc(un2, n, cut, buf, x, y, z, 0);
+         spatialAlloc(un2, n, cut, buf, x, y, z, 0, 0, nullptr, 0, nullptr, 0, nullptr, 0, nullptr, true);
       }
-
       if (op & RcOp::INIT) {
-         un2->nblist4nn = true;
          spatialBuild(un2);
       }
    }
-
 
 #if TINKER_CUDART
    if (alloc_thrust_cache)

@@ -60,8 +60,6 @@ void deviceData(RcOp op)
    RcMan box42{boxData, op};
    RcMan n42{nData, op};
    RcMan mass42{massData, op};
-   // RcMan tag42{tagData, op};
-   // RcMan class42{classData, op};
    RcMan atomic42{atomicData, op};
    RcMan xyz42{xyzData, op};
    RcMan cpl42{coupleData, op};

@@ -11,9 +11,9 @@ void ennmetal_cu(int vers);
 
 void ennmetalData(RcOp);
 
-TINKER_EXTERN int ngrps_nnmetal;  // number of groups of atoms that uses neural network correction to metal ions
-TINKER_EXTERN int* grps_nnmetal;  // array of group indies of groups of atoms that uses neural network correction to metal ions
-TINKER_EXTERN std::vector<int> grps_nnmetal_host;  // array of group indies of groups of atoms that uses neural network correction to metal ions
+TINKER_EXTERN int ngrps_nnmetal;                  // number of groups of atoms that uses neural network correction to metal ions
+TINKER_EXTERN int* grps_nnmetal;                  // array of group indices of groups of atoms that uses neural network correction to metal ions
+TINKER_EXTERN std::vector<int> grps_nnmetal_host; // array of group indices of groups of atoms that uses neural network correction to metal ions
 
 TINKER_EXTERN int nennmet;
 TINKER_EXTERN EnergyBuffer ennmet;

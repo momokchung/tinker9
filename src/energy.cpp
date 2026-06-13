@@ -433,7 +433,6 @@ void energy(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
       for (int iv = 0; iv < 9; ++iv)
          vir[iv] = virial_valence[iv] + virial_vdw[iv] + virial_elec[iv];
    }
-
    if (do_g) {
       if (ecore_vdw and gx_vdw)
          sumGradient(gx, gy, gz, gx_vdw, gy_vdw, gz_vdw);
@@ -442,7 +441,6 @@ void energy(int vers, unsigned tsflag, const TimeScaleConfig& tsconfig)
       if (ecore_nnintermol and gx_nnintermol)
          sumGradient(gx, gy, gz, gx_nnintermol, gy_nnintermol, gz_nnintermol);
    }
-
 }
 
 void energy(int vers)
@@ -540,6 +538,15 @@ bool useEnergyElec()
 
    return ans;
 }
+
+bool useEnergyINN()
+{
+   bool ans = false;
+
+   ans = ans or use(Potent::NNMET);
+
+   return ans;
+}
 }
 
 namespace tinker {
@@ -564,7 +571,7 @@ void egvData(RcOp op)
                darray::deallocate(eng_buf_vdw);
             if (useEnergyElec())
                darray::deallocate(eng_buf_elec);
-            if (use(Potent::NNMET))
+            if (useEnergyINN())
                darray::deallocate(eng_buf_nnintermol);
          }
       }
@@ -578,7 +585,7 @@ void egvData(RcOp op)
                darray::allocate(sz, &eng_buf_vdw);
             if (useEnergyElec())
                darray::allocate(sz, &eng_buf_elec);
-            if (use(Potent::NNMET))
+            if (useEnergyINN())
                darray::allocate(sz, &eng_buf_nnintermol);
          }
       }
@@ -592,7 +599,7 @@ void egvData(RcOp op)
                darray::deallocate(vir_buf_vdw);
             if (useEnergyElec())
                darray::deallocate(vir_buf_elec);
-            if (use(Potent::NNMET))
+            if (useEnergyINN())
                darray::deallocate(vir_buf_nnintermol);
          }
       }
@@ -606,7 +613,7 @@ void egvData(RcOp op)
                darray::allocate(sz, &vir_buf_vdw);
             if (useEnergyElec())
                darray::allocate(sz, &vir_buf_elec);
-            if (use(Potent::NNMET))
+            if (useEnergyINN())
                darray::allocate(sz, &vir_buf_nnintermol);
          }
       }
@@ -619,7 +626,7 @@ void egvData(RcOp op)
             darray::deallocate(gx_vdw, gy_vdw, gz_vdw);
          if (useEnergyElec())
             darray::deallocate(gx_elec, gy_elec, gz_elec);
-         if (use(Potent::NNMET))
+         if (useEnergyINN())
             darray::deallocate(gx_nnintermol, gy_nnintermol, gz_nnintermol);
       }
 
@@ -631,7 +638,7 @@ void egvData(RcOp op)
             darray::allocate(n, &gx_vdw, &gy_vdw, &gz_vdw);
          if (useEnergyElec())
             darray::allocate(n, &gx_elec, &gy_elec, &gz_elec);
-         if (use(Potent::NNMET))
+         if (useEnergyINN())
             darray::allocate(n, &gx_nnintermol, &gy_nnintermol, &gz_nnintermol);
       }
    }
