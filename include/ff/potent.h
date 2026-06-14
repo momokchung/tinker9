@@ -21,7 +21,7 @@ enum class Potent
    TORTOR,  ///< Torsion-torsion term.
    NNVAL,   ///< Neural network valence term.
 
-   NNMET,   ///< Neural network metal ion term.
+   NNMET, ///< Neural network metal ion term.
 
    VDW,    ///< Van der Waals potential.
    REPULS, ///< Pauli repulsion term.

@@ -20,8 +20,8 @@ void zeroEGV(int vers)
 
    if (vers & calc::grad) {
       // zeroOnDevice9Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec);
-      zeroOnDevice12Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec,
-         gx_nnintermol, gy_nnintermol, gz_nnintermol);
+      zeroOnDevice12Async(n, gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec, gx_nnintermol,
+         gy_nnintermol, gz_nnintermol);
    }
 }
 }
@@ -38,18 +38,18 @@ void scaleGradient(double scale, grad_prec* g0x, grad_prec* g0y, grad_prec* g0z)
       TINKER_FCALL2(acc1, cu0, scaleGradient, scale, g0x, g0y, g0z);
 }
 
-TINKER_FVOID2(acc1, cu1, sumGradientV1, grad_prec*, grad_prec*, grad_prec*, const grad_prec*,
-   const grad_prec*, const grad_prec*);
-void sumGradient(grad_prec* g0x, grad_prec* g0y, grad_prec* g0z, const grad_prec* g1x,
-   const grad_prec* g1y, const grad_prec* g1z)
+TINKER_FVOID2(acc1, cu1, sumGradientV1, grad_prec*, grad_prec*, grad_prec*, const grad_prec*, const grad_prec*,
+   const grad_prec*);
+void sumGradient(grad_prec* g0x, grad_prec* g0y, grad_prec* g0z, const grad_prec* g1x, const grad_prec* g1y,
+   const grad_prec* g1z)
 {
    TINKER_FCALL2(acc1, cu1, sumGradientV1, g0x, g0y, g0z, g1x, g1y, g1z);
 }
 
-TINKER_FVOID2(acc1, cu1, sumGradientV2, double, grad_prec*, grad_prec*, grad_prec*,
-   const grad_prec*, const grad_prec*, const grad_prec*);
-void sumGradient(double s, grad_prec* g0x, grad_prec* g0y, grad_prec* g0z, const grad_prec* g1x,
-   const grad_prec* g1y, const grad_prec* g1z)
+TINKER_FVOID2(acc1, cu1, sumGradientV2, double, grad_prec*, grad_prec*, grad_prec*, const grad_prec*, const grad_prec*,
+   const grad_prec*);
+void sumGradient(double s, grad_prec* g0x, grad_prec* g0y, grad_prec* g0z, const grad_prec* g1x, const grad_prec* g1y,
+   const grad_prec* g1z)
 {
    if (s == 0)
       return;

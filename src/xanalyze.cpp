@@ -1,14 +1,14 @@
 #include "ff/amoeba/empole.h"
 #include "ff/amoeba/induce.h"
-#include "ff/modamoeba.h"
 #include "ff/echarge.h"
 #include "ff/energy.h"
-#include "ff/evalence.h"
 #include "ff/ennintermol.h"
+#include "ff/evalence.h"
 #include "ff/evdw.h"
 #include "ff/hippo/edisp.h"
 #include "ff/hippo/erepel.h"
 #include "ff/hippo/induce.h"
+#include "ff/modamoeba.h"
 #include "ff/modhippo.h"
 #include "ff/nblist.h"
 #include "ff/potent.h"
@@ -264,19 +264,13 @@ static void xAnalyzeMoments()
          moment::ydpl += ycm[i] * RPOLE(1, i) + RPOLE(3, i);
          moment::zdpl += zcm[i] * RPOLE(1, i) + RPOLE(4, i);
          moment::xxqpl += xcm[i] * xcm[i] * RPOLE(1, i) + 2 * xcm[i] * RPOLE(2, i);
-         moment::xyqpl +=
-            xcm[i] * ycm[i] * RPOLE(1, i) + xcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(2, i);
-         moment::xzqpl +=
-            xcm[i] * zcm[i] * RPOLE(1, i) + xcm[i] * RPOLE(4, i) + zcm[i] * RPOLE(2, i);
-         moment::yxqpl +=
-            +ycm[i] * xcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(2, i) + xcm[i] * RPOLE(3, i);
+         moment::xyqpl += xcm[i] * ycm[i] * RPOLE(1, i) + xcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(2, i);
+         moment::xzqpl += xcm[i] * zcm[i] * RPOLE(1, i) + xcm[i] * RPOLE(4, i) + zcm[i] * RPOLE(2, i);
+         moment::yxqpl += +ycm[i] * xcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(2, i) + xcm[i] * RPOLE(3, i);
          moment::yyqpl += ycm[i] * ycm[i] * RPOLE(1, i) + 2 * ycm[i] * RPOLE(3, i);
-         moment::yzqpl +=
-            ycm[i] * zcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(4, i) + zcm[i] * RPOLE(3, i);
-         moment::zxqpl +=
-            zcm[i] * xcm[i] * RPOLE(1, i) + zcm[i] * RPOLE(2, i) + xcm[i] * RPOLE(4, i);
-         moment::zyqpl +=
-            zcm[i] * ycm[i] * RPOLE(1, i) + zcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(4, i);
+         moment::yzqpl += ycm[i] * zcm[i] * RPOLE(1, i) + ycm[i] * RPOLE(4, i) + zcm[i] * RPOLE(3, i);
+         moment::zxqpl += zcm[i] * xcm[i] * RPOLE(1, i) + zcm[i] * RPOLE(2, i) + xcm[i] * RPOLE(4, i);
+         moment::zyqpl += zcm[i] * ycm[i] * RPOLE(1, i) + zcm[i] * RPOLE(3, i) + ycm[i] * RPOLE(4, i);
          moment::zzqpl += zcm[i] * zcm[i] * RPOLE(1, i) + 2 * zcm[i] * RPOLE(4, i);
 #undef RPOLE
       }
@@ -322,8 +316,7 @@ static void xAnalyzeMoments()
    moment::zzqpl *= units::debye;
 
    // get dipole magnitude and diagonalize quadrupole tensor
-   moment::netdpl = std::sqrt(
-      moment::xdpl * moment::xdpl + moment::ydpl * moment::ydpl + moment::zdpl * moment::zdpl);
+   moment::netdpl = std::sqrt(moment::xdpl * moment::xdpl + moment::ydpl * moment::ydpl + moment::zdpl * moment::zdpl);
    double a[3][3], b[3][3];
    a[0][0] = moment::xxqpl;
    a[1][0] = moment::xyqpl;
@@ -357,8 +350,8 @@ static void xAnalyzeM()
       " Quadrupole Moment Tensor :%9s%13.3lf%13.3lf%13.3lf\n"
       "      (Buckinghams)%17s%13.3lf%13.3lf%13.3lf\n"
       "%36s%13.3lf%13.3lf%13.3lf\n",
-      "", moment::xxqpl, moment::xyqpl, moment::xzqpl, "", moment::yxqpl, moment::yyqpl,
-      moment::yzqpl, "", moment::zxqpl, moment::zyqpl, moment::zzqpl);
+      "", moment::xxqpl, moment::xyqpl, moment::xzqpl, "", moment::yxqpl, moment::yyqpl, moment::yzqpl, "",
+      moment::zxqpl, moment::zyqpl, moment::zzqpl);
    print(out,
       "\n"
       " Principal Axes Quadrupole :%8s%13.3lf%13.3lf%13.3lf\n",
@@ -369,10 +362,8 @@ static void xAnalyzeM()
          "\n"
          " Dielectric Constant :%14s%13.3lf\n",
          "", chgpot::dielec);
-      print(out, " Effective Total Charge :%11s%13.5lf Electrons\n", "",
-         moment::netchg / std::sqrt(chgpot::dielec));
-      print(out, " Effective Dipole Moment :%10s%13.3lf Debye\n", "",
-         moment::netdpl / std::sqrt(chgpot::dielec));
+      print(out, " Effective Total Charge :%11s%13.5lf Electrons\n", "", moment::netchg / std::sqrt(chgpot::dielec));
+      print(out, " Effective Dipole Moment :%10s%13.3lf Debye\n", "", moment::netdpl / std::sqrt(chgpot::dielec));
    }
 
    // radius of gyration and moments of inertia
@@ -434,7 +425,8 @@ void xAnalyze(int, char**)
    bool exist = false;
    std::string opt;
    nextarg(string, exist);
-   if (exist) ioReadString(opt, string);
+   if (exist)
+      ioReadString(opt, string);
    std::string prompt = R"(
  The Tinker Energy Analysis Utility Can :
 
@@ -471,9 +463,12 @@ void xAnalyze(int, char**)
       nframe_processed++;
       if (nframe_processed > 1)
          print(out, "\n Analysis for Archive Structure :%16d\n", nframe_processed);
-      if (opt.find("E") != failed) xAnalyzeE();
-      if (opt.find("M") != failed) xAnalyzeM();
-      if (opt.find("V") != failed) xAnalyzeV();
+      if (opt.find("E") != failed)
+         xAnalyzeE();
+      if (opt.find("M") != failed)
+         xAnalyzeM();
+      if (opt.find("V") != failed)
+         xAnalyzeV();
    } while (not done);
 
    finish();

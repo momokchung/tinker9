@@ -1,5 +1,5 @@
-#include "ff/modamoeba.h"
 #include "ff/energy.h"
+#include "ff/modamoeba.h"
 #include "ff/potent.h"
 #include "md/misc.h"
 #include "md/pq.h"
@@ -21,9 +21,9 @@
 #include <tinker/routines.h>
 
 #if TINKER_CUDART
-#   include "tool/error.h"
-#   include "tool/gpucard.h"
-#   include <cuda_runtime.h>
+#include "tool/error.h"
+#include "tool/gpucard.h"
+#include <cuda_runtime.h>
 #endif
 
 namespace tinker {
@@ -127,8 +127,7 @@ static void mdsaveDupThenWrite(int istep, time_prec dt)
 
    {
       std::vector<double> arrx(n), arry(n), arrz(n);
-      copyGradientSync(calc::grad, arrx.data(), arry.data(), arrz.data(),
-         dup_buf_gx, dup_buf_gy, dup_buf_gz, g::q1);
+      copyGradientSync(calc::grad, arrx.data(), arry.data(), arrz.data(), dup_buf_gx, dup_buf_gy, dup_buf_gz, g::q1);
       // convert gradient to acceleration
       const double ekcal = units::ekcal;
       for (int i = 0; i < n; ++i) {
@@ -178,8 +177,7 @@ void mdsaveAsync(int istep, time_prec dt)
    cv_write.wait(lck_write, [=]() { return idle_write; });
    idle_write = false;
 
-   fut_dup_then_write = std::async(std::launch::async, mdsaveDupThenWrite,
-      istep, dt);
+   fut_dup_then_write = std::async(std::launch::async, mdsaveDupThenWrite, istep, dt);
 
    std::unique_lock<std::mutex> lck_copy(mtx_dup);
    cv_dup.wait(lck_copy, [=]() { return idle_dup; });
@@ -188,7 +186,8 @@ void mdsaveAsync(int istep, time_prec dt)
 
 void mdsaveSynchronize()
 {
-   if (fut_dup_then_write.valid()) fut_dup_then_write.get();
+   if (fut_dup_then_write.valid())
+      fut_dup_then_write.get();
 }
 
 void mdsaveData(RcOp op)
@@ -199,7 +198,8 @@ void mdsaveData(RcOp op)
       check_rt(cudaEventDestroy(mdsave_end_event));
 #endif
 
-      if (mdsaveUseUind()) darray::deallocate(dup_buf_uind);
+      if (mdsaveUseUind())
+         darray::deallocate(dup_buf_uind);
 
       darray::deallocate(dup_buf_x, dup_buf_y, dup_buf_z);
       darray::deallocate(dup_buf_vx, dup_buf_vy, dup_buf_vz);
@@ -208,10 +208,8 @@ void mdsaveData(RcOp op)
 
    if (op & RcOp::ALLOC) {
 #if TINKER_CUDART
-      check_rt(cudaEventCreateWithFlags(&mdsave_begin_event,
-         cudaEventDisableTiming));
-      check_rt(cudaEventCreateWithFlags(&mdsave_end_event,
-         cudaEventDisableTiming));
+      check_rt(cudaEventCreateWithFlags(&mdsave_begin_event, cudaEventDisableTiming));
+      check_rt(cudaEventCreateWithFlags(&mdsave_end_event, cudaEventDisableTiming));
 #endif
 
       if (mdsaveUseUind()) {

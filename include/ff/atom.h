@@ -9,7 +9,7 @@ namespace tinker {
 
 void nData(RcOp);
 void massData(RcOp);
-void atomicData(RcOp);  // atomic number
+void atomicData(RcOp); // atomic number
 void xyzData(RcOp);
 
 /// Update #x, #y, #z by #xpos, #ypos, and #zpos.

@@ -16,16 +16,16 @@
 #include <cmath>
 
 namespace tinker {
-TINKER_FVOID2(acc1, cu1, kineticEnergy, energy_prec&, energy_prec (&)[3][3], int n, const double*,
-   const vel_prec*, const vel_prec*, const vel_prec*);
-void kineticEnergy(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n, const double* mass,
-   const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
+TINKER_FVOID2(acc1, cu1, kineticEnergy, energy_prec&, energy_prec (&)[3][3], int n, const double*, const vel_prec*,
+   const vel_prec*, const vel_prec*);
+void kineticEnergy(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n, const double* mass, const vel_prec* vx,
+   const vel_prec* vy, const vel_prec* vz)
 {
    TINKER_FCALL2(acc1, cu1, kineticEnergy, eksum_out, ekin_out, n, mass, vx, vy, vz);
 }
 
-void kineticExplicit(T_prec& temp_out, energy_prec& eksum_out, energy_prec (&ekin_out)[3][3],
-   const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
+void kineticExplicit(T_prec& temp_out, energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], const vel_prec* vx,
+   const vel_prec* vy, const vel_prec* vz)
 {
    kineticEnergy(eksum_out, ekin_out, n, mass, vx, vy, vz);
    temp_out = 2 * eksum_out / (mdstuf::nfree * units::gasconst);
@@ -72,9 +72,9 @@ void bussiThermostat(time_prec dt_prec, T_prec temp_prec)
 
 static void invert3(double dst[3][3], const double src[3][3])
 {
-   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1]) -
-      src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0]) +
-      src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
+   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1])
+      - src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0])
+      + src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
    double invdet = 1 / det;
 
    dst[0][0] = (src[1][1] * src[2][2] - src[1][2] * src[2][1]) * invdet;
@@ -223,16 +223,13 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
          l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
          l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
          if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-            a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
-               (l0 * l2);
+            a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) / (l0 * l2);
             a1 = radian * std::acos(a1);
          }
          if (box_shape == BoxShape::TRI) {
-            a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
-               (l1 * l2);
+            a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) / (l1 * l2);
             a0 = radian * std::acos(a0);
-            a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
-               (l0 * l1);
+            a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) / (l0 * l1);
             a2 = radian * std::acos(a2);
          }
          Box newbox;
@@ -287,7 +284,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
          boxSetCurrentRecip();
 
          volnew = boxVolume();
-
       }
 
       if (volscale == "MOLECULAR") {
@@ -295,7 +291,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
       }
 
       copyPosToXyz();
-
    }
 
    // get the potential energy and PV work changes for trial move
@@ -470,16 +465,13 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
       l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
       l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
       if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-         a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
-            (l0 * l2);
+         a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) / (l0 * l2);
          a1 = radian * std::acos(a1);
       }
       if (box_shape == BoxShape::TRI) {
-         a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
-            (l1 * l2);
+         a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) / (l1 * l2);
          a0 = radian * std::acos(a0);
-         a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
-            (l0 * l1);
+         a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) / (l0 * l1);
          a2 = radian * std::acos(a2);
       }
       Box newbox;

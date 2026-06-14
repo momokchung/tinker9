@@ -114,8 +114,8 @@ template void zeroOnDevice4Async_acc(int, double (*)[8], double (*)[8], double (
 //    int, double*, double*, double*, double*, double*, double*, double*, double*, double*);
 
 template <class T>
-void zeroOnDevice12Async_acc(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
-   T* a7, T* a8, T* a9, T* a10, T* a11, T* a12)
+void zeroOnDevice12Async_acc(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8, T* a9, T* a10, T* a11,
+   T* a12)
 {
    #pragma acc parallel loop async deviceptr(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
    for (int i = 0; i < nelem; ++i) {

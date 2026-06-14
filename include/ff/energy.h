@@ -104,9 +104,9 @@ TINKER_EXTERN EnergyBuffer eng_buf_vdw;        ///< Energy buffer for the vdw te
 TINKER_EXTERN EnergyBuffer eng_buf_elec;       ///< Energy buffer for the electrostatic terms.
 TINKER_EXTERN EnergyBuffer eng_buf_nnintermol; ///< Energy buffer for the Intermolecular NN terms.
 
-TINKER_EXTERN VirialBuffer vir_buf;      ///< Virial buffer for the valence terms.
-TINKER_EXTERN VirialBuffer vir_buf_vdw;  ///< Virial buffer for the vdw terms.
-TINKER_EXTERN VirialBuffer vir_buf_elec; ///< Virial buffer for the electrostatic terms.
+TINKER_EXTERN VirialBuffer vir_buf;            ///< Virial buffer for the valence terms.
+TINKER_EXTERN VirialBuffer vir_buf_vdw;        ///< Virial buffer for the vdw terms.
+TINKER_EXTERN VirialBuffer vir_buf_elec;       ///< Virial buffer for the electrostatic terms.
 TINKER_EXTERN VirialBuffer vir_buf_nnintermol; ///< Virial buffer for the Intermolecular NN terms. Note Virial for NN has not been implemented yet.
 
 TINKER_EXTERN energy_prec esum;              ///< Total potential energy.

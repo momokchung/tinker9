@@ -1,17 +1,16 @@
-#include "ff/energy.h"
 #include "ff/ennintermol.h"
+#include "ff/energy.h"
 #include "ff/potent.h"
-#include "nn/nn.h"
 #include "math/zero.h"
+#include "nn/nn.h"
 #include "tool/externfunc.h"
 #include "tool/iofortstr.h"
 
-#include <tinker/detail/keys.hh>
-#include <tinker/detail/group.hh>
-#include <tinker/detail/atomid.hh>
 #include <algorithm>
 #include <functional>
-
+#include <tinker/detail/atomid.hh>
+#include <tinker/detail/group.hh>
+#include <tinker/detail/keys.hh>
 
 namespace tinker {
 
@@ -27,7 +26,7 @@ void ennmetalData(RcOp op)
       darray::deallocate(grps_nnmetal);
       grps_nnmetal_host.clear();
 
-      for (int i=0; i < nnps.size(); i++) {
+      for (int i = 0; i < nnps.size(); i++) {
          if (nnps[i].type == "metal") {
             nnps[i].deallocate();
          }
@@ -45,9 +44,9 @@ void ennmetalData(RcOp op)
 
    if (op & RcOp::ALLOC) {
       grps_nnmetal_host.clear();
-      for (int i=0; i < nnterms.size(); i++) {
+      for (int i = 0; i < nnterms.size(); i++) {
          if (nnterms[i][0] == "metal") {
-            for (int j=1; j < nnterms[i].size(); j++) {
+            for (int j = 1; j < nnterms[i].size(); j++) {
                grps_nnmetal_host.push_back(std::stoi(nnterms[i][j]));
             }
          }
@@ -57,8 +56,8 @@ void ennmetalData(RcOp op)
 
       // get the list of atoms in the groups
       std::vector<int> nnatoms;
-      for (int i=0; i < n; i++) {
-         for (int j=0; j < ngrps_nnmetal; j++){
+      for (int i = 0; i < n; i++) {
+         for (int j = 0; j < ngrps_nnmetal; j++) {
             if (group::grplist[i] == grps_nnmetal_host[j]) {
                nnatoms.push_back(i);
             }
@@ -66,12 +65,10 @@ void ennmetalData(RcOp op)
       }
       nennmet = nnatoms.size();
       // sort nnatoms based on atomic number
-      std::sort(nnatoms.begin(), nnatoms.end(), [](int a, int b) {
-         return atomid::atomic[a] < atomid::atomic[b];
-      });
+      std::sort(nnatoms.begin(), nnatoms.end(), [](int a, int b) { return atomid::atomic[a] < atomid::atomic[b]; });
 
       // allocate for nnps
-      for (int i=0; i < nnps.size(); i++) {
+      for (int i = 0; i < nnps.size(); i++) {
          if (nnps[i].type == "metal") {
             nnps[i].remove_nn_unneeded(nnatoms);
             nnps[i].allocate(nnatoms);
@@ -92,7 +89,7 @@ void ennmetalData(RcOp op)
    if (op & RcOp::INIT) {
       darray::copyin(g::q0, ngrps_nnmetal, grps_nnmetal, grps_nnmetal_host.data());
 
-      for (int i=0; i < nnps.size(); i++) {
+      for (int i = 0; i < nnps.size(); i++) {
          if (nnps[i].type == "metal") {
             nnps[i].initialize();
          }
@@ -102,16 +99,15 @@ void ennmetalData(RcOp op)
    }
 }
 
-
 void ennmetal_cu(int vers)
 {
    // auto rc_a = rc_flag & calc::analyz;
    auto do_e = vers & calc::energy;
    auto do_v = vers & calc::virial;
    auto do_g = vers & calc::grad;
-   for (int i = 0; i < nnps.size(); i++){
-      if (nnps[i].type == "metal"){
-         if (do_e or do_g){
+   for (int i = 0; i < nnps.size(); i++) {
+      if (nnps[i].type == "metal") {
+         if (do_e or do_g) {
             nnps[i].forward(calc::energy, ngrps_nnmetal, grps_nnmetal, ennmet);
          }
          if (do_g)
@@ -122,7 +118,6 @@ void ennmetal_cu(int vers)
       }
    }
 }
-
 
 void ennintermol_cu(int vers)
 {
@@ -138,22 +133,22 @@ void ennintermol_cu(int vers)
 
    size_t bsize = bufferSize();
    if (rc_a and flag_nnmet) {
-   // if (flag_nnval) {
+      // if (flag_nnval) {
       zeroOnHost(energy_ennmet, virial_ennmet);
       // if (do_e)
       darray::zero(g::q0, bsize, ennmet);
       if (do_v)
          darray::zero(g::q0, bsize, vir_ennmet);
-      if (do_g){
+      if (do_g) {
          darray::zero(g::q0, n, dennmet_x, dennmet_y, dennmet_z);
       }
    }
 
-    if (pltfm_config & Platform::CUDA) {
-        if (flag_nnmet) {
-            ennmetal_cu(vers);
-        }
-    }
+   if (pltfm_config & Platform::CUDA) {
+      if (flag_nnmet) {
+         ennmetal_cu(vers);
+      }
+   }
 
    if (rc_a and flag_nnmet) {
       if (do_e) {

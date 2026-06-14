@@ -77,8 +77,7 @@ template void zeroOnDevice4Async_cu(int, double*, double*, double*, double*);
 
 template <class T, int N>
 __global__
-void zeroOnDevice4Async_cu2(
-   int n, T (*restrict b1)[N], T (*restrict b2)[N], T (*restrict b3)[N], T (*restrict b4)[N])
+void zeroOnDevice4Async_cu2(int n, T (*restrict b1)[N], T (*restrict b2)[N], T (*restrict b3)[N], T (*restrict b4)[N])
 {
    T* restrict a1 = reinterpret_cast<T*>(b1);
    T* restrict a2 = reinterpret_cast<T*>(b2);
@@ -146,9 +145,8 @@ template void zeroOnDevice4Async_cu(int, double (*)[8], double (*)[8], double (*
 
 template <class T>
 __global__
-void zeroOnDevice12Async_cu1(int n, T* restrict a1, T* restrict a2, T* restrict a3, T* restrict a4,
-   T* restrict a5, T* restrict a6, T* restrict a7, T* restrict a8, T* restrict a9, T* restrict a10,
-   T* restrict a11, T* restrict a12)
+void zeroOnDevice12Async_cu1(int n, T* restrict a1, T* restrict a2, T* restrict a3, T* restrict a4, T* restrict a5,
+   T* restrict a6, T* restrict a7, T* restrict a8, T* restrict a9, T* restrict a10, T* restrict a11, T* restrict a12)
 {
    for (int i = ITHREAD; i < n; i += STRIDE) {
       if (a1)
@@ -179,11 +177,10 @@ void zeroOnDevice12Async_cu1(int n, T* restrict a1, T* restrict a2, T* restrict 
 }
 
 template <class T>
-void zeroOnDevice12Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8,
-   T* a9, T* a10, T* a11, T* a12)
+void zeroOnDevice12Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8, T* a9, T* a10, T* a11,
+   T* a12)
 {
-   launch_k1s(g::s0, nelem, zeroOnDevice12Async_cu1<T>, nelem, a1, a2, a3, a4, a5, a6, a7, a8, a9,
-      a10, a11, a12);
+   launch_k1s(g::s0, nelem, zeroOnDevice12Async_cu1<T>, nelem, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 }
 template void zeroOnDevice12Async_cu(int, fixed*, fixed*, fixed*, fixed*, fixed*, fixed*, fixed*, fixed*, fixed*,
    fixed*, fixed*, fixed*);

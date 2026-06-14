@@ -117,8 +117,8 @@ static void spatialCut(int& px, int& py, int& pz, int level)
 }
 
 namespace tinker {
-void Spatial::dataAlloc(SpatialUnit& u, int n, double cutoff, double buffer, const real* x,
-   const real* y, const real* z,                   //
+void Spatial::dataAlloc(SpatialUnit& u, int n, double cutoff, double buffer, const real* x, const real* y,
+   const real* z,                                  //
    int nstype,                                     //
    int ns1, int (*js1)[2], int ns2, int (*js2)[2], //
    int ns3, int (*js3)[2], int ns4, int (*js4)[2], bool nblist4nn)

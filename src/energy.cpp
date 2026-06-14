@@ -62,18 +62,18 @@ static bool fts(std::string eng, bool& use_flag, unsigned tsflag, const TimeScal
 #include "ff/amoeba/epolar.h"
 #include "ff/echarge.h"
 #include "ff/echglj.h"
+#include "ff/ennintermol.h"
 #include "ff/evalence.h"
 #include "ff/evdw.h"
-#include "ff/ennintermol.h"
 #include "ff/hippo/echgtrn.h"
 #include "ff/hippo/edisp.h"
 #include "ff/hippo/empole.h"
 #include "ff/hippo/epolar.h"
 #include "ff/hippo/erepel.h"
+#include "ff/molecule.h"
 #include "ff/nblist.h"
 #include "ff/pmestream.h"
 #include "ff/potent.h"
-#include "ff/molecule.h"
 #include "nn/nn.h"
 #include <tinker/detail/mplpot.hh>
 #include <tinker/detail/polpot.hh>
@@ -480,7 +480,7 @@ void energyData(RcOp op)
    // non-bonded terms
 
    RcMan ennmetal42{ennmetalData, op};
-   
+
    RcMan vdwsSoftcore42{vdwSoftcoreData, op};
    RcMan evdw42{evdwData, op};
 
@@ -631,8 +631,8 @@ void egvData(RcOp op)
       }
 
       if (op & RcOp::ALLOC) {
-         zeroOnHost(gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec, 
-                    gx_nnintermol, gy_nnintermol, gz_nnintermol);
+         zeroOnHost(gx, gy, gz, gx_vdw, gy_vdw, gz_vdw, gx_elec, gy_elec, gz_elec, gx_nnintermol, gy_nnintermol,
+            gz_nnintermol);
          darray::allocate(n, &gx, &gy, &gz);
          if (useEnergyVdw())
             darray::allocate(n, &gx_vdw, &gy_vdw, &gz_vdw);

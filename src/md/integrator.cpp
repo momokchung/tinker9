@@ -431,7 +431,7 @@ void Nhc06Integrator::kickoff()
 
 Nhc06Integrator::Nhc06Integrator(int nrspa)
    : BasicIntegrator(nrspa, PropagatorEnum::m_LOGV, //
-        ThermostatEnum::m_NHC2006, BarostatEnum::NHC2006)
+      ThermostatEnum::m_NHC2006, BarostatEnum::NHC2006)
 {
    if (useRattle())
       TINKER_THROW("Constraints under NH-NPT require the ROLL algorithm.");
@@ -462,7 +462,7 @@ void LP22Integrator::kickoff()
 
 LP22Integrator::LP22Integrator(int nrspa)
    : BasicIntegrator(nrspa, PropagatorEnum::m_LOGV, //
-        ThermostatEnum::m_LP2022, BarostatEnum::LP2022)
+      ThermostatEnum::m_LP2022, BarostatEnum::LP2022)
 {
    this->kickoff();
 }
@@ -483,16 +483,14 @@ LeapFrogLPIntegrator::LeapFrogLPIntegrator()
    : BasicIntegrator()
 {
    darray::allocate(n, &leapfrog_x, &leapfrog_y, &leapfrog_z);
-   darray::allocate(n, &leapfrog_vx, &leapfrog_vy, &leapfrog_vz, &leapfrog_vxold, &leapfrog_vyold,
-      &leapfrog_vzold);
+   darray::allocate(n, &leapfrog_vx, &leapfrog_vy, &leapfrog_vz, &leapfrog_vxold, &leapfrog_vyold, &leapfrog_vzold);
    this->kickoff();
 }
 
 LeapFrogLPIntegrator::~LeapFrogLPIntegrator()
 {
    darray::deallocate(leapfrog_x, leapfrog_y, leapfrog_z);
-   darray::deallocate(
-      leapfrog_vx, leapfrog_vy, leapfrog_vz, leapfrog_vxold, leapfrog_vyold, leapfrog_vzold);
+   darray::deallocate(leapfrog_vx, leapfrog_vy, leapfrog_vz, leapfrog_vxold, leapfrog_vyold, leapfrog_vzold);
 }
 
 void LeapFrogLPIntegrator::dynamic(int istep, time_prec dt)

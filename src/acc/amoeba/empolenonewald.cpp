@@ -1,6 +1,6 @@
-#include "ff/modamoeba.h"
 #include "ff/energy.h"
 #include "ff/image.h"
+#include "ff/modamoeba.h"
 #include "ff/nblist.h"
 #include "ff/switch.h"
 #include "seq/pair_mpole.h"
@@ -65,9 +65,8 @@ void empoleNonEwald_acc1()
             pair_mpole<do_e, do_g, NON_EWALD>(                        //
                r2, xr, yr, zr, 1,                                     //
                ci, dix, diy, diz, qixx, qixy, qixz, qiyy, qiyz, qizz, //
-               rpole[k][MPL_PME_0], rpole[k][MPL_PME_X], rpole[k][MPL_PME_Y], rpole[k][MPL_PME_Z],
-               rpole[k][MPL_PME_XX], rpole[k][MPL_PME_XY], rpole[k][MPL_PME_XZ],
-               rpole[k][MPL_PME_YY], rpole[k][MPL_PME_YZ],
+               rpole[k][MPL_PME_0], rpole[k][MPL_PME_X], rpole[k][MPL_PME_Y], rpole[k][MPL_PME_Z], rpole[k][MPL_PME_XX],
+               rpole[k][MPL_PME_XY], rpole[k][MPL_PME_XZ], rpole[k][MPL_PME_YY], rpole[k][MPL_PME_YZ],
                rpole[k][MPL_PME_ZZ], //
                f, 0, e, pgrad);
 
@@ -151,9 +150,8 @@ void empoleNonEwald_acc1()
          pair_mpole<do_e, do_g, NON_EWALD>(                        //
             r2, xr, yr, zr, mscale,                                //
             ci, dix, diy, diz, qixx, qixy, qixz, qiyy, qiyz, qizz, //
-            rpole[k][MPL_PME_0], rpole[k][MPL_PME_X], rpole[k][MPL_PME_Y], rpole[k][MPL_PME_Z],
-            rpole[k][MPL_PME_XX], rpole[k][MPL_PME_XY], rpole[k][MPL_PME_XZ], rpole[k][MPL_PME_YY],
-            rpole[k][MPL_PME_YZ],
+            rpole[k][MPL_PME_0], rpole[k][MPL_PME_X], rpole[k][MPL_PME_Y], rpole[k][MPL_PME_Z], rpole[k][MPL_PME_XX],
+            rpole[k][MPL_PME_XY], rpole[k][MPL_PME_XZ], rpole[k][MPL_PME_YY], rpole[k][MPL_PME_YZ],
             rpole[k][MPL_PME_ZZ], //
             f, 0, e, pgrad);
 

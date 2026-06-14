@@ -118,11 +118,9 @@ void zeroOnDevice4Async(int nelem, T (*a1)[N], T (*a2)[N], T (*a3)[N], T (*a4)[N
 // void zeroOnDevice9Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
 //    T* a7, T* a8, T* a9);
 template <class T>
-void zeroOnDevice12Async_acc(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
-   T* a7, T* a8, T* a9, T* a10, T* a11, T* a12);
+void zeroOnDevice12Async_acc(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8, T* a9, T* a10, T* a11, T* a12);
 template <class T>
-void zeroOnDevice12Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
-   T* a7, T* a8, T* a9, T* a10, T* a11, T* a12);
+void zeroOnDevice12Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8, T* a9, T* a10, T* a11, T* a12);
 
 // /// \ingroup math
 // /// \brief Zeros variables on device.
@@ -137,10 +135,8 @@ void zeroOnDevice12Async_cu(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
 /// \ingroup math
 /// \brief Zeros variables on device.
 template <class T>
-void zeroOnDevice12Async(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6,
-   T* a7, T* a8, T* a9, T* a10, T* a11, T* a12)
+void zeroOnDevice12Async(int nelem, T* a1, T* a2, T* a3, T* a4, T* a5, T* a6, T* a7, T* a8, T* a9, T* a10, T* a11, T* a12)
 {
-   TINKER_FCALL2(acc1, cu1, zeroOnDevice12Async, nelem, a1, a2, a3, a4, a5, a6,
-      a7, a8, a9, a10, a11, a12);
+   TINKER_FCALL2(acc1, cu1, zeroOnDevice12Async, nelem, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 }
 }

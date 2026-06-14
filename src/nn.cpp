@@ -3,28 +3,29 @@
 #include "ff/molecule.h"
 #include "math/parallelcu.h"
 #include "tool/gpucard.h"
-#include <tinker/detail/keys.hh>
-#include <tinker/detail/params.hh>
+#include <iostream>
+#include <sstream>
 #include <tinker/detail/atomid.hh>
 #include <tinker/detail/couple.hh>
-#include <sstream>
-#include <iostream>
+#include <tinker/detail/keys.hh>
+#include <tinker/detail/params.hh>
 
 namespace tinker {
 
 bool isFloat(const std::string& str)
 {
-    char* ptr;
-    strtof(str.c_str(), &ptr);
-    return (*ptr) == '\0';
+   char* ptr;
+   strtof(str.c_str(), &ptr);
+   return (*ptr) == '\0';
 }
 
-void nnReadPrm(const char (*restrict prmline)[240], int nprm){
+void nnReadPrm(const char (*restrict prmline)[240], int nprm)
+{
    bool new_nnp = false, new_layer = false;
    std::vector<std::string> layer_prms;
-   for (int i=0; i < nprm; i++) {
+   for (int i = 0; i < nprm; i++) {
       std::string keyline_str;
-      for (int j=0; j < 240; j++) {
+      for (int j = 0; j < 240; j++) {
          keyline_str += prmline[i][j];
       }
       std::istringstream split(keyline_str);
@@ -37,13 +38,13 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
       if (words.size() == 0) {
          new_layer = true;
       } else {
-         if (words[0][0] == '#') {  // ignore comments
+         if (words[0][0] == '#') { // ignore comments
             continue;
          }
          if (isFloat(words[0])) {
             new_layer = false;
          } else {
-            new_layer = true;  
+            new_layer = true;
          }
          if (words[0] == "nnterm") {
             nnterms.push_back(std::vector<std::string>(words.begin() + 1, words.end()));
@@ -58,10 +59,10 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
          if (layer_prms.size() != 0) {
             if (layer_prms[0] == "nnp") {
                nnps.push_back(NeuralNetworkPotential(layer_prms[1]));
-            } else if (layer_prms[0] == "aev" || layer_prms[0] == "nn" || 
-                        layer_prms[0] == "linear" || layer_prms[0] == "celu") {
+            } else if (layer_prms[0] == "aev" || layer_prms[0] == "nn" || layer_prms[0] == "linear"
+               || layer_prms[0] == "celu") {
                std::vector<real> prms;
-               for (int i=1; i < layer_prms.size(); i++) {
+               for (int i = 1; i < layer_prms.size(); i++) {
                   real prm_i = std::stod(layer_prms[i]);
                   prms.push_back(prm_i);
                }
@@ -71,22 +72,21 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
          }
       }
 
-      for (int i=0; i < words.size(); i++) {
-         if (words[i][0] == '#') {  // ignore comments
+      for (int i = 0; i < words.size(); i++) {
+         if (words[i][0] == '#') { // ignore comments
             break;
          }
          layer_prms.push_back(words[i]);
       }
-
    }
    // when reach EOF, the same code for "new_layer = true" should be executed
    if (layer_prms.size() != 0) {
       if (layer_prms[0] == "nnp") {
          nnps.push_back(NeuralNetworkPotential(layer_prms[1]));
-      } else if (layer_prms[0] == "aev" || layer_prms[0] == "nn" || 
-                  layer_prms[0] == "linear" || layer_prms[0] == "celu") {
+      } else if (layer_prms[0] == "aev" || layer_prms[0] == "nn" || layer_prms[0] == "linear"
+         || layer_prms[0] == "celu") {
          std::vector<real> prms;
-         for (int i=1; i < layer_prms.size(); i++) {
+         for (int i = 1; i < layer_prms.size(); i++) {
             real prm_i = std::stod(layer_prms[i]);
             prms.push_back(prm_i);
          }
@@ -94,7 +94,6 @@ void nnReadPrm(const char (*restrict prmline)[240], int nprm){
       }
       layer_prms.clear();
    }
-
 }
 
 void nnData(RcOp op)
@@ -114,22 +113,23 @@ void nnData(RcOp op)
       nnReadPrm(keys::keyline, keys::nkey);
 
       // remove duplicates, the last one is kept
-      for (int i=0; i < nnps.size(); i++) {
-         for (int j=i+1; j < nnps.size(); j++) {
+      for (int i = 0; i < nnps.size(); i++) {
+         for (int j = i + 1; j < nnps.size(); j++) {
             if (nnps[i].type != nnps[j].type) {
                continue;
             }
             std::vector<int> nn2remove;
-            for (int ii=0; ii < nnps[i].networks.size(); ii++) {
-               for (int jj=0; jj < nnps[j].networks.size(); jj++) {
+            for (int ii = 0; ii < nnps[i].networks.size(); ii++) {
+               for (int jj = 0; jj < nnps[j].networks.size(); jj++) {
                   if (nnps[i].networks[ii]->atomic == nnps[j].networks[jj]->atomic) {
-                     printf("removing duplicate nnp %s, atomic %d\n", nnps[i].type.c_str(), nnps[i].networks[ii]->atomic);
+                     printf("removing duplicate nnp %s, atomic %d\n", nnps[i].type.c_str(),
+                        nnps[i].networks[ii]->atomic);
                      nn2remove.push_back(ii);
                      break;
                   }
                }
             }
-            for (int k=nn2remove.size()-1; k >= 0; k--) {
+            for (int k = nn2remove.size() - 1; k >= 0; k--) {
                nnps[i].networks.erase(nnps[i].networks.begin() + nn2remove[k]);
             }
             if (nnps[i].networks.size() == 0) {
@@ -137,14 +137,14 @@ void nnData(RcOp op)
             }
          }
       }
-      for (int i=nnps.size()-1; i >= 0; i--) {
+      for (int i = nnps.size() - 1; i >= 0; i--) {
          if (nnps[i].networks.size() == 0) {
             nnps.erase(nnps.begin() + i);
          }
       }
 
       // enable associate nn terms
-      for (int i=0; i < nnterms.size(); i++) {
+      for (int i = 0; i < nnterms.size(); i++) {
          if (nnterms[i][0] == "valence") {
             use_nnvalence = true;
          } else if (nnterms[i][0] == "metal") {
@@ -160,11 +160,10 @@ void nnData(RcOp op)
          real Rmc = nnps[i].aev->getRmc();
          nncut = nncut > Rmc ? nncut : Rmc;
       }
-
    }
 }
 
-AtomicEnvironmentVectorLayer::AtomicEnvironmentVectorLayer(const std::vector<real> &prms)
+AtomicEnvironmentVectorLayer::AtomicEnvironmentVectorLayer(const std::vector<real>& prms)
 {
    R_m_0 = prms[0];
    R_m_c = prms[1];
@@ -178,19 +177,19 @@ AtomicEnvironmentVectorLayer::AtomicEnvironmentVectorLayer(const std::vector<rea
    theta_p_d = prms[9];
    topo_cutoff = prms[10];
    for (int i = 11; i < prms.size(); ++i) {
-      atomic_covered.push_back((int) prms[i]);
+      atomic_covered.push_back((int)prms[i]);
    }
    natomic_covered = atomic_covered.size();
    laev = natomic_covered * R_m_d + natomic_covered * (natomic_covered + 1) / 2 * R_q_d * theta_p_d;
    // calculate max_nb based on cutoff radii
    if (R_m_c > R_q_c) {
-      max_nb = (int) ((1.5 * R_m_c * R_m_c * R_m_c) + 31) / 32 * 32;
+      max_nb = (int)((1.5 * R_m_c * R_m_c * R_m_c) + 31) / 32 * 32;
    } else {
-      max_nb = (int) ((1.5 * R_q_c * R_q_c * R_q_c) + 31) / 32 * 32;
+      max_nb = (int)((1.5 * R_q_c * R_q_c * R_q_c) + 31) / 32 * 32;
    }
 }
 
-void AtomicEnvironmentVectorLayer::allocate(const std::vector<int> &nnatoms)
+void AtomicEnvironmentVectorLayer::allocate(const std::vector<int>& nnatoms)
 {
    this->nnatoms = nnatoms;
 
@@ -210,22 +209,21 @@ void AtomicEnvironmentVectorLayer::allocate(const std::vector<int> &nnatoms)
    darray::allocate(naev, &nblist_rad_count, &nblist_ang_count);
 
    if (topo_cutoff > 0) {
-      // WARNING: this way of calculating `topo_flags_size` only works when `nnatoms` contains a complete set of 
+      // WARNING: this way of calculating `topo_flags_size` only works when `nnatoms` contains a complete set of
       // possible neighbouring atoms that are considered in AEV calculation.
-      // If there's any atom that is expected to be included in as part of the neighborhood 
-      // (i.e., be tracked by another atom's AEV and thus seen by the neural network when caculating the energy of the other atom),
-      // but is not expected to be included as any center atoms, (i.e., the NN energy of the atom is not wanted),
-      // then the `nnatoms` would not cover the atom, and  the `topo_flags_size` and `topo_flags` would be wrong.
+      // If there's any atom that is expected to be included in as part of the neighborhood
+      // (i.e., be tracked by another atom's AEV and thus seen by the neural network when caculating the energy of the
+      // other atom), but is not expected to be included as any center atoms, (i.e., the NN energy of the atom is not
+      // wanted), then the `nnatoms` would not cover the atom, and  the `topo_flags_size` and `topo_flags` would be
+      // wrong.
       topo_flags_size = (naev * (naev - 1) / 2 + naev + 31) / 32;
       darray::allocate(topo_flags_size, &topo_flags);
    }
-
 }
 
 void AtomicEnvironmentVectorLayer::deallocate()
 {
-   darray::deallocate(R_m, R_q, theta_p, iaev, atomid_global2local, 
-      atomid_local2global, atomic2species);
+   darray::deallocate(R_m, R_q, theta_p, iaev, atomid_global2local, atomid_local2global, atomic2species);
    darray::deallocate(dZp);
    darray::deallocate(nblist_rad, nblist_ang, nblist_ang_count, nblist_rad_count);
    if (topo_cutoff > 0) {
@@ -249,7 +247,8 @@ inline void tri2xy(int f, int& x, int& y)
    y = f - xy2tri(x, 0);
 }
 
-inline void bitOn(int x0, int y0, std::vector<int> &flags){
+inline void bitOn(int x0, int y0, std::vector<int>& flags)
+{
    if (x0 < 0 or y0 < 0) {
       return;
    }
@@ -296,16 +295,16 @@ void AtomicEnvironmentVectorLayer::initialize()
          bitOn(i, i, topo_flags_host);
       }
       // Then, turn on the bits for the neighbors of each atom, one step farther at each loop.
-      // i.e., for each atom, turn on the bits for its immediate neighbors (1-2 neighbors), 
+      // i.e., for each atom, turn on the bits for its immediate neighbors (1-2 neighbors),
       // then for the immediate neighbors of its immediate neighbors, and so forth.
       for (int i = 0; i < topo_cutoff; ++i) {
          std::vector<int> topo_flags_host_update(topo_flags_host);
          for (int j = 0; j < topo_flags_host.size(); j++) {
             for (int jbit = 0; jbit < WARP_SIZE; jbit++) {
-               int mask = 1 << jbit;  // the bit mask to get the pair corresponding to current iteration.
+               int mask = 1 << jbit; // the bit mask to get the pair corresponding to current iteration.
 
                // if the current bit (pair) is not on, skip it.
-               if (not (topo_flags_host[j] & mask)) {
+               if (not(topo_flags_host[j] & mask)) {
                   continue;
                }
 
@@ -313,14 +312,15 @@ void AtomicEnvironmentVectorLayer::initialize()
                // get the atom ids corresponding to the current pair.
                int x, y;
                tri2xy(j * WARP_SIZE + jbit, x, y);
-               // turn on the bit corresponding to the pair of (the first atom in the current pair, any its immediate neighbor).
+               // turn on the bit corresponding to the pair of (the first atom in the current pair, any its immediate
+               // neighbor).
                for (int k = 0; k < couple::n12[nnatoms[x]]; ++k) {
-                  int nb = atomid_global2local_host[couple::i12[nnatoms[x]][k]-1];
+                  int nb = atomid_global2local_host[couple::i12[nnatoms[x]][k] - 1];
                   bitOn(nb, y, topo_flags_host_update);
                }
                // same thing for the second atom in the current pair.
                for (int k = 0; k < couple::n12[nnatoms[y]]; ++k) {
-                  int nb = atomid_global2local_host[couple::i12[nnatoms[y]][k]-1];
+                  int nb = atomid_global2local_host[couple::i12[nnatoms[y]][k] - 1];
                   bitOn(x, nb, topo_flags_host_update);
                }
             }
@@ -342,51 +342,37 @@ void AtomicEnvironmentVectorLayer::initialize()
    waitFor(g::q0);
 }
 
-void AtomicEnvironmentVectorLayer::forward(int vers, const int ngrps_nn, const int* restrict grps_nn, EnergyBuffer restrict enn)
+void AtomicEnvironmentVectorLayer::forward(int vers, const int ngrps_nn, const int* restrict grps_nn,
+   EnergyBuffer restrict enn)
 {
    darray::zero(g::q0, laev * naev, iaev);
    darray::zero(g::q0, naev, nblist_rad_count, nblist_ang_count);
    darray::copyin(g::q0, nblist_init.size(), nblist_rad, nblist_init.data());
    darray::copyin(g::q0, nblist_init.size(), nblist_ang, nblist_init.data());
 
-   ref_nblist_cu(n, x, y, z, grp.grplist, atomic,
-   (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
-   (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted,
-   TINKER_IMAGE_ARGS_CU,
-   ngrps_nn, grps_nn, 
-   naev, max_nb, atomid_global2local, R_m_c, R_q_c, nblist_rad, nblist_ang,
-   nblist_rad_count, nblist_ang_count, topo_cutoff, topo_flags, atomic2species);
+   ref_nblist_cu(n, x, y, z, grp.grplist, atomic, (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl,
+      (*nnspatial_v2_unit).niak, (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted,
+      TINKER_IMAGE_ARGS_CU, ngrps_nn, grps_nn, naev, max_nb, atomid_global2local, R_m_c, R_q_c, nblist_rad, nblist_ang,
+      nblist_rad_count, nblist_ang_count, topo_cutoff, topo_flags, atomic2species);
 
-   aev_cu(vers, n, x, y, z, grp.grplist, atomic, 
-   (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
-   (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted, 
-   max_nb,
-   TINKER_IMAGE_ARGS_CU,
-   ngrps_nn, grps_nn, 
-   naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
-   R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,
-   nullptr, nullptr, nullptr, nullptr, nblist_rad, nblist_ang, atomid_local2global, enn,
-   nnlambda);
-
+   aev_cu(vers, n, x, y, z, grp.grplist, atomic, (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl,
+      (*nnspatial_v2_unit).niak, (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted,
+      max_nb, TINKER_IMAGE_ARGS_CU, ngrps_nn, grps_nn, naev, iaev, laev, natomic_covered, atomic2species,
+      atomid_global2local, R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p, nullptr,
+      nullptr, nullptr, nullptr, nblist_rad, nblist_ang, atomid_local2global, enn, nnlambda);
 }
 
-void AtomicEnvironmentVectorLayer::gradient(int vers, 
-   const int ngrps_nn, const int* restrict grps_nn,
+void AtomicEnvironmentVectorLayer::gradient(int vers, const int ngrps_nn, const int* restrict grps_nn,
    grad_prec* restrict denn_x, grad_prec* restrict denn_y, grad_prec* restrict denn_z)
 {
-   aev_cu(vers, n, x, y, z, grp.grplist, atomic, 
-   (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl, (*nnspatial_v2_unit).niak, 
-   (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted, 
-   max_nb,
-   TINKER_IMAGE_ARGS_CU,
-   ngrps_nn, grps_nn, 
-   naev, iaev, laev, natomic_covered, atomic2species, atomid_global2local, 
-   R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p,
-   dZp, denn_x, denn_y, denn_z, nblist_rad, nblist_ang, atomid_local2global, nullptr,
-   nnlambda);
+   aev_cu(vers, n, x, y, z, grp.grplist, atomic, (*nnspatial_v2_unit).nakpl, (*nnspatial_v2_unit).iakpl,
+      (*nnspatial_v2_unit).niak, (*nnspatial_v2_unit).iak, (*nnspatial_v2_unit).lst, (*nnspatial_v2_unit).sorted,
+      max_nb, TINKER_IMAGE_ARGS_CU, ngrps_nn, grps_nn, naev, iaev, laev, natomic_covered, atomic2species,
+      atomid_global2local, R_m_c, R_m_d, R_m, eta_m, R_q_c, R_q_d, R_q, eta_q, theta_p_d, theta_p, zeta_p, dZp, denn_x,
+      denn_y, denn_z, nblist_rad, nblist_ang, atomid_local2global, nullptr, nnlambda);
 }
 
-LinearLayer::LinearLayer(const std::vector<real> &prms)
+LinearLayer::LinearLayer(const std::vector<real>& prms)
 {
    name = "linear";
    params = prms;
@@ -394,7 +380,7 @@ LinearLayer::LinearLayer(const std::vector<real> &prms)
 
 void LinearLayer::allocate(int in_dim0, int in_dim1)
 {
-    // allocate gpu mem for weights and biases
+   // allocate gpu mem for weights and biases
    this->in_dim0 = in_dim0;
    this->in_dim1 = in_dim1;
    this->out_dim1 = params.size() / (in_dim1 + 1);
@@ -417,7 +403,7 @@ void LinearLayer::deallocate()
 
 void LinearLayer::initialize()
 {
-    // initialize weights and biases
+   // initialize weights and biases
    darray::copyin(g::q0, in_dim1 * out_dim1, W, params.data());
    darray::copyin(g::q0, out_dim1, b, params.data() + in_dim1 * out_dim1);
    real alpha_host = 1.0, beta1_host = 1.0, beta0_host = 0.0;
@@ -433,21 +419,20 @@ void LinearLayer::initialize()
 void LinearLayer::forward(int vers, const real* restrict A)
 {
    // add vers
-   for (int i=0; i < in_dim0; i++) {
+   for (int i = 0; i < in_dim0; i++) {
       darray::copy(g::q0, out_dim1, Z + i * out_dim1, b);
    }
 
    genMatMul_cu(Z, W, A, out_dim1, in_dim0, in_dim1, true, false, alpha, beta1, g::q0);
-
 }
 
 void LinearLayer::gradient(int vers, const real* restrict dZp)
 {
-    // backward propagation
+   // backward propagation
    genMatMul_cu(dZ, W, dZp, in_dim1, in_dim0, out_dim1, false, false, alpha, beta0, g::q0);
 }
 
-CELULayer::CELULayer(const std::vector<real> &prms)
+CELULayer::CELULayer(const std::vector<real>& prms)
 {
    name = "celu";
    params = prms;
@@ -457,7 +442,7 @@ CELULayer::CELULayer(const std::vector<real> &prms)
 
 void CELULayer::allocate(int in_dim0, int in_dim1)
 {
-    // allocate gpu mem for weights and biases
+   // allocate gpu mem for weights and biases
    this->in_dim0 = in_dim0;
    this->in_dim1 = in_dim1;
    this->out_dim1 = in_dim1;
@@ -473,9 +458,7 @@ void CELULayer::deallocate()
       darray::deallocate(dZ);
 }
 
-void CELULayer::initialize()
-{
-}
+void CELULayer::initialize() {}
 
 void CELULayer::forward(int vers, const real* restrict A)
 {
@@ -494,7 +477,6 @@ NeuralNetwork::NeuralNetwork(int atomic_number)
    atomic = atomic_number;
 }
 
-
 void NeuralNetwork::allocate(int in_dim0, int in_dim1, int A_offset)
 {
    this->in_dim0 = in_dim0;
@@ -505,7 +487,7 @@ void NeuralNetwork::allocate(int in_dim0, int in_dim1, int A_offset)
    }
 
    layers[0]->is1stlayer = true;
-   for (int i=0; i < layers.size(); i++) {
+   for (int i = 0; i < layers.size(); i++) {
       layers[i]->allocate(in_dim0, in_dim1);
       in_dim1 = layers[i]->out_dim1;
    }
@@ -518,7 +500,7 @@ void NeuralNetwork::deallocate()
       return;
    }
 
-   for (int i=0; i < layers.size(); i++) {
+   for (int i = 0; i < layers.size(); i++) {
       layers[i]->deallocate();
    }
    darray::deallocate(dZp);
@@ -530,8 +512,8 @@ void NeuralNetwork::initialize()
       return;
    }
 
-    // for each layer in layers, call initialize
-   for (int i=0; i < layers.size(); i++) {
+   // for each layer in layers, call initialize
+   for (int i = 0; i < layers.size(); i++) {
       layers[i]->initialize();
    }
    std::vector<real> dZp_host(layers.back()->in_dim0 * layers.back()->out_dim1, 1.0);
@@ -547,8 +529,8 @@ void NeuralNetwork::forward(int vers, const real* restrict A)
 
    // for each layer in layers, call forward
    layers[0]->forward(vers, A + A_offset);
-   for (int i=1; i < layers.size(); i++) {
-      layers[i]->forward(vers, layers[i-1]->Z);
+   for (int i = 1; i < layers.size(); i++) {
+      layers[i]->forward(vers, layers[i - 1]->Z);
    }
 }
 
@@ -558,24 +540,24 @@ void NeuralNetwork::gradient(int vers)
       return;
    }
 
-    // for each layer in layers, call gradient
+   // for each layer in layers, call gradient
    layers.back()->gradient(vers, dZp);
-   for (int i=layers.size()-2; i >= 0; i--) {
-      layers[i]->gradient(vers, layers[i+1]->dZ);
+   for (int i = layers.size() - 2; i >= 0; i--) {
+      layers[i]->gradient(vers, layers[i + 1]->dZ);
    }
 }
 
-NeuralNetworkPotential::NeuralNetworkPotential(const std::string &potential_type)
+NeuralNetworkPotential::NeuralNetworkPotential(const std::string& potential_type)
 {
    type = potential_type;
 }
 
-void NeuralNetworkPotential::remove_nn_unneeded(const std::vector<int> &nnatoms)
+void NeuralNetworkPotential::remove_nn_unneeded(const std::vector<int>& nnatoms)
 {
    std::vector<int> nn_to_remove;
-   for (int i=0; i < networks.size(); i++) {
+   for (int i = 0; i < networks.size(); i++) {
       bool needed = false;
-      for (int j=0; j < nnatoms.size(); j++) {
+      for (int j = 0; j < nnatoms.size(); j++) {
          if (atomid::atomic[nnatoms[j]] == networks[i]->atomic) {
             needed = true;
             break;
@@ -585,18 +567,18 @@ void NeuralNetworkPotential::remove_nn_unneeded(const std::vector<int> &nnatoms)
          nn_to_remove.push_back(i);
       }
    }
-   for (int i=nn_to_remove.size()-1; i >= 0; i--) {
+   for (int i = nn_to_remove.size() - 1; i >= 0; i--) {
       // erase from the end to avoid changing the index of the elements to be removed
       networks.erase(networks.begin() + nn_to_remove[i]);
    }
 }
 
-void NeuralNetworkPotential::allocate(const std::vector<int> &nnatoms)
+void NeuralNetworkPotential::allocate(const std::vector<int>& nnatoms)
 {
    std::vector<int> nnatoms_nnp;
    int offset = 0;
-   for (int i=0; i < networks.size(); i++) {
-      for (int j=0; j < nnatoms.size(); j++) {
+   for (int i = 0; i < networks.size(); i++) {
+      for (int j = 0; j < nnatoms.size(); j++) {
          if (atomid::atomic[nnatoms[j]] == networks[i]->atomic) {
             nnatoms_nnp.push_back(nnatoms[j]);
          }
@@ -605,7 +587,7 @@ void NeuralNetworkPotential::allocate(const std::vector<int> &nnatoms)
       offset = nnatoms_nnp.size();
    }
    aev->allocate(nnatoms_nnp);
-   for (int i=0; i < networks.size(); i++) {
+   for (int i = 0; i < networks.size(); i++) {
       networks[i]->layers[0]->dZ = aev->dZp + networks[i]->A_offset;
    }
 }
@@ -613,7 +595,7 @@ void NeuralNetworkPotential::allocate(const std::vector<int> &nnatoms)
 void NeuralNetworkPotential::deallocate()
 {
    aev->deallocate();
-   for (int i=0; i < networks.size(); i++) {
+   for (int i = 0; i < networks.size(); i++) {
       networks[i]->deallocate();
    }
 }
@@ -621,49 +603,51 @@ void NeuralNetworkPotential::deallocate()
 void NeuralNetworkPotential::initialize()
 {
    aev->initialize();
-   for (int i=0; i < networks.size(); i++) {
+   for (int i = 0; i < networks.size(); i++) {
       networks[i]->initialize();
    }
    waitFor(g::q0);
 }
 
-void NeuralNetworkPotential::add_component(const std::string &comp_name, const std::vector<real> &comp_prms)
+void NeuralNetworkPotential::add_component(const std::string& comp_name, const std::vector<real>& comp_prms)
 {
    // use pointers instead of raw objects for ploymorphism and better efficiency with push_back
    // use smart pointers for easy memory management
    if (comp_name == "aev") {
-      aev = std::shared_ptr<AtomicEnvironmentVectorLayer>(new AtomicEnvironmentVectorLayer(comp_prms)); 
+      aev = std::shared_ptr<AtomicEnvironmentVectorLayer>(new AtomicEnvironmentVectorLayer(comp_prms));
    } else if (comp_name == "nn") {
-      int atomic = (int) comp_prms[0];
+      int atomic = (int)comp_prms[0];
       // atomics_covered.push_back(atomic);
       networks.push_back(std::shared_ptr<NeuralNetwork>(new NeuralNetwork(atomic)));
-   } else if (comp_name == "linear"){
+   } else if (comp_name == "linear") {
       networks.back()->layers.push_back(std::shared_ptr<LinearLayer>(new LinearLayer(comp_prms)));
-   } else if (comp_name == "celu"){
+   } else if (comp_name == "celu") {
       networks.back()->layers.push_back(std::shared_ptr<CELULayer>(new CELULayer(comp_prms)));
-   } 
+   }
 }
 
-void NeuralNetworkPotential::forward(int vers, const int ngrps_nn, const int* restrict grps_nn, EnergyBuffer restrict enn)
+void NeuralNetworkPotential::forward(int vers, const int ngrps_nn, const int* restrict grps_nn,
+   EnergyBuffer restrict enn)
 {
    // auto do_e = vers & calc::energy;
    // auto do_v = vers & calc::virial;
    // auto do_g = vers & calc::grad;
    // for each network in networks, call forward
    aev->forward(vers, ngrps_nn, grps_nn, enn);
-   for (int i=0; i < networks.size(); i++) {
+   for (int i = 0; i < networks.size(); i++) {
       networks[i]->forward(vers, aev->iaev);
 
-      if (vers & calc::energy)  // forward is not always called for energy but also for when only gradient needed
-         addToEneBuf_cu(vers, enn, networks[i]->layers.back()->Z, networks[i]->layers.back()->in_dim0, nnlambda);  // any in_dim0 is ok, since all layers have the same in_dim0, which is number of atoms
+      if (vers & calc::energy) // forward is not always called for energy but also for when only gradient needed
+         addToEneBuf_cu(vers, enn, networks[i]->layers.back()->Z, networks[i]->layers.back()->in_dim0,
+            nnlambda); // any in_dim0 is ok, since all layers have the same in_dim0, which is number of atoms
    }
 }
 
-void NeuralNetworkPotential::gradient(int vers, const int ngrps_nn, const int* restrict grps_nn, 
+void NeuralNetworkPotential::gradient(int vers, const int ngrps_nn, const int* restrict grps_nn,
    grad_prec* restrict denn_x, grad_prec* restrict denn_y, grad_prec* restrict denn_z, VirialBuffer restrict vir_enn)
 {
-    // for each network in networks, call gradient
-   for (int i=0; i < networks.size(); i++) {
+   // for each network in networks, call gradient
+   for (int i = 0; i < networks.size(); i++) {
       networks[i]->gradient(vers);
    }
    // multiplied by the gradients of aev and added to the global gradients array at the same time

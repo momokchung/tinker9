@@ -1,5 +1,5 @@
-#include "ff/echarge.h"
 #include "ff/atom.h"
+#include "ff/echarge.h"
 #include "ff/image.h"
 #include "ff/nblist.h"
 #include "ff/pme.h"
