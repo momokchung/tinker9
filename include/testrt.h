@@ -177,15 +177,18 @@ std::vector<std::vector<AtomData>> readAmoebaCoordinateFile(const std::string& f
 ///
 /// \def COMPARE_GRADIENT2
 /// \brief Compares the flitered gradients[i][j] components.
-#define COMPARE_GRADIENT2(ref_grad, eps, check_ij)                                    \
-   {                                                                                  \
-      std::vector<double> gradx(n), grady(n), gradz(n);                               \
-      copyGradient(calc::grad, gradx.data(), grady.data(), gradz.data());             \
-      for (int i = 0; i < n; ++i) {                                                   \
-         if (check_ij(i, 0)) REQUIRE(gradx[i] == Approx(ref_grad[i][0]).margin(eps)); \
-         if (check_ij(i, 1)) REQUIRE(grady[i] == Approx(ref_grad[i][1]).margin(eps)); \
-         if (check_ij(i, 2)) REQUIRE(gradz[i] == Approx(ref_grad[i][2]).margin(eps)); \
-      }                                                                               \
+#define COMPARE_GRADIENT2(ref_grad, eps, check_ij)                        \
+   {                                                                      \
+      std::vector<double> gradx(n), grady(n), gradz(n);                   \
+      copyGradient(calc::grad, gradx.data(), grady.data(), gradz.data()); \
+      for (int i = 0; i < n; ++i) {                                       \
+         if (check_ij(i, 0))                                              \
+            REQUIRE(gradx[i] == Approx(ref_grad[i][0]).margin(eps));      \
+         if (check_ij(i, 1))                                              \
+            REQUIRE(grady[i] == Approx(ref_grad[i][1]).margin(eps));      \
+         if (check_ij(i, 2))                                              \
+            REQUIRE(gradz[i] == Approx(ref_grad[i][2]).margin(eps));      \
+      }                                                                   \
    }
 #define COMPARE_GRADIENT(ref_grad, eps) COMPARE_GRADIENT2(ref_grad, eps, [](int, int) { return true; })
 /// \}

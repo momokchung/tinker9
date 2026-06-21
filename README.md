@@ -35,6 +35,10 @@ We are working to merge this documentation into [tinkerdoc.](https://tinkerdoc.r
 Please use [GitHub Issues](https://github.com/TinkerTools/tinker-gpu/issues) for bug tracking and
 [GitHub Discussions](https://github.com/TinkerTools/tinker-gpu/discussions) for general discussions.
 
+<h2>Updates</h2>
+
+***05/2026*** : The AMOEBA+NN hybrid model supports molecular dynamics simulations. See the [Neural Network Potential](https://tinker9-manual.readthedocs.io/en/latest/m/key/nn.html) section of the manual for details.
+
 <h2><a href="https://github.com/TinkerTools/tinker-gpu/releases">
 Release Notes
 </a></h2>

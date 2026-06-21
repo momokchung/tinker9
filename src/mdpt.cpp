@@ -1,6 +1,7 @@
 #include "ff/energy.h"
 #include "ff/molecule.h"
 #include "ff/nblist.h"
+#include "math/matexp.h"
 #include "math/random.h"
 #include "md/integrator.h"
 #include "md/misc.h"
@@ -15,16 +16,16 @@
 #include <cmath>
 
 namespace tinker {
-TINKER_FVOID2(acc1, cu1, kineticEnergy, energy_prec&, energy_prec (&)[3][3], int n, const double*,
-   const vel_prec*, const vel_prec*, const vel_prec*);
-void kineticEnergy(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n, const double* mass,
-   const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
+TINKER_FVOID2(acc1, cu1, kineticEnergy, energy_prec&, energy_prec (&)[3][3], int n, const double*, const vel_prec*,
+   const vel_prec*, const vel_prec*);
+void kineticEnergy(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n, const double* mass, const vel_prec* vx,
+   const vel_prec* vy, const vel_prec* vz)
 {
    TINKER_FCALL2(acc1, cu1, kineticEnergy, eksum_out, ekin_out, n, mass, vx, vy, vz);
 }
 
-void kineticExplicit(T_prec& temp_out, energy_prec& eksum_out, energy_prec (&ekin_out)[3][3],
-   const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
+void kineticExplicit(T_prec& temp_out, energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], const vel_prec* vx,
+   const vel_prec* vy, const vel_prec* vz)
 {
    kineticEnergy(eksum_out, ekin_out, n, mass, vx, vy, vz);
    temp_out = 2 * eksum_out / (mdstuf::nfree * units::gasconst);
@@ -71,9 +72,9 @@ void bussiThermostat(time_prec dt_prec, T_prec temp_prec)
 
 static void invert3(double dst[3][3], const double src[3][3])
 {
-   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1]) -
-      src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0]) +
-      src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
+   double det = src[0][0] * (src[1][1] * src[2][2] - src[1][2] * src[2][1])
+      - src[0][1] * (src[1][0] * src[2][2] - src[1][2] * src[2][0])
+      + src[0][2] * (src[1][0] * src[2][1] - src[1][1] * src[2][0]);
    double invdet = 1 / det;
 
    dst[0][0] = (src[1][1] * src[2][2] - src[1][2] * src[2][1]) * invdet;
@@ -103,7 +104,7 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
    if (bath::isothermal)
       kt = units::gasconst * bath::kelvin;
    bool isotropic = true;
-   if ((aniso || semiiso) and random<double>() > bath::isoprob)
+   if ((aniso || semiiso) and random<double>() > bath::isoratio)
       isotropic = false;
 
    bool semixy = true;
@@ -222,16 +223,13 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
          l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
          l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
          if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-            a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
-               (l0 * l2);
+            a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) / (l0 * l2);
             a1 = radian * std::acos(a1);
          }
          if (box_shape == BoxShape::TRI) {
-            a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
-               (l1 * l2);
+            a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) / (l1 * l2);
             a0 = radian * std::acos(a0);
-            a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
-               (l0 * l1);
+            a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) / (l0 * l1);
             a2 = radian * std::acos(a2);
          }
          Box newbox;
@@ -286,7 +284,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
          boxSetCurrentRecip();
 
          volnew = boxVolume();
-
       }
 
       if (volscale == "MOLECULAR") {
@@ -294,7 +291,6 @@ void monteCarloBarostat(energy_prec epot, T_prec temp, bool semiiso, bool aniso)
       }
 
       copyPosToXyz();
-
    }
 
    // get the potential energy and PV work changes for trial move
@@ -357,8 +353,8 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
    if (isotropic) {
       double scale;
       if (use_berendsen) {
-         scale = 1 + (dt * bath::compress / bath::taupres) * (pres - bath::atmsph);
-         scale = std::pow(scale, third);
+         double eps = (bath::compress * dt / bath::taupres) * (pres - bath::atmsph);
+         scale = std::exp(third * eps);
       } else if (use_bussi) {
          double kt = units::gasconst * bath::kelvin;
          double betat = units::prescon * bath::compress;
@@ -384,9 +380,9 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
       if (use_berendsen) {
          double eps = third * (bath::compress * dt / bath::taupres);
          double term = 0.5 * (stress[0][0] + stress[1][1]) + (tension / lvec3.z) - bath::atmsph;
-         scalexy = 1 + eps * term;
+         scalexy = std::exp(eps * term);
          term = stress[2][2] - bath::atmsph;
-         scalez = 1 + eps * term;
+         scalez = std::exp(eps * term);
       } else if (use_bussi) {
          double kt = units::gasconst * bath::kelvin;
          double betat = units::prescon * bath::compress;
@@ -414,32 +410,36 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
       double ascale[3][3];
       if (use_berendsen) {
          double eps = third * (bath::compress * dt / bath::taupres);
+         double amat[3][3];
          for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                if (j == i) {
-                  ascale[i][j] = 1 + eps * (stress[i][j] - bath::atmsph);
+                  amat[i][j] = stress[i][j] - bath::atmsph;
                } else {
-                  ascale[i][j] = eps * stress[i][j];
+                  amat[i][j] = stress[i][j];
                }
             }
          }
+         matExp3(ascale, amat, eps);
       } else if (use_bussi) {
          double kt = units::gasconst * bath::kelvin;
          double betat = units::prescon * bath::compress;
          double eps = third * (bath::compress * dt / bath::taupres);
          double deps = std::sqrt((2 * third) * kt * betat * dt / (vol * bath::taupres));
+         double amat[3][3];
          for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                double dw = normal<double>();
                if (j == i) {
                   double term = stress[i][j] - bath::atmsph;
                   term += units::prescon * kt / vol;
-                  ascale[i][j] = 1 + eps * term + deps * dw;
+                  amat[i][j] = eps * term + deps * dw;
                } else {
-                  ascale[i][j] = eps * stress[i][j] + deps * dw;
+                  amat[i][j] = eps * stress[i][j] + deps * dw;
                }
             }
          }
+         matExp3(ascale, amat, 1.0);
       }
 
       double hbox0[3][3], hbox1[3][3];
@@ -465,16 +465,13 @@ void scaleBarostat(time_prec dt, bool semiiso, bool aniso, ScaleBaroEnum be)
       l1 = std::sqrt(hbox1[0][1] * hbox1[0][1] + hbox1[1][1] * hbox1[1][1] + hbox1[2][1] * hbox1[2][1]);
       l2 = std::sqrt(hbox1[0][2] * hbox1[0][2] + hbox1[1][2] * hbox1[1][2] + hbox1[2][2] * hbox1[2][2]);
       if (box_shape == BoxShape::MONO or box_shape == BoxShape::TRI) {
-         a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) /
-            (l0 * l2);
+         a1 = (hbox1[0][0] * hbox1[0][2] + hbox1[1][0] * hbox1[1][2] + hbox1[2][0] * hbox1[2][2]) / (l0 * l2);
          a1 = radian * std::acos(a1);
       }
       if (box_shape == BoxShape::TRI) {
-         a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) /
-            (l1 * l2);
+         a0 = (hbox1[0][1] * hbox1[0][2] + hbox1[1][1] * hbox1[1][2] + hbox1[2][1] * hbox1[2][2]) / (l1 * l2);
          a0 = radian * std::acos(a0);
-         a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) /
-            (l0 * l1);
+         a2 = (hbox1[0][0] * hbox1[0][1] + hbox1[1][0] * hbox1[1][1] + hbox1[2][0] * hbox1[2][1]) / (l0 * l1);
          a2 = radian * std::acos(a2);
       }
       Box newbox;

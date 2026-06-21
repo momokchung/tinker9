@@ -209,6 +209,8 @@ const TimeScaleConfig& respaTSConfig()
 
       {"evdw", slow},
 
+      {"ennintermol", slow},
+
       {"echarge", slow},
       {"echglj", slow},
 

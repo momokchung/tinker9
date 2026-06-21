@@ -7,8 +7,8 @@
 #include <tinker/detail/units.hh>
 
 namespace tinker {
-void kineticEnergy_acc(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n,
-   const double* mass, const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
+void kineticEnergy_acc(energy_prec& eksum_out, energy_prec (&ekin_out)[3][3], int n, const double* mass,
+   const vel_prec* vx, const vel_prec* vy, const vel_prec* vz)
 {
    const energy_prec ekcal_inv = 1.0 / units::ekcal;
    energy_prec exx = 0, eyy = 0, ezz = 0, exy = 0, eyz = 0, ezx = 0;

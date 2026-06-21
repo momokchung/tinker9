@@ -26,6 +26,7 @@ localframe2.cpp
 localframe3.cpp
 main.cpp
 mathfunc.cpp
+matexp.cpp
 nacl.cpp
 nblist.cpp
 nh.cpp
